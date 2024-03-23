@@ -1,0 +1,48 @@
+.card {
+    background: var(--bkg-card-color);
+    outline: none;
+    border: none;
+    width: 360px;
+}
+
+.card img {
+    width: 139px;
+    height: 157px;
+    object-fit: cover;
+}
+
+.card-header {
+    width: 228px;
+    border-radius: 0 1rem 1rem 0;
+    background-color: var(--bkg-card-color);
+    border: none;
+}
+
+.description {
+    font-size: 14px;
+   max-height: 42px;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+* {
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.pending {
+    background-color: var(--btn-red-color);
+}
+
+.completed-payout {
+    background-color: var(--btn-bg-selected-color);
+}
+
+.completed {
+    color: var(--btn-bg-selected-color);
+}
+
+.amount {
+    font-size: 26px;
+    font-weight: 500;
+}

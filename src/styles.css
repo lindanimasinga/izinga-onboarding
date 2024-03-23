@@ -1,0 +1,216 @@
+@font-face {
+    font-family: Calibri;
+    src: url("/assets/fonts/Calibri.ttf") format("opentype");
+}
+
+@font-face {
+    font-family: Catamaran;
+    src: url("/assets/fonts/Catamaran-Medium.ttf") format("opentype");
+}
+
+.form-control, .form-control:disabled {
+    background-color: var(--bkg-card-color);
+    color: var(--text-color);
+}
+
+.card {
+    border: none !important;
+    background: var(--bkg-card-color);
+    outline: none;
+}
+
+.page-header, a {
+    color: var(--text-color);
+}
+
+.list-group-item {
+    background-color: var(--bkg-card-color);
+    color: var(--text-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+}
+
+#main-content {
+    min-height: calc(91vh);
+}
+
+.bg-dark {
+    background-color: var(--btn-bg-color) !important;
+    color: white !important;
+}
+
+.bg-selected {
+    background-color: var(--btn-bg-selected-color) !important;
+    color: white !important;
+}
+
+.bg-not-selected {
+    background-color: white !important;
+    color: var(--btn-bg-selected-color) !important;
+}
+
+.button-dark {
+    background-color: var(--btn-bg-color) !important;
+    color: white !important;
+}
+
+.bg-light {
+    color: #494949 !important;
+}
+
+.bg-clear {
+    background-color: #ffffff00 !important;
+}
+
+.bg-light .nav-link {
+    color: var(--text-color) !important;
+    font-size: larger;
+}
+
+.product {
+    color: var(--text-color)  ;
+}
+
+mat-icon {
+    color: var(--text-color) !important;
+}
+
+.bg-ukheshe {
+    background-color: #f15b25;
+}
+
+nav .logo {
+    object-fit: cover;
+    height: 48px;
+}
+
+.payment-logo {
+    height: 20px;
+}
+
+.navbar {
+    z-index: 4;
+}
+
+.btn {
+    font-size: 1.1rem;
+    font-weight: 300;
+    border: none;
+    border-radius: 0px;
+    padding: 15px;
+}
+
+@media(max-width: 380px) {
+    .btn {
+        width: 100% !important;
+    }
+}
+
+footer {
+    padding-left: 16px;
+    padding-right: 16px;
+    background-repeat: no-repeat !important;
+    background: var(--footer-bkg-color)
+}
+
+footer * {
+    color: var(--footer-text-color);
+    font-size: 14px;
+}
+
+.footer-header {
+    font-size: 16px !important;
+    color: var(--footer-text-color);
+}
+
+html, body {
+    height: 100%;
+}
+
+a:link {
+    text-decoration: none;
+}
+
+a:visited {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
+
+.error {
+    color: red;
+    background: var(--bkg-card-color);
+}
+
+.info-message {
+    color: var(--btn-pill-color);
+    background: var(--bkg-card-color);
+}
+
+body {
+    min-height: 100vh !important;
+    background: var(--bkg-color);
+    color: var(--text-color);
+    margin: 0;
+    font-family: Catamaran;
+    --nav-bg-color: var(--bkg-card-color);
+}
+
+body {
+    --text-color: #212121;
+    --bkg-color: #F8F7F7;
+    --footer-bkg-color: #be833d;
+    --footer-text-color: white;
+    --bkg-card-color: #f3f2f2;
+    --btn-txt-color: #707070;
+    --btn-bg-color: #be833d;
+    --btn-bg-selected-color: #be833d;
+    --btn-pill-color: #1083A5;
+    --btn-red-color: #D66247;
+    --bkg-logo: url('/assets/images/izinga-logo.png')
+  }
+
+body.dark-theme {
+    --text-color: #F8F7F7;
+    --bkg-color: #212121;
+    --bkg-card-color: #2D2D2D;
+    --footer-bkg-color: #000000;
+    --footer-text-color: #eee;
+    --btn-txt-color: #2e2b2b;
+    --btn-bg-color: #be833d;
+    --btn-pill-color: #1083A5;
+    --bkg-logo: url('/assets/images/izinga-logo.png')
+  }
+
+
+
+/*animations*/
+.digit {
+    opacity: 0;
+    -webkit-transform: scale(0.9);
+       -moz-transform: scale(0.9);
+        -ms-transform: scale(0.9);
+         -o-transform: scale(0.9);
+            transform: scale(0.9);
+    -webkit-transition: all 1s ease-in-out;
+       -moz-transition: all 1s ease-in-out;
+        -ms-transition: all 1s ease-in-out;
+         -o-transition: all 1s ease-in-out;
+            transition: all 1s ease-in-out;
+  }
+  .visible {
+    opacity: 1;
+    -webkit-transform: none;
+       -moz-transform: none;
+        -ms-transform: none;
+         -o-transform: none;
+            transform: none;
+  }

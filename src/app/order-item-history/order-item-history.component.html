@@ -1,0 +1,72 @@
+<div *ngIf="order != null" class="mt-5 mb-3 d-flex justify-content-sm-center justify-content-md-start">
+    <div class="page-header h5">Order <small>{{order?.id}}</small></div> 
+</div>
+<h3><div class="order-status badge badge-info" *ngIf="order" [ngStyle]="{'background-color': statusColor(order!.stage!)}">{{statusText(order?.stage!)}}</div></h3>
+<div class="row mt-3">
+    <div *ngIf="order != null" class="col-md-6 order-md-2 mb-3">
+        <ul class="list-group mb-3">
+            <li *ngFor="let orderItem of order?.basket?.items"
+                class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                    <h6 class="my-0">{{orderItem?.quantity}} x {{orderItem?.name}}</h6>
+                    <div *ngFor="let option of orderItem?.options">
+                        <small class="text-muted">{{option.name}} : {{option.selected}}</small>
+                    </div>
+                </div>
+                <span class="text-muted">{{orderItem?.price! * orderItem?.quantity! | currency:'R'}}</span>
+            </li>
+            <div *ngIf="hasOwnDelivery">
+                    <li class="list-group-item d-flex justify-content-between lh-condensed">
+                        <div class="processing">
+                            <div class="my-2">Processing Fees</div>
+                            <div class="mb-3 small-detail">From: {{order?.shippingData?.fromAddress}}</div>
+                            <div class="mb-3 small-detail">To: {{order?.shippingData?.toAddress}}</div>
+                            <div class="small-detail">Distance: {{order?.shippingData?.distance}}km</div>
+                        </div>
+                        <span class="text-muted" *ngIf="order?.freeDelivery">{{order?.serviceFee | currency:'R'}}</span>
+                        <span class="text-muted"*ngIf="!order?.freeDelivery">{{order?.shippingData?.fee! + order?.serviceFee! | currency:'R'}}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Total (ZAR)</span>
+                        <strong>{{order?.totalAmount | currency:'R'}}</strong>
+                    </li>
+            </div>
+            <div *ngIf="!hasOwnDelivery">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Total (ZAR)</span>
+                    <strong>{{order?.basketAmount | currency:'R'}}</strong>
+                </li>
+        </div>
+        </ul>
+    </div>
+
+    <div *ngIf="customer != null" class="col-md-6 order-md-2 mb-3">
+        <ul class="list-group mb-3">
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                    <h6 class="my-0">Name</h6>
+                </div>
+                <span class="text-muted">{{customer.name}}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                    <h6 class="my-0">Mobile Number</h6>
+                </div>
+                <a [href]="'https://wa.me/'+ mobileNumber + '?text=Hello, this is Lindani from iZinga. I noticed you have tried to order. Are you having trouble?'">
+                    <span class="text-muted">{{mobileNumber}}</span></a>
+            </li>
+            <li *ngIf="customer.email != null" class="list-group-item d-flex justify-content-between lh-condensed">
+                <div>
+                    <h6 class="my-0">Email Address</h6>
+                </div>
+                <span class="text-muted">{{customer.email}}</span>
+            </li>
+        </ul>
+    </div>
+</div>
+ 
+<div class="row fixed-bottom">
+    <!-- Add New Stock Item Button -->
+        <button *ngIf="cancellable" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-red-color) !important;" (click)="cancelOrder()">Cancel Order</button>
+        <button *ngIf="updatable" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-pill-color) !important;" (click)="updateStatus()">Update Status</button>
+</div>

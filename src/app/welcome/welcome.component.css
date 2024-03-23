@@ -1,0 +1,28 @@
+h2 , h3 {
+    color: var(--text-color);
+}
+
+.welcome-logo {
+  width: 350px;
+}
+
+.badge {
+    padding: 8px;
+    margin: 4px;
+    font-size: 14px;
+}
+
+.circle {
+  height: 620px;
+  background-color: var(--btn-bg-selected-color);
+  position: absolute;
+  left: 0px;
+}
+
+.contents {
+  position: relative;
+}
+
+.welcome, .welcome h2 {
+  color: white;
+}

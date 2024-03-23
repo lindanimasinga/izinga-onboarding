@@ -1,0 +1,26 @@
+{
+  "short_name": "iZinga For Business",
+  "name": "iZinga For Business",
+  "gcm_sender_id": "315529266651",
+  "description": "The best foods in town",
+  "icons": [{
+    "src": "images/izinga-short.png",
+    "type": "image/png",
+    "sizes": "128x128"
+  }, {
+    "src": "images/izinga-short.png",
+    "type": "image/png",
+    "sizes": "152x152"
+  }, {
+    "src": "images/izinga-short.png",
+    "type": "image/png",
+    "sizes": "144x144"
+  }, {
+    "src": "images/izinga-short.png",
+    "type": "image/png",
+    "sizes": "192x192"
+  }],
+  "background_color": "#494949",
+  "theme_color": "#494949",
+  "display": "standalone"
+}

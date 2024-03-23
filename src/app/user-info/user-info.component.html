@@ -1,0 +1,106 @@
+<div class="">
+    <div class="row">
+        <div class="col order-md-1">
+            <form *ngIf="userProfile" class="needs-validation" novalidate>
+                <div class="bg-dark p-3 mb-3 border">
+                    <div *ngIf="isIOS()" class="mb-3 text-center">
+                        Click to download your unique Izinga Tip Card into Apple Wallet to effortlessly receive payment or tips from customers with a simple scan.
+                    </div>
+                    <div *ngIf="isAndroid()" class="mb-3 text-center">
+                        Click to download your unique Izinga Tip Card into Google Wallet to effortlessly receive payment or tips from customers with a simple scan.
+                    </div>
+
+                    <div *ngIf="isIOS()" class="d-flex justify-content-center">
+                        <a [href]="appleWalletUrl" target="_blank">
+                            <img id="apple-wallet-button" src="../../assets/images/US-UK_Add_to_Apple_Wallet_RGB_101421.svg" />
+                        </a>
+                    </div>
+                    <div *ngIf="isAndroid()" class="d-flex justify-content-center">
+                        <a [href]="appleWalletUrl" target="_blank">
+                            <img id="apple-wallet-button" src="../../assets/images/enZA_add_to_google_wallet_add-wallet-badge.svg" />
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-3 d-flex justify-content-center h4">Or</div>
+
+                <div class="btn btn-lg btn-block bg-dark mt-3 mb-3 shadow-sm" (click)="downloadPdf()">
+                    Download As PDF
+                </div>
+                
+                <div id="exportPdf" #exportPdf>    
+                    <div class="d-flex justify-content-center pt-3">
+                        <img src="../../assets/images/izinga-logo.png" width="160">
+                    </div>
+
+                    <div class="h2 d-flex justify-content-center pt-3">
+                    {{isStoreAdmin? 'Scan To Pay': 'TIP ME'}}
+                    </div>
+                    <div class="qrcodeImage d-flex justify-content-center pt-1">
+                        <qrcode
+                        [qrdata]="'https://tips.izinga.co.za/tip?messengerId='+ userProfile.id"
+                        [allowEmptyString]="true"
+                        [ariaLabel]="'QR Code image with the following content...'"
+                        [cssClass]="'center'"
+                        [colorDark]="'#000000'"
+                        [colorLight]="'#ffffff'"
+                        [elementType]="'canvas'"
+                        [errorCorrectionLevel]="'M'"
+                        [imageSrc]="'./assets/images/izinga-short.png'"
+                        [imageHeight]="55"
+                        [imageWidth]="55"
+                        [margin]="2"
+                        [scale]="1"
+                        [title]="'A custom title attribute'"
+                        [width]="300">
+                        </qrcode>
+                    </div>
+
+                    <div class="d-flex justify-content-center h4 text-capitalize pb-5">
+                        {{!isStoreAdmin ? userProfile.name: ''}}
+                    </div>
+                </div>
+
+                <hr class="mb-4 mt-5">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName">First name</label>
+                        <input type="text" class="form-control text-capitalize" [(ngModel)]="userProfile.name" name="name" disabled>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Cellphone Number</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [value]="userProfile.mobileNumber" name="mobileNumber" placeholder="cellphone" disabled>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Email Address</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [value]="userProfile.emailAddress" name="emailAddress"
+                            placeholder="Optional Email Address">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Tell us about your hustle?</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.description" name="roleDescription"
+                            placeholder="Waitress">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Name your city?</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.address" name="city"
+                            placeholder="Durban">
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

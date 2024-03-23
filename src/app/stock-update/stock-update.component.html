@@ -1,0 +1,66 @@
+<div>
+    <div class="row">
+        <div class="col order-md-1">
+
+            <!-- Dynamic Stock Items Section -->
+            <div class="stock-items-section mt-2">
+                <h4 class="mb-3">Manage Your Stock</h4>
+                <div id="accordion">
+
+                    <div class="stock-item-entry mb-4 p-3 border rounded">
+                        <h6>Stock Item: <strong>{{ stockItem.name }}</strong></h6>
+
+                        <div class="mb-3">
+                            <label for="stockName">Product Name</label>
+                            <input type="text" class="form-control" [(ngModel)]="stockItem.name" name="Product Name" placeholder="Enter product name" require>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="stockName">Group Name</label>
+                            <input type="text" class="form-control" [(ngModel)]="stockItem.group" name="Group Name" placeholder="Enter Group name" require>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description">Short Description</label>
+                            <input type="text" class="form-control" [(ngModel)]="stockItem.description" name="Product Description" placeholder="Brief product description">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="detailedDescription">Detailed Description</label>
+                            <textarea class="form-control" [(ngModel)]="stockItem.detailedDescription" rows="2" name="Product details" placeholder="Detailed description of the product"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="price">Price</label>
+                            <input type="number" class="form-control" [(ngModel)]="stockItem.storePrice" placeholder="Enter product price" name="Product price" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="quantity">Quantity</label>
+                            <input type="number" class="form-control" [(ngModel)]="stockItem.quantity" placeholder="Available quantity" name="Product quantity" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="stockImages">Upload Product Images</label>
+                            <input type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
+                        </div>               
+                </div>
+            </div>
+
+            <hr class="mb-4">
+            <div class="privacy-notice">
+                Your business and stock information will be securely stored. For details, please review our <a
+                    href="https://www.izinga.co.za/privacy.html" target="_blank">Privacy Policy</a>.
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<div class="row fixed-bottom">
+     <!-- Remove Stock Item Button -->
+     <button type="button" class="col btn btn-danger" (click)="removeStockItem(stockItem)">Remove Stock Item</button>
+
+    <button class="col btn btn-lg btn-block bg-dark shadow-sm" type="submit"
+                (click)="registerBusinessAndStock()">Update</button>
+</div>      

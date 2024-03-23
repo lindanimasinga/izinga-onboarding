@@ -1,0 +1,112 @@
+
+<h3 class="mb-4">Manage My Business</h3>
+<!-- Business Details Section -->
+<div class="business-details-section mb-5">
+
+    <div class="d-flex justify-content-center">
+        <img class="business-logo mb-3" [src]="shop.imageUrl">
+    </div>
+
+    <div class="mb-3">
+        <label for="businessName">Business Name</label>
+        <input type="text" class="form-control" [(ngModel)]="shop.name" name="businessName" placeholder="Enter your business name" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="businessName">Business Contact Details</label>
+        <input type="text" class="form-control" [(ngModel)]="shop.mobileNumber" name="businessContact" placeholder="Enter your business name" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="businessName">Business Address</label>
+        <input type="text" class="form-control" [(ngModel)]="shop.address" name="businessAddress" placeholder="Enter your business address" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="businessName">Business Email Address</label>
+        <input type="text" class="form-control" [(ngModel)]="shop.emailAddress" name="businessEmailAddress" placeholder="Enter your business email address" required>
+    </div>
+
+    <div class="mb-3">
+        <label for="storeType">Business Type</label>
+        <select class="form-control" [(ngModel)]="shop.storeType" name="storeType" required>
+            <option value="" disabled selected>Select your business type</option>
+            <option value="FOOD">Food</option>
+            <option value="CLOTHING">Clothing</option>
+            <option value="SALON">Salon</option>
+            <option value="CAR_WASH">Car Wash</option>
+            <option value="MOVERS">Movers</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label for="Business-logo">Upload Business Logo</label>
+        <input type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
+    </div>
+
+    <div class="mb-3">
+        <label class="mb-3" for="businessHours">Business Hours</label>
+        <div class="mb-3" *ngFor="let hours of shop.businessHours">
+            <div>{{ hours.day }}</div>
+            <div class="row d-flex align-items-center">
+                <div class="col-sm-12 col-md-6">
+                    <label class="me-2">Open:</label>
+                    <input type="time" class="form-control me-2" [ngModel]="formatTime(hours.open)" (ngModelChange)="updateTime(hours, $event, 'open')" name="openTime{{hours.day}}" required>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                    <label class="me-2">Close:</label>
+                    <input type="time" class="form-control" [ngModel]="formatTime(hours.close)" (ngModelChange)="updateTime(hours, $event, 'close')" name="closeTime{{hours.day}}" required>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--<div class="mb-3">
+        <label for="storeLogo">Upload Store Logo</label>
+        <input type="file" class="form-control" [(ngModel)]="shop.imageUrl" name="storeLogo" accept="image/*">
+    </div> -->
+
+    <div class="mb-3">
+        <label for="businessDescription">Business Description</label>
+        <textarea class="form-control" [(ngModel)]="shop.description" name="businessDescription" rows="3" placeholder="Brief description of your business"></textarea>
+    </div>
+</div>
+
+<div *ngIf="shop.id">
+    <h4 class="mb-3 d-flex align-items-center">Manage Your Stock</h4>
+    <div *ngFor="let cat of categories" class="categories">
+        <div class="accordion" id="accordionExample">
+                <div class="category"> 
+                    <div class="my-3 p-1" type="button" data-toggle="collapse" [attr.data-target]="'#'+replaceSpecialChars(cat)" aria-expanded="true" aria-controls="collapseOne">
+                        {{cat != null ? cat : 'Main'}}
+                    </div>
+                </div>
+    
+            <div [id]="replaceSpecialChars(cat)" class="collapse" [ngClass]="{'show': !cat || isPromotionCategory(cat)}" aria-labelledby="headingOne" data-parent="#accordionExample">
+                <div class="d-flex align-items-center row">
+                <div [id]="'item'+number" *ngFor="let item of shopItems(cat); let number = index"  class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <app-stock-item *ngIf="!isPromotion(item)" [shop]="shop" [shopItem]="item" [themeDark]="number%2 == 0"></app-stock-item>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div>
+    <hr class="mb-4">
+    <div class="privacy-notice">
+        Your business and stock information will be securely stored. For details, please review our <a
+            href="https://www.izinga.co.za/privacy.html" target="_blank">Privacy Policy</a>.
+    </div>
+</div>
+
+<div class="row fixed-bottom">
+    <!-- Add New Stock Item Button -->
+    <button *ngIf="shop.id" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-pill-color) !important;" routerLink="./stock">Add New Stock</button>
+
+    <button *ngIf="shop.id" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-red-color) !important;" routerLink="./order">Orders</button>
+
+    <button class="col btn btn-lg btn-block bg-dark shadow-sm" type="button" (click)="registerBusinessAndStock()">Save</button>
+</div>                

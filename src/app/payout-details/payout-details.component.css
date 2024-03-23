@@ -1,0 +1,26 @@
+.category {
+    background: var(--nav-bg-color);
+}
+
+.business-logo {
+ width: 350px;
+}
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+    color: black;
+    font-weight: bold;
+  }
+
+  

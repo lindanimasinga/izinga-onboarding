@@ -1,0 +1,19 @@
+#apple-wallet-button {
+    width: 150px;
+}
+
+.qrcodeImage {
+    display: flex;
+    flex: 1;
+  }
+  
+  /* Add custom styles here */
+  .left {
+    display: flex;
+    flex: 1;
+    justify-content: left;
+  }
+
+  #exportPdf {
+    background: black;
+  }

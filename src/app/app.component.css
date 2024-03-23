@@ -1,0 +1,8 @@
+.logo-image {
+    background-image: var(--bkg-logo);
+    height: 80px;
+    width: 160px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}

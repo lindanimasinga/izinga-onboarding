@@ -1,0 +1,30 @@
+.card {
+    background: var(--bkg-card-color);
+    outline: none;
+    border: none;
+}
+
+.card img {
+    width: 187px;
+    height: 140px;
+    object-fit: cover;
+}
+
+.card-header {
+    width: 148px;
+    border-radius: 0 1rem 1rem 0;
+    background-color: var(--bkg-card-color);
+    border: none;
+}
+
+.description {
+    font-size: 14px;
+   max-height: 42px;
+   overflow: hidden;
+   text-overflow: ellipsis;
+}
+
+* {
+    text-decoration: none;
+    color: var(--text-color);
+}

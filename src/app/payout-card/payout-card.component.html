@@ -1,0 +1,23 @@
+<a (click)="selectedPayout()" routerLink="../payout-details">
+    <div class="card">
+      <div class="d-flex justify-content-around">
+        <div>
+            <img [src]="store?.imageUrl">
+        </div>
+        <div *ngIf="pendingPayoutTotal && pendingPayoutTotal > 0" class="card-header">
+            <div class="p-1">{{store?.name}}</div>
+            <div class="pending p-1 b">Pending Payout: 
+                <div class="amount">{{pendingPayoutTotal | currency:'R':'symbol' }}</div>
+            </div>
+            <div class="completed p-1 b">Last 30 Days: {{completedPayoutTotal | currency:'R':'symbol' }}</div>
+        </div>
+        <div  *ngIf="!pendingPayoutTotal || pendingPayoutTotal == 0" class="card-header">
+            <div class="p-1">{{store?.name}}</div>
+            <div class="completed-payout p-1 b">Completed Payout: 
+                <div class="amount">{{completedPayoutTotal | currency:'R':'symbol' }}</div>
+            </div>
+            <div class="completed p-1 b">No pending payouts</div>
+        </div>
+      </div>
+    </div>
+    </a>

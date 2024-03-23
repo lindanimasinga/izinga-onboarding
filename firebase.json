@@ -1,0 +1,19 @@
+{
+  "hosting": [
+    {
+      "site": "onboarding-izinga",
+      "public": "dist/izinga-signup",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

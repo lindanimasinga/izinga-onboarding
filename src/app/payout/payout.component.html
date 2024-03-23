@@ -1,0 +1,13 @@
+<div class="pending h2 mb-1">
+    Next Payout: {{totalPending | currency:'R':'symbol' }}
+</div>
+
+<div class="completed mb-5">
+    Already Paid: {{totalPaid | currency:'R':'symbol' }}
+</div>
+
+<div class="row">
+    <div *ngFor="let store of storeEntries" class="my-3 col-12 col-md-6 col-xl-4">
+        <payout-card class="d-flex justify-content-center" [store]="store" [payouts]="payouts[store.id!]"></payout-card>
+    </div>
+</div>

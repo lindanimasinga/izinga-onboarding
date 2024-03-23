@@ -1,0 +1,9 @@
+<div class="container mt-3 mb-3 d-flex justify-content-center"><a href="#">
+    <div id="logo-image" class="logo-image" height="80px" #logoImage></div>
+  </a>
+</div>
+<div class="container">
+  <router-outlet></router-outlet>
+  <div *ngIf="errorMessage" class="error my-5 py-3 d-flex justify-content-center">{{errorMessage}}</div>
+  <div *ngIf="infoMessage" class="info-message my-5 py-3 d-flex justify-content-center">{{infoMessage}}</div>
+</div>

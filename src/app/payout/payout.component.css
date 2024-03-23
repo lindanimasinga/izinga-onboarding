@@ -1,0 +1,7 @@
+.pending {
+    font-weight: 500;
+}
+
+.completed {
+    color: var(--btn-bg-selected-color);
+}

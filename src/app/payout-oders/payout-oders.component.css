@@ -1,0 +1,15 @@
+.category {
+    background: var(--nav-bg-color);
+}
+
+.order-card {
+    background: var(--bkg-card-color);
+    height: 100px;
+    width: 346px;
+}
+
+.status {
+    width: 100px;
+    color: white;
+    background-color: var(--nav-bg-color);
+}

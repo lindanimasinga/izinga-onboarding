@@ -1,0 +1,21 @@
+<div class="my-businesses-container">
+
+    <!-- Open Shops Section -->
+    <div class="h5 mb-2 mt-3">Orders</div>
+    <div class="d-flex justify-content-center mb-3">
+        <div class="row">
+            <div *ngFor="let order of orders" class="col-md-6 col-xl-4 d-flex justify-content-center">
+                <a routerLink="../order/{{order?.id}}">
+                    <div class="order-card d-flex justify-content-between px-2 py-2 m-1">
+                        <div class="info">
+                            <div class="pb-1 text-muted">Order No. {{order?.id}}</div>
+                            <div class="pb-1 text-muted">Date. {{order?.date | date: 'd MMM y h:mma'}}</div>
+                            <div class="pb-1 text-muted">Amount. {{order?.basketAmount! | currency:'R'}}</div>
+                        </div>
+                        <div class="status d-flex justify-content-center text-center">{{stage}}</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

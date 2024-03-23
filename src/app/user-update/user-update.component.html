@@ -1,0 +1,155 @@
+<div class="">
+    <div class="row">
+        <div class="col order-md-1">
+            <form class="needs-validation mb-3" novalidate>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName">First name</label>
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" value="" #name="ngModel" required>
+                        <div *ngIf="name.invalid && (name.dirty || name.touched)">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary active" [ngClass]="{'bg-selected': hasTipCard, 'bg-not-selected': !hasTipCard}">
+                                <input type="radio" name="hasTipCard" value="true" (click)="hasTipCard = true"> I have a iZinga Tip Card | YES
+                            </label>
+                            <label class="btn btn-secondary" [ngClass]="{'bg-selected': !hasTipCard, 'bg-not-selected': hasTipCard}">
+                                <input type="radio" name="hasTipCard" value="false" (click)="hasTipCard = false"> No
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="hasTipCard" class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName">Card Id</label>
+                        <input type="text" class="form-control" [(ngModel)]="cardId" name="cardId" value="" #name="ngModel" required>
+                        </div>
+                </div>
+                <div class="mb-3">
+                    <label for="cellphone">Cellphone Number</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [value]="phoneNumber" name="mobileNumber"
+                            placeholder="cellphone" disabled>
+                        <div class="invalid-feedback" style="width: 100%;">
+                            Your cellphone number is required.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Email Address</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.emailAddress" name="emailAddress"
+                            placeholder="Optional Email Address">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cellphone">Tell us about your hustle?</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [(ngModel)]="roleDescription" name="roleDescription"
+                            placeholder="Waitress">
+                    </div>
+                </div>
+                
+                <!-- New section for adding a shop or business -->
+                <div *ngIf="!isStoreAdmin()" class="mb-3">
+                    <label>Would you like to add a shop or business on iZinga?</label>
+                    <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <label class="btn btn-secondary" [ngClass]="{'bg-selected': wantsToAddBusiness === true, 'bg-not-selected': wantsToAddBusiness === false}">
+                            <input type="radio" name="addBusiness" value="true" (click)="wantsToAddBusiness = true"> Yes
+                        </label>
+                        <label class="btn btn-secondary" [ngClass]="{'bg-selected': wantsToAddBusiness === false, 'bg-not-selected': wantsToAddBusiness === true}">
+                            <input type="radio" name="addBusiness" value="false" (click)="wantsToAddBusiness = false"> No
+                        </label>
+                    </div>
+                </div>
+                
+
+                <div class="mb-3">
+                    <label for="cellphone">Name your city or town?</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" [(ngModel)]="city" name="city"
+                            placeholder="Durban">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="">
+                        How would you like to get paid?
+                    </div>
+                </div>
+<!--[ngClass]="{'gradient-pink': !themeDark, 'gradient-blue': themeDark}-->
+                <div class="btn-group btn-group-toggle mb-3" data-toggle="buttons">
+                    <label class="btn btn-secondary active" [ngClass]="{'bg-selected': paymentType == 'EWALLET', 'bg-not-selected': paymentType != 'EWALLET'}">
+                    <input type="radio" name="paymentType" value="EWALLET" (click)="ewalletSelected()"> Ewallet
+                    </label>
+                    <label class="btn btn-secondary" [ngClass]="{'bg-selected': paymentType == 'BANK_ACC', 'bg-not-selected': paymentType != 'BANK_ACC'}">
+                    <input type="radio" name="paymentType" value="BANK_ACC" (click)="paymentType = 'BANK_ACC'"> Bank Account
+                    </label>
+                </div>
+
+                <div id="ewallet-data" *ngIf="paymentType == 'EWALLET'">
+                    <div class="mb-3">
+                        <label for="cellphone">Ewallet number to withdraw funds</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" [(ngModel)]="ewallet" name="ewallet" disabled>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cellphone">ATM</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="FNB" name="FNB" (load)="userProfile.bank.type = 'EWALLET'"
+                                disabled>
+                        </div>
+                    </div>
+                    <div class="border p-3 bg-dark">
+                        <strong>Payment Limit:</strong> Payments to a cellphone number have a daily <b>withdrawal limit of R3000</b>. If your balance exceeds R3000, the remaining amount will be paid out on the next payout day.
+                    </div>
+                </div>
+                <div id="bank-account--data" *ngIf="paymentType == 'BANK_ACC'">
+                    <div class="mb-3">
+                        <label for="cellphone">Bank Name</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cellphone">Account Number</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cellphone">Account Type</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" [(ngModel)]="userProfile.bank.type" name="Cheque">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cellphone">Branch Code</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" [(ngModel)]="userProfile.bank.branchCode" name="branch">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="mb-4">
+                <div class="">
+                    Your contact information will be stored securely to enable communication. Be assured that your details will be kept safe and will never be shared or sold to any third parties. For additional information, please refer to our privacy policy.
+                    <a href="https://www.izinga.co.za/privacy.html" target="_blank">iZinga Privacy Policy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row fixed-bottom">
+    <button *ngIf="!userExist" class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm" type="submit" (click)="createCustomer()">Register</button>
+    <button *ngIf="userExist" class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm sendCode" type="submit" (click)="updateCustomer()">Update</button>
+
+</div>
