@@ -32,10 +32,16 @@
 
 .pending {
     background-color: var(--btn-red-color);
+    color: white;
 }
 
 .completed-payout {
     background-color: var(--btn-bg-selected-color);
+    color: white;
+}
+
+.pending .amount, .completed {
+        color: white;
 }
 
 .completed {

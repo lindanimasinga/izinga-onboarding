@@ -1,17 +1,15 @@
 .shop-item-container {
-    width: 150px;
+    width: 170px;
     height: 170px;
 }
 
 .shop-item img {
-    width: 150px;
+    width: 170px;
     height: 120px;
     object-fit: cover;
 }
 
 .shop-item .details {
-    margin-left: 16px;
-    margin-right: 16px;
     font-weight: bold;
     font-size: 12px;
     z-index: 3;
@@ -19,7 +17,6 @@
 }
 
 .item-name {
-    max-height: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
 }

@@ -19,3 +19,7 @@
     background-color: #343a40; /* Slightly lighter shade for hover effect */
     cursor: pointer;
 }
+
+.menu-items .card{
+    color: white;
+}

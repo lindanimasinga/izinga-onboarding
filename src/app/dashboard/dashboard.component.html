@@ -2,31 +2,39 @@
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <h3 class="mb-5">Dashboard</h3>
-            <div class="row justify-content-center mb-5">
+            <div class="row justify-content-center mb-5 menu-items">
                 <div class="col-6 mb-3">
-                    <button class="btn btn-dark square-button" style="background-color: var(--btn-red-color);" routerLink="../user">
-                        My Profile
-                    </button>
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
+                       <div style="font-size:48px;">📈</div>
+                        <div class="fw-bold mt-2 ">My Profile</div>
+                        <div class="small ">Manage your contact information and bank account details</div>
+                    </div>
                 </div>
                 <div *ngIf="isStoreAdmin" class="col-6 mb-3">
-                    <button class="btn btn-dark square-button" style="background-color: #996216;" routerLink="../list">
-                        My Businesses
-                    </button>
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #10A59F;" routerLink="../list">
+                        <div style="font-size:48px;">🏬</div>
+                        <div class="fw-bold mt-2 ">My Shops</div>
+                        <div class="small ">List your shops, manage inventory, and track sales.</div>
+                    </div>
                 </div>
                 <div class="col-6 mb-3">
-                    <button class="btn btn-dark square-button" style="background-color: var(--btn-bg-color);" routerLink="../payout">
-                        Payouts
-                    </button>
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../payout">
+                        <div style="font-size:48px;">💰</div>
+                        <div class="fw-bold mt-2 ">Payouts</div>
+                        <div class="small ">View and manage your payout settings.</div>
+                    </div>
                 </div>
                 <div class="col-6 mb-3">
-                    <button class="btn btn-dark square-button" style="background-color: var(--btn-pill-color);" routerLink="../card">
-                        iZinga Card
-                    </button>
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../card">
+                        <div style="font-size:48px;">💳</div>
+                        <div class="fw-bold mt-2 ">iZinga Card</div>
+                        <div class="small ">View and manage your iZinga Card settings.</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <button class="btn btn-lg btn-block bg-dark mt-5 shadow-sm" type="submit" (click)="logout()">Logout</button>
+    <button class="btn btn-lg btn-block bg-dark mt-3 shadow-sm" type="submit" (click)="logout()">Logout</button>
                 
 </div>
