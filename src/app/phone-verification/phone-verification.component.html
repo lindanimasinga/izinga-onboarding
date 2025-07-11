@@ -1,14 +1,11 @@
-<div name="scrollTo" class="d-flex justify-content-sm-center justify-content-md-start">
-        <div class="page-header h5 mb-3">Register</div>
-    </div>
-    
-    <div class="">
-        <div class="mb-5">We need to verify your cellphone number is correct and active before we continue. Please
-            enter your cellphone number below. </div>
+<div class="py-4">
+    <h3 class="mb-4">Register</h3>
+    <div class="business-details-section mb-5">
 
-        <div class="mb-3">
-            <label class="h5" for="cellphone">Cellphone Number</label>
-            <div class="input-group">
+        <div class="mb-4">
+            <div class="mb-3">We need to verify your cellphone number is correct and active before we continue. Please enter your cellphone number below.</div>
+            <label class="h5 mb-2" for="cellphone">Cellphone Number</label>
+            <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text">+27</span>
                 </div>
@@ -21,23 +18,32 @@
         </div>
 
         <div id="recaptcha-container" [style.visibility]="isVerificationRequested? 'hidden': 'visible'"></div>
-        
+
         <div *ngIf="hasError" class="error my-3">{{errorMessage}}</div>
+
         <div *ngIf="isVerificationRequested" class="mb-3">
-            <div class="text-muted mb-3">We have sent you a verification code to you via sms. Please enter the code below. </div>
-            <label for="cellphone">Verification Code</label>
-            <div class="input-group">
-                <input type="text" class="form-control" [(ngModel)]="code" name="code" placeholder="000000"
-                    required>
+            <div class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
+            <label class="mb-2" for="cellphone">Verification Code</label>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>
                 <div class="invalid-feedback" style="width: 100%;">
-                    Your cellphone number is required.
+                    Verification code is required.
                 </div>
             </div>
-            <div class="text-muted mb-3 mt-3 resend" (click)="resend()">To resend click <a>here</a></div>
+            <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
         </div>
-    
-        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm sendCode" type="submit"
+
+        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
             (click)="verify()">Get Code</button>
-        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm sendCode" type="submit"
+        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
             (click)="confirmCode()">Confirm</button>
     </div>
+
+    <div>
+        <hr class="mb-4">
+        <div class="privacy-notice">
+            Your information will be securely stored. For details, please review our
+            <a href="https://www.izinga.co.za/privacy.html" target="_blank">Privacy Policy</a>.
+        </div>
+    </div>
+</div>

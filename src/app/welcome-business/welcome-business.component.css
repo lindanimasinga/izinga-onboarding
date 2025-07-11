@@ -8,17 +8,8 @@
 .card.bg-limit { background: #10A59F; }
 .card.bg-tip { background: var(--btn-pill-color); }
 
-.test {
-    --text-color: hwb(0 13% 87%);
-    --bkg-color: #F8F7F7;
-    --footer-bkg-color: #be833d;
-    --footer-text-color: white;
-    --bkg-card-color: #f3f2f2;
-    --btn-txt-color: #707070;
-    --btn-bg-color: #be833d;
-    --btn-bg-selected-color: #be833d;
-    --btn-pill-color: #1083A5;
-    --btn-red-color: #D66247;
+.card {
+    color: white;
 }
 
 /* Illustration image height */

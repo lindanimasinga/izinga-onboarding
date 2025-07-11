@@ -19,7 +19,7 @@
 
     <div class="mb-3">
         <label for="businessName">Business Address</label>
-        <input type="text" class="form-control" [(ngModel)]="shop.address" name="businessAddress" placeholder="Enter your business address" required>
+        <app-place-autocomplete [address]="shop.address!" (addressChanged)="shop.address = $event" (latitudeChanged)="shop.latitude = $event" (longitudeChanged)="shop.longitude = $event"></app-place-autocomplete>
     </div>
 
     <div class="mb-3">
