@@ -52,3 +52,22 @@
     font-size: 26px;
     font-weight: 500;
 }
+
+.payout-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.payout-card-link:hover .card,
+.payout-card-link:focus .card {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  transform: translateY(-2px) scale(1.01);
+  cursor: pointer;
+}
+.payout-card .amount {
+  font-weight: 600;
+}
+.payout-card img {
+  border: 2px solid #eee;
+}
