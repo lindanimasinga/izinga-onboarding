@@ -3,7 +3,7 @@ import { StoreProfile } from '../model/storeProfile';
 import { UserProfile } from '../model/userProfile';
 import { Device } from '../model/device';
 import { StoreSummary } from '../model/store-summary';
-import { Payout } from '/Users/lindanimasinga/gitRepos/curiousoft2/izinga-signup/src/app/payout/payout.component';
+import { Payout } from '../payout/payout.component';
 
 @Injectable({
   providedIn: 'root'

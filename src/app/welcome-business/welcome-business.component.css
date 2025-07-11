@@ -1,3 +1,44 @@
+/* Card backgrounds */
+.card.bg-growth { background: var(--btn-pill-color); }
+.card.bg-store { background: var(--btn-red-color); }
+.card.bg-payment { background: var(--btn-bg-color);}
+.card.bg-atm { background: #10A59F; }
+.card.bg-secure { background: var(--btn-pill-color); }
+.card.bg-payout { background: var(--btn-red-color); }
+.card.bg-limit { background: #10A59F; }
+.card.bg-tip { background: var(--btn-pill-color); }
+
+.test {
+    --text-color: hwb(0 13% 87%);
+    --bkg-color: #F8F7F7;
+    --footer-bkg-color: #be833d;
+    --footer-text-color: white;
+    --bkg-card-color: #f3f2f2;
+    --btn-txt-color: #707070;
+    --btn-bg-color: #be833d;
+    --btn-bg-selected-color: #be833d;
+    --btn-pill-color: #1083A5;
+    --btn-red-color: #D66247;
+}
+
+/* Illustration image height */
+.card img,
+.text-center img {
+    height: 48px;
+}
+
+.text-center img[alt="Storefront"],
+.text-center img[alt="Get Started"] {
+    width: 120px;
+    margin-bottom: 1rem;
+}
+
+/* Button style */
+.fixed-bottom .btn {
+    font-size: 1.2rem;
+}
+
+/* Heading color (optional, already present) */
 h2 {
     color: var(--text-color);
 }
