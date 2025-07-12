@@ -3,7 +3,7 @@
 }
 
 .business-logo {
- width: 350px;
+ width: 300px;
 }
   
   table {
@@ -13,13 +13,11 @@
   
   th, td {
     border: 1px solid #ddd;
-    padding: 8px;
     text-align: left;
   }
   
   th {
     background-color: #f4f4f4;
-    color: black;
     font-weight: bold;
   }
 

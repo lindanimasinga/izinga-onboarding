@@ -1,12 +1,19 @@
-<div class="my-businesses-container">
+<div class="container py-4 my-businesses-container">
 
-    <!-- Open Shops Section -->
-    <div class="h5 mb-2 mt-3">Orders</div>
-    <div class="d-flex justify-content-center mb-3">
-        <div class="row">
-            <div *ngFor="let order of orders" class="col-md-6 col-xl-4 px-2 py-2 d-flex justify-content-center">
-                <app-order-card [order]="order"></app-order-card>
-            </div>
+    <!-- Orders Section Header -->
+    <div class="mb-4">
+        <div class="h3 fw-bold mt-2" style="font-family: Catamaran, Calibri, sans-serif;">Orders</div>
+        <div class="text-muted mb-2" style="font-size: 1.1rem;">View and manage your recent orders below.</div>
+    </div>
+
+    <div class="row g-3">
+        <div *ngFor="let order of orders" class="col-12 col-md-6 col-xl-4 d-flex mb-1">
+            <app-order-card [order]="order" class="flex-fill"></app-order-card>
         </div>
+    </div>
+
+    <div *ngIf="orders?.length === 0" class="text-center text-muted mt-5" style="font-size: 1.2rem;">
+        <span style="font-size: 2rem;">📭</span>
+        <div>No orders found.</div>
     </div>
 </div>

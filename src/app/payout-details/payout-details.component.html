@@ -1,80 +1,92 @@
-<h4 class="mb-4">{{store.name}} Payouts</h4>
-<!-- Business Details Section -->
-<div class="business-details-section mb-5">
-
-    <div class="d-flex justify-content-center">
-        <img class="business-logo" [src]="store.imageUrl">
-    </div>
-</div>
-
-<ul class="list-group steps mb-3">
-  <li class="list-group-item step">💸 <strong>Daily Payouts:</strong> Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</li>
-  <li class="list-group-item step">📋 <strong>Withdrawal Limits:</strong> Payments to a cellphone number have a daily withdrawal limit of R3000. Any amount exceeding R3000 will be carried over and paid out on the next payout day.</li>
-</ul>   
-
-<h4 class="mb-4">Next Payout</h4>
-<div class="payout-list mb-4">
-  <a routerLink="../payout-orders" [queryParams]="{stage: 'PENDING'}">
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Stage</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let payout of payoutsByStage('PENDING')">
-          <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
-          <td>{{ payout.total | currency: 'R' }}</td>
-          <td>{{ payout.payoutStage }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </a>
+<div class="py-3">
+  <div class="text-center mb-">
+    <h3 class="fw-bold" style="font-family: Catamaran, Calibri, sans-serif;">{{store.name}} Payouts</h3>
+    <img class="business-logo mb-3" [src]="store.imageUrl" alt="{{store.name}}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #eee;">
+    <p class="text-muted mb-1">Manage your payouts and track your earnings.</p>
   </div>
 
-  <h4 class="mb-4">Processing</h4>
-  <div class="payout-list mb-4">
-    <a routerLink="../payout-orders" [queryParams]="{stage: 'PROCESSING'}">
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Stage</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let payout of payoutsByStage('PROCESSING')">
-            <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
-            <td>{{ payout.total | currency: 'R' }}</td>
-            <td>{{ payout.payoutStage }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </a>
-    </div> 
+  <ul class="list-group steps mb-4 mx-auto" style="max-width: 600px;">
+    <li class="list-group-item step py-3" style="font-size: 1.05rem;">💸 <strong>Daily Payouts:</strong> Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</li>
+    <li class="list-group-item step py-3" style="font-size: 1.05rem;">📋 <strong>Withdrawal Limits:</strong> Payments to a cellphone number have a daily withdrawal limit of R3000. Any amount exceeding R3000 will be carried over and paid out on the next payout day.</li>
+  </ul>   
 
-    <h4 class="mb-4 mb-4">Completed</h4>
-    <div class="payout-list">
-      <a routerLink="../payout-orders" [queryParams]="{stage: 'COMPLETED'}">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount</th>
-              <th>Stage</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let payout of payoutsByStage('COMPLETED')">
-              <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
-              <td>{{ payout.total | currency: 'R' }}</td>
-              <td>{{ payout.payoutStage }}</td>
-            </tr>
-          </tbody>
-        </table>
-        </a>
-      </div>    
-  
+  <div class="row">
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3 text-center" style="color: #be833d;">Next Payout</h5>
+          <a routerLink="../payout-orders" [queryParams]="{stage: 'PENDING'}" class="text-decoration-none">
+            <table class="table table-sm table-borderless mb-0 text-center align-middle">
+              <thead>
+                <tr style="background: #f8f7f7;">
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let payout of payoutsByStage('PENDING')">
+                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td class="fw-bold" style="color: #1083A5;">{{ payout.total | currency: 'R' }}</td>
+                  <td><span class="badge bg-warning text-dark">{{ payout.payoutStage }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3 text-center" style="color: #1083A5;">Processing</h5>
+          <a routerLink="../payout-orders" [queryParams]="{stage: 'PROCESSING'}" class="text-decoration-none">
+            <table class="table table-sm table-borderless mb-0 text-center align-middle">
+              <thead>
+                <tr style="background: #f8f7f7;">
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let payout of payoutsByStage('PROCESSING')">
+                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td class="fw-bold" style="color: #be833d;">{{ payout.total | currency: 'R' }}</td>
+                  <td><span class="badge bg-info text-dark">{{ payout.payoutStage }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="fw-bold mb-3 text-center" style="color: #198754;">Completed</h5>
+          <a routerLink="../payout-orders" [queryParams]="{stage: 'COMPLETED'}" class="text-decoration-none">
+            <table class="table table-sm table-borderless mb-0 text-center align-middle">
+              <thead>
+                <tr style="background: #f8f7f7;">
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Stage</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let payout of payoutsByStage('COMPLETED')">
+                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td class="fw-bold" style="color: #198754;">{{ payout.total | currency: 'R' }}</td>
+                  <td><span class="badge bg-success">{{ payout.payoutStage }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
