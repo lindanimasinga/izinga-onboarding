@@ -85,7 +85,7 @@
 <!--[ngClass]="{'gradient-pink': !themeDark, 'gradient-blue': themeDark}-->
                 <div class="btn-group btn-group-toggle mb-3" data-toggle="buttons">
                     <label class="btn btn-secondary active" [ngClass]="{'bg-selected': paymentType == 'EWALLET', 'bg-not-selected': paymentType != 'EWALLET'}">
-                    <input type="radio" name="paymentType" value="EWALLET" (click)="ewalletSelected()"> Ewallet
+                    <input type="radio" name="paymentType" value="EWALLET" (click)="ewalletSelected()"> Cash
                     </label>
                     <label class="btn btn-secondary" [ngClass]="{'bg-selected': paymentType == 'BANK_ACC', 'bg-not-selected': paymentType != 'BANK_ACC'}">
                     <input type="radio" name="paymentType" value="BANK_ACC" (click)="paymentType = 'BANK_ACC'"> Bank Account
@@ -94,13 +94,13 @@
 
                 <div id="ewallet-data" *ngIf="paymentType == 'EWALLET'">
                     <div class="mb-3">
-                        <label for="cellphone">Ewallet number to withdraw funds</label>
-                        <div class="input-group">
+                        <label for="cellphone" class="font-weight-bolder">Funds will be paid to your mobile number {{phoneNumber}} and can be Withdrawn on any FNB ATM</label>
+                        <div class="input-group" hidden="true">
                             <input type="text" class="form-control" [(ngModel)]="ewallet" name="ewallet" disabled>
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3" hidden="true">
                         <label for="cellphone">ATM</label>
                         <div class="input-group">
                             <input type="text" class="form-control" value="FNB" name="FNB" (load)="userProfile.bank.type = 'EWALLET'"

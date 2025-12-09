@@ -69,7 +69,7 @@ export class OrderItemHistoryComponent implements OnInit {
   }
 
   get updatable(): boolean {
-    return this.order?.stage == Order.StageEnum._1WAITINGSTORECONFIRM || this.order?.stage == Order.StageEnum._2STOREPROCESSING
+    return this.order?.stage == Order.StageEnum._1WAITINGSTORECONFIRM || this.order?.stage == Order.StageEnum._2STOREPROCESSING || this.storageService.userProfile?.role?.includes('MESSENGER')!
   }
 
   updateStatus() {
