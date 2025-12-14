@@ -29,7 +29,7 @@ const routes: Routes = [
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
-      { path: 'info', component: BusinessUpdateComponent}
+      { path: 'info', component: UserInfoComponent}
     ]},
   { path: 'business',
     children : [

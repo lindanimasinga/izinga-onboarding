@@ -51,20 +51,34 @@ export class PayoutComponent {
     var toDate = new Date()
     var fromDate = new Date(toDate.getTime() - 60 * 24 * 60 * 30 * 1000);  //60 days
 
-    this.izingaService.getAllStoresSummary(userId!)
-    .pipe(
-        mergeMap(stores => from(stores)),
-        mergeMap(store => {
-          this.stores[store.id!] = store
-          return this.izingaService.getPayouts(store.id!, fromDate, toDate, PayoutType.SHOP)
-        }),
-        filter(payouts => payouts != null && payouts.length > 0)
-    ).subscribe(payouts => {
-      var storeId = payouts[0].toId
-      this.payouts[storeId] = payouts
-    })
+    if((userProfile?.role == 'ADMIN' || userProfile?.role == 'STORE_ADMIN')) {
+      this.izingaService.getAllStoresSummary(userId!)
+      .pipe(
+          mergeMap(stores => from(stores)),
+          mergeMap(store => {
+            this.stores[store.id!] = store
+            return this.izingaService.getPayouts(store.id!, fromDate, toDate, PayoutType.SHOP)
+          }),
+          filter(payouts => payouts != null && payouts.length > 0)
+      ).subscribe(payouts => {
+        var storeId = payouts[0].toId
+        this.payouts[storeId] = payouts
+      })
+    } else {
+      this.izingaService.getPayouts(userId!, fromDate, toDate, PayoutType.MESSENGER)
+      .subscribe(payouts => {
+        payouts.forEach(payout => {
+          payout.orders.forEach(order => {
+            this.payouts[order.shopId!] = payouts
+            this.stores[order.shopId!] = {
+              id: order.shopId,
+              name: order.shippingData?.fromAddress
+            }
+          })
+        })
+      })
+    }
   }
-
 }
 
 export interface Payout {

@@ -10,13 +10,14 @@ import { Router } from '@angular/router';
 export class WelcomeSelectionComponent {
 
   constructor(private storageService: StorageService, private router: Router) {
-
   }
 
   ngOnInit(): void {
     // Scroll to top on route change
-    if (this.storageService.phoneNumber) {
+    if (this.storageService.userProfile?.role == 'ADMIN' || this.storageService.userProfile?.role == 'STORE_ADMIN') {
       this.router.navigate(['/business/dashboard'])
+    } else if(this.storageService.userProfile?.role == 'MESSENGER' || this.storageService.userProfile?.role == 'CUSTOMER') {
+      this.router.navigate(['/indivisuals/dashboard'])
     }
   }
 
