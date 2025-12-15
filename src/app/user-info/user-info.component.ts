@@ -22,6 +22,9 @@ export class UserInfoComponent {
   @ViewChild('logoImage', { static: false }) 
   logoImage?: ElementRef;
   isStoreAdmin?: boolean
+  nfcStatus: string = 'ready'  // ready, writing, reading, success, error
+  nfcMessage: string = ''
+  private nfcReader?: any  // Store NFC reader instance
 
   constructor(private izingaOrderManager: IzingaOrderManagementService,
     private router: Router,
@@ -209,23 +212,27 @@ export class UserInfoComponent {
 
   async shareViaNFC() {
     if (!this.isNFCAvailable) {
-      alert('NFC is not supported on this device');
+      this.nfcStatus = 'error';
+      this.nfcMessage = 'NFC is not supported on this device';
       return;
     }
 
     const tipLink = `https://tips.izinga.co.za/tip?messengerId=${this.userProfile?.id}`;
     
     try {
+      this.nfcStatus = 'writing';
+      this.nfcMessage = 'Preparing to write NFC tag...';
+      
       // Request NFC permission
       const nfcPermission = await (navigator as any).permissions.query({ name: 'nfc' });
       
       if (nfcPermission.state === 'denied') {
-        alert('NFC permission is denied. Please enable NFC in your browser settings.');
+        this.nfcStatus = 'error';
+        this.nfcMessage = 'NFC permission is denied. Please enable NFC in your browser settings.';
         return;
       }
 
       // Create NDEF message with the tip link
-      const encoder = new TextEncoder();
       const ndefMessage = {
         records: [{
           recordType: "url",
@@ -233,70 +240,206 @@ export class UserInfoComponent {
         }]
       };
 
+      this.nfcMessage = 'Hold your device near an NFC tag to write...';
+
       // Write to NFC tag
       const nfcWriter = new (window as any).NDEFWriter();
       await nfcWriter.write(ndefMessage);
       
-      alert('Ready to share! Tap another device to share the tip link.');
+      this.nfcStatus = 'success';
+      this.nfcMessage = 'NFC tag written successfully! Your tip link is now stored on the tag.';
+      
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        this.nfcStatus = 'ready';
+        this.nfcMessage = '';
+      }, 3000);
       
     } catch (error: any) {
       console.error('NFC write failed:', error);
+      this.nfcStatus = 'error';
       
       if (error.name === 'NotAllowedError') {
-        alert('NFC access was denied. Please grant NFC permission and try again.');
+        this.nfcMessage = 'NFC access was denied. Please grant NFC permission and try again.';
       } else if (error.name === 'NetworkError') {
-        alert('NFC is not enabled. Please enable NFC on your device.');
+        this.nfcMessage = 'NFC is not enabled. Please enable NFC on your device.';
       } else if (error.name === 'InvalidStateError') {
-        alert('NFC is busy. Please try again.');
+        this.nfcMessage = 'NFC is busy. Please try again in a moment.';
       } else {
-        alert('Failed to write NFC tag. Make sure NFC is enabled and a writable tag is nearby.');
+        this.nfcMessage = 'Failed to write NFC tag. Make sure NFC is enabled and a writable tag is nearby.';
       }
+      
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        this.nfcStatus = 'ready';
+        this.nfcMessage = '';
+      }, 3000);
     }
   }
 
   async readNFCTag() {
     if (!this.isNFCAvailable) {
-      alert('NFC is not supported on this device');
+      this.nfcStatus = 'error';
+      this.nfcMessage = 'NFC is not supported on this device';
       return;
     }
 
     try {
+      this.nfcStatus = 'reading';
+      this.nfcMessage = 'Starting NFC scanner...';
+      
       // Create NDEF reader
       const ndefReader = new (window as any).NDEFReader();
       
       // Start scanning for NFC tags
       await ndefReader.scan();
       
-      alert('Ready to scan NFC tags. Bring an NFC tag close to your device.');
+      this.nfcMessage = 'Ready to scan! Hold your device near an NFC tag.';
       
       ndefReader.addEventListener('reading', ({ message, serialNumber }: any) => {
         console.log(`NFC tag read, serial number: ${serialNumber}`);
+        
+        this.nfcMessage = 'Reading NFC tag data...';
+        
+        let foundTipLink = false;
         
         for (const record of message.records) {
           const decoder = new TextDecoder();
           const text = decoder.decode(record.data);
           
+          console.log('NFC record type:', record.recordType);
+          console.log('NFC record data:', text);
+          
           if (record.recordType === 'url' || text.includes('tips.izinga.co.za')) {
             console.log('Tip link found:', text);
+            
+            this.nfcStatus = 'success';
+            this.nfcMessage = 'Tip link found! Opening payment page...';
+            
             // Open the tip link
             window.open(text, '_blank');
+            foundTipLink = true;
+            
+            // Reset status after 2 seconds
+            setTimeout(() => {
+              this.nfcStatus = 'ready';
+              this.nfcMessage = '';
+            }, 2000);
+            
             return;
           }
         }
         
-        alert('No tip link found on this NFC tag.');
+        if (!foundTipLink) {
+          this.nfcStatus = 'error';
+          this.nfcMessage = 'No tip link found on this NFC tag. Try scanning a different tag.';
+          
+          // Reset status after 3 seconds
+          setTimeout(() => {
+            this.nfcStatus = 'ready';
+            this.nfcMessage = '';
+          }, 3000);
+        }
+      });
+      
+      ndefReader.addEventListener('readingerror', () => {
+        this.nfcStatus = 'error';
+        this.nfcMessage = 'Error reading NFC tag. Please try again.';
+        
+        setTimeout(() => {
+          this.nfcStatus = 'ready';
+          this.nfcMessage = '';
+        }, 3000);
       });
       
     } catch (error: any) {
       console.error('NFC read failed:', error);
+      this.nfcStatus = 'error';
       
       if (error.name === 'NotAllowedError') {
-        alert('NFC access was denied. Please grant NFC permission and try again.');
+        this.nfcMessage = 'NFC access was denied. Please grant NFC permission and try again.';
       } else if (error.name === 'NetworkError') {
-        alert('NFC is not enabled. Please enable NFC on your device.');
+        this.nfcMessage = 'NFC is not enabled. Please enable NFC on your device.';
       } else {
-        alert('Failed to read NFC tag. Make sure NFC is enabled.');
+        this.nfcMessage = 'Failed to read NFC tag. Make sure NFC is enabled and try again.';
       }
+      
+      // Reset status after 3 seconds
+      setTimeout(() => {
+        this.nfcStatus = 'ready';
+        this.nfcMessage = '';
+      }, 3000);
+    }
+  }
+
+  clearNFCStatus() {
+    this.nfcStatus = 'ready';
+    this.nfcMessage = '';
+  }
+
+  stopNFCScanning() {
+    if (this.nfcReader) {
+      try {
+        // Note: NDEFReader doesn't have a stop method in current spec
+        // but we can manage the state locally
+        this.clearNFCStatus();
+        console.log('NFC scanning stopped');
+      } catch (error) {
+        console.log('Error stopping NFC:', error);
+      }
+    }
+  }
+
+  // Enhanced NFC write with user data
+  async writeUserDataToNFC() {
+    if (!this.isNFCAvailable || !this.userProfile) {
+      this.nfcStatus = 'error';
+      this.nfcMessage = 'NFC not available or user profile not loaded';
+      return;
+    }
+
+    const tipLink = `https://tips.izinga.co.za/tip?messengerId=${this.userProfile.id}`;
+    
+    try {
+      this.nfcStatus = 'writing';
+      this.nfcMessage = 'Preparing to write comprehensive user data to NFC tag...';
+      
+      // Create enhanced NDEF message with multiple records
+      const ndefMessage = {
+        records: [
+          {
+            recordType: "url",
+            data: tipLink
+          },
+          {
+            recordType: "text",
+            data: `iZinga Tip Card - ${this.userProfile.name}`,
+            lang: "en"
+          },
+          {
+            recordType: "text", 
+            data: `Contact: ${this.userProfile.mobileNumber}`,
+            lang: "en"
+          }
+        ]
+      };
+
+      this.nfcMessage = 'Hold your device near an NFC tag to write user data...';
+
+      const nfcWriter = new (window as any).NDEFWriter();
+      await nfcWriter.write(ndefMessage);
+      
+      this.nfcStatus = 'success';
+      this.nfcMessage = `NFC tag written with ${this.userProfile.name}'s tip card data!`;
+      
+      setTimeout(() => this.clearNFCStatus(), 4000);
+      
+    } catch (error: any) {
+      console.error('Enhanced NFC write failed:', error);
+      this.nfcStatus = 'error';
+      this.nfcMessage = 'Failed to write enhanced user data to NFC tag.';
+      
+      setTimeout(() => this.clearNFCStatus(), 3000);
     }
   }
 

@@ -1,0 +1,138 @@
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">Terms and Conditions</h2>
+        <p class="text-muted">Please read and accept our terms to continue using iZinga</p>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h4 class="mb-3">iZinga Platform Terms of Service</h4>
+            
+            <h5 class="mt-4 mb-3">1. Platform Usage</h5>
+            <p>By using iZinga, you agree to use our platform responsibly and in accordance with South African laws and regulations.</p>
+
+            <h5 class="mt-4 mb-3">2. Prohibited Products and Services</h5>
+            <p>The following items and services are strictly prohibited on the iZinga platform:</p>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-danger">🚫 Illegal Substances</h6>
+                    <ul>
+                        <li>Drugs and narcotics</li>
+                        <li>Prescription medication without license</li>
+                        <li>Unregulated supplements</li>
+                        <li>Cannabis products (except legally licensed)</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Alcohol & Tobacco</h6>
+                    <ul>
+                        <li>Alcoholic beverages without proper licensing</li>
+                        <li>Cigarettes and tobacco products</li>
+                        <li>Vaping products and e-cigarettes</li>
+                        <li>Hookah and smoking accessories</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Weapons & Dangerous Items</h6>
+                    <ul>
+                        <li>Firearms and ammunition</li>
+                        <li>Knives and bladed weapons</li>
+                        <li>Explosives and fireworks</li>
+                        <li>Pepper spray and self-defense weapons</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Adult Content</h6>
+                    <ul>
+                        <li>Pornographic material</li>
+                        <li>Adult entertainment services</li>
+                        <li>Sexual wellness products</li>
+                        <li>Dating and escort services</li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6">
+                    <h6 class="fw-bold text-danger">🚫 Financial Services</h6>
+                    <ul>
+                        <li>Unlicensed money lending</li>
+                        <li>Investment schemes</li>
+                        <li>Cryptocurrency trading</li>
+                        <li>Gambling and betting services</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Counterfeit & Stolen Goods</h6>
+                    <ul>
+                        <li>Fake branded products</li>
+                        <li>Stolen merchandise</li>
+                        <li>Unlicensed copies of media</li>
+                        <li>Unauthorized replicas</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Illegal Services</h6>
+                    <ul>
+                        <li>Document forgery</li>
+                        <li>Identity theft services</li>
+                        <li>Hacking and cyber crimes</li>
+                        <li>Pyramid schemes</li>
+                    </ul>
+
+                    <h6 class="fw-bold text-danger">🚫 Regulated Items</h6>
+                    <ul>
+                        <li>Medical devices without certification</li>
+                        <li>Live animals and pets</li>
+                        <li>Hazardous chemicals</li>
+                        <li>Government documents</li>
+                        <li>Fake licenses or fraudulent documents</li>
+                        <li>Driver's licenses (sale or transfer prohibited)</li>
+                        <li>Unlicensed vehicles or vehicle rentals</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h5 class="mt-4 mb-3">3. User Responsibilities</h5>
+            <ul>
+                <li>Provide accurate information about products and services</li>
+                <li>Comply with all applicable South African laws</li>
+                <li>Maintain professional conduct with customers</li>
+                <li>Honor all transactions and service commitments</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">4. Payment Terms</h5>
+            <ul>
+                <li>iZinga will process payments securely</li>
+                <li>Daily payouts to registered bank accounts or mobile wallets</li>
+                <li>R3000 daily limit for mobile wallet withdrawals</li>
+                <li>Service fees may apply as disclosed</li>
+            </ul>
+
+            <h5 class="mt-4 mb-3">5. Account Termination</h5>
+            <p>iZinga reserves the right to suspend or terminate accounts that violate these terms, engage in fraudulent activities, or list prohibited items.</p>
+
+            <h5 class="mt-4 mb-3">6. Liability</h5>
+            <p>Users are responsible for their own actions and any legal consequences. iZinga is not liable for transactions between users and customers.</p>
+
+            <div class="alert alert-warning mt-4">
+                <strong>⚠️ Important Notice:</strong> Violation of these terms may result in immediate account suspension and potential legal action. Always ensure your products and services comply with South African law.
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <div class="form-check">
+                <input *ngIf="!user?.termsAccepted" class="form-check-input" type="checkbox" [(ngModel)]="termsAccepted" id="termsCheck">
+                <label class="form-check-label" for="termsCheck">
+                    I have read and agree to the Terms and Conditions above. I understand that listing prohibited items may result in account suspension.
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row fixed-bottom" *ngIf="!user?.termsAccepted">
+    <button 
+        class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm" 
+        type="submit" 
+        [disabled]="!termsAccepted"
+        (click)="acceptTerms()">
+        Accept Terms & Continue
+    </button>
+</div>

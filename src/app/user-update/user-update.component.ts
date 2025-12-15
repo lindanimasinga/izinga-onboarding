@@ -25,6 +25,7 @@ export class UserUpdateComponent {
   ewallet?: string
   paymentType = "EWALLET"
   hasTipCard = false
+  dateOfBirth?: string
   cardId?: string
   wantsToAddBusiness = false
   shopLogo?: string
@@ -88,7 +89,7 @@ export class UserUpdateComponent {
       if (this.cardId) {
         this.linkCode()
       }
-      this.router.navigate(['./info', resp.id], {relativeTo: this.route }  )
+      this.router.navigate(['./terms', resp.id], {relativeTo: this.route }  )
     }, error => console.error(error))
   }
 
@@ -202,6 +203,11 @@ export class UserUpdateComponent {
     this.izingaOrderManager.linkCard(this.userProfile, this.cardId!!).subscribe(resp => {
       console.log(`customer ${this.userProfile.id} has linked the code ${this.cardId}`)
     }, error => console.error(error))
+  }
+
+  logout() {
+    this.storageService.logout()
+    this.router.navigate(['/'])
   }
 
 }

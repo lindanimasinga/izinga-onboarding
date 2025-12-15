@@ -31,6 +31,7 @@ import { PayoutCardComponent } from './payout-card/payout-card.component';
 import { PayoutDetailsComponent } from './payout-details/payout-details.component';
 import { PayoutOdersComponent } from './payout-oders/payout-oders.component';
 import { PlaceAutocompleteComponent } from './place-autocomplete/place-autocomplete.component';
+import { TermsConditionsComponent } from './terms-conditions/terms-conditions.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import { PlaceAutocompleteComponent } from './place-autocomplete/place-autocompl
     PayoutCardComponent,
     PayoutDetailsComponent,
     PayoutOdersComponent,
-    PlaceAutocompleteComponent
+    PlaceAutocompleteComponent,
+    TermsConditionsComponent
   ],
   imports: [
     BrowserModule,

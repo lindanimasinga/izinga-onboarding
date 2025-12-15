@@ -30,6 +30,22 @@ export class DashboardComponent {
       this.isStoreAdmin = user.role == UserProfile.RoleEnum.STOREADMIN || user.role == UserProfile.RoleEnum.ADMIN
       this.user = user
       this.storageService.userProfile = user
+      
+      // Check if user has accepted terms and conditions
+      if (!user.termsAccepted) {
+        // Redirect to terms page with user ID, maintaining current route context
+        const currentUrl = this.router.url;
+        if (currentUrl.includes('/indivisuals/')) {
+          this.router.navigate(['/indivisuals/terms', user.id]);
+        } else if (currentUrl.includes('/business/')) {
+          this.router.navigate(['/business/terms', user.id]);
+        } else {
+          // Default fallback
+          this.router.navigate(['/indivisuals/terms', user.id]);
+        }
+        return;
+      }
+      
       this.updateDevice()
     })
   }

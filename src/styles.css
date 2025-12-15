@@ -112,7 +112,7 @@ footer {
     padding-left: 16px;
     padding-right: 16px;
     background-repeat: no-repeat !important;
-    background: var(--footer-bkg-color)
+    background: #b7b4af
 }
 
 footer * {
@@ -175,6 +175,7 @@ body {
     --btn-bg-selected-color: #be833d;
     --btn-pill-color: #1083A5;
     --btn-red-color: #D66247;
+    --btn-green-color: #00a9a1;
     --bkg-logo: url('/assets/images/izinga-logo.png')
   }
 

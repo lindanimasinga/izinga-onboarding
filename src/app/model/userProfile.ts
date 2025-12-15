@@ -20,6 +20,7 @@ export interface UserProfile {
     description?: string;
     id?: string;
     idNumber?: string;
+    dateOfBirth?: string;
     imageUrl: string;
     latitude?: number;
     likes?: number;
@@ -35,6 +36,8 @@ export interface UserProfile {
     servicesCompleted?: number;
     verificationCode?: string;
     yearsInService?: number;
+    termsAccepted?: boolean;
+    termsAcceptedDate?: Date;
 }
 export namespace UserProfile {
     export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'ADMIN';

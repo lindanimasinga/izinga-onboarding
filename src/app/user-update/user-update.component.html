@@ -40,6 +40,16 @@
                 </div>
 
                 <div class="mb-3">
+                    <label for="dateOfBirth">Date of Birth</label>
+                    <div class="input-group">
+                        <input type="date" class="form-control" [(ngModel)]="userProfile.dateOfBirth" name="dateOfBirth" required>
+                        <div class="invalid-feedback" style="width: 100%;">
+                            Your date of birth is required.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
                     <label for="cellphone">Email Address</label>
                     <div class="input-group">
                         <input type="text" class="form-control" [(ngModel)]="userProfile.emailAddress" name="emailAddress"
@@ -48,10 +58,22 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="cellphone">Tell us about your hustle?</label>
+                    <label for="roleDescription">Tell us about your hustle?</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" [(ngModel)]="roleDescription" name="roleDescription"
-                            placeholder="Waitress">
+                        <select class="form-control" [(ngModel)]="roleDescription" name="roleDescription" required>
+                            <option value="" disabled selected>Select your service type</option>
+                            <option value="Delivery Driver">Delivery Driver</option>
+                            <option value="Cab Driver">Cab Driver</option>
+                            <option value="Barber">Barber</option>
+                            <option value="Hairstylist">Hairstylist</option>
+                            <option value="Car Guard">Car Guard</option>
+                            <option value="Promoter">Promoter</option>
+                            <option value="Reseller">Reseller</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Builder">Builder</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                 </div>
                 
@@ -142,6 +164,9 @@
                 <div class="">
                     Your contact information will be stored securely to enable communication. Be assured that your details will be kept safe and will never be shared or sold to any third parties. For additional information, please refer to our privacy policy.
                     <a href="https://www.izinga.co.za/privacy.html" target="_blank">iZinga Privacy Policy</a>
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-lg btn-block bg-dark mt-3" type="submit" (click)="logout()" *ngIf="userExist">Logout</button>
                 </div>
             </form>
         </div>

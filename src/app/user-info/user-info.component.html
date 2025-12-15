@@ -41,10 +41,49 @@
                                 Share
                             </button>
 
-                             <button *ngIf="isNFCAvailable" class="btn btn-outline-primary btn-sm" type="button" (click)="shareViaNFC()" title="Write tip link to NFC tag" aria-label="Write to NFC">
+                             <button *ngIf="isNFCAvailable" class="btn btn-outline-primary btn-sm" type="button" (click)="shareViaNFC()" title="Write tip link to NFC tag" aria-label="Write to NFC" [disabled]="nfcStatus === 'reading' || nfcStatus === 'writing'">
                                     <i class="material-icons me-1" aria-hidden="true">nfc</i>
-                                    Receive NFC Payment
+                                    <span *ngIf="nfcStatus !== 'writing'">Write NFC Tag</span>
+                                    <span *ngIf="nfcStatus === 'writing'">Writing...</span>
                             </button>
+
+                            <button *ngIf="isNFCAvailable" class="btn btn-outline-success btn-sm" type="button" (click)="readNFCTag()" title="Read NFC tag for tip links" aria-label="Read NFC tag" [disabled]="nfcStatus === 'reading' || nfcStatus === 'writing'">
+                                    <i class="material-icons me-1" aria-hidden="true">tap_and_play</i>
+                                    <span *ngIf="nfcStatus !== 'reading'">Read NFC Tag</span>
+                                    <span *ngIf="nfcStatus === 'reading'">Scanning...</span>
+                            </button>
+                        </div>
+
+                        <!-- Advanced NFC Options -->
+                        <div *ngIf="isNFCAvailable" class="mt-2 d-flex justify-content-center">
+                            <button class="btn btn-outline-info btn-sm me-2" type="button" (click)="writeUserDataToNFC()" title="Write detailed tip card to NFC" aria-label="Write detailed NFC" [disabled]="nfcStatus === 'reading' || nfcStatus === 'writing'">
+                                <i class="material-icons me-1" aria-hidden="true">credit_card</i>
+                                <span *ngIf="nfcStatus !== 'writing'">Enhanced NFC Card</span>
+                                <span *ngIf="nfcStatus === 'writing'">Writing...</span>
+                            </button>
+
+                            <button class="btn btn-outline-secondary btn-sm" type="button" (click)="clearNFCStatus()" *ngIf="nfcMessage" title="Clear NFC status" aria-label="Clear status">
+                                <i class="material-icons me-1" aria-hidden="true">clear</i>
+                                Clear Status
+                            </button>
+                        </div>
+
+                        <!-- NFC Status Display -->
+                        <div *ngIf="nfcMessage" class="mt-3 p-3 rounded" 
+                             [ngClass]="{
+                               'alert-info': nfcStatus === 'reading' || nfcStatus === 'writing',
+                               'alert-success': nfcStatus === 'success',
+                               'alert-warning': nfcStatus === 'error'
+                             }">
+                            <div class="d-flex align-items-center">
+                                <i class="material-icons me-2" 
+                                   *ngIf="nfcStatus === 'reading' || nfcStatus === 'writing'">hourglass_empty</i>
+                                <i class="material-icons me-2" 
+                                   *ngIf="nfcStatus === 'success'">check_circle</i>
+                                <i class="material-icons me-2" 
+                                   *ngIf="nfcStatus === 'error'">error</i>
+                                <span>{{nfcMessage}}</span>
+                            </div>
                         </div>
                         
                     </div>

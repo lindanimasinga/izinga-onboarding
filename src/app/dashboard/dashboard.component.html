@@ -31,10 +31,14 @@
                         <div class="small ">Share your iZinga Card with customers for easy payments.</div>
                     </div>
                 </div>
+                <div class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);" [routerLink]="'../terms/' + user?.id">
+                        <div style="font-size:48px;">📝</div>
+                        <div class="fw-bold mt-2 ">Terms And Conditions</div>
+                        <div class="small ">Review the terms and conditions for using iZinga services.</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <button class="btn btn-lg btn-block bg-dark mt-3 shadow-sm" type="submit" (click)="logout()">Logout</button>
-                
+    </div>         
 </div>

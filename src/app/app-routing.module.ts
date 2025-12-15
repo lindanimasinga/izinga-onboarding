@@ -16,6 +16,7 @@ import { OrderItemHistoryComponent } from './order-item-history/order-item-histo
 import { PayoutComponent } from './payout/payout.component';
 import { PayoutDetailsComponent } from './payout-details/payout-details.component';
 import { PayoutOdersComponent } from './payout-oders/payout-oders.component';
+import { TermsConditionsComponent } from './terms-conditions/terms-conditions.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -29,6 +30,7 @@ const routes: Routes = [
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
+      { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
   { path: 'business',
@@ -41,6 +43,7 @@ const routes: Routes = [
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
+      { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},
       { path: 'list', component: BusinessesComponent},
