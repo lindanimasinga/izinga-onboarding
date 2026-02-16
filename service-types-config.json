@@ -1,0 +1,27 @@
+{
+        "name": "OTHER",
+        "label": "Other",
+        "mandatoryFields": [
+            {
+                "name": "mobileNumber",
+                "label": "Mobile Phone Number",
+                "dataType": "STRING"
+            },
+            {
+                "name": "description",
+                "label": "Service Description",
+                "dataType": "STRING",
+                "description": "Short description of service"
+            }
+        ],
+        "optionalFields": [
+            {
+                "name": "email",
+                "label": "Email Address",
+                "dataType": "STRING"
+            }
+        ],
+        "metadata": {
+            "signupAllowed": true
+        }
+    }

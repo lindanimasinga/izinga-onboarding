@@ -5,3 +5,111 @@
 .business-logo {
  width: 320px;
 }
+
+/* Store Rates Section Styling */
+.store-rates-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    background-color: #fafafa;
+}
+
+.store-rates-section h4 {
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.store-rates-section .material-icons {
+    color: var(--btn-bg-selected-color);
+    vertical-align: middle;
+}
+
+.store-rates-section .form-control {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.store-rates-section .form-control:focus {
+    border-color: var(--btn-bg-selected-color);
+    box-shadow: 0 0 0 0.2rem rgba(var(--btn-bg-selected-color), 0.25);
+}
+
+.store-rates-section .form-text {
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Rate Preview Section */
+.rate-preview-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 1px solid #dee2e6;
+}
+
+.rate-preview-section h6 {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.preview-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.preview-card strong {
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.preview-card .text-success {
+    color: #28a745 !important;
+    font-weight: 600;
+}
+
+.preview-card .text-warning {
+    color: #ffc107 !important;
+    font-weight: 600;
+}
+
+.preview-card .text-info {
+    color: #17a2b8 !important;
+    font-weight: 600;
+}
+
+.preview-card .text-danger {
+    color: #dc3545 !important;
+    font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .store-rates-section {
+        padding: 1rem;
+    }
+    
+    .preview-card {
+        min-height: 50px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Form validation styling */
+.store-rates-section .form-control.ng-invalid.ng-touched {
+    border-color: #dc3545;
+}
+
+.store-rates-section .form-control.ng-valid.ng-touched {
+    border-color: #28a745;
+}

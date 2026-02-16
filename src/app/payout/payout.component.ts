@@ -72,7 +72,8 @@ export class PayoutComponent {
             this.payouts[order.shopId!] = payouts
             this.stores[order.shopId!] = {
               id: order.shopId,
-              name: order.shippingData?.fromAddress
+              name: order.shippingData?.fromAddress,
+              rates: {}
             }
           })
         })

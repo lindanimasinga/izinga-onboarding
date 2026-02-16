@@ -1,0 +1,252 @@
+<div class="container-fluid p-3">
+  <div class="row">
+    <!-- Users List -->
+    <div class="col-md-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="mb-0">Pending Approvals</h4>
+        <button class="btn btn-outline-secondary btn-sm" (click)="loadPendingApprovals()" [disabled]="loading">
+          <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+
+      <div *ngIf="!loading && pendingUsers.length === 0" class="text-center py-4">
+        <i class="fa fa-check-circle fa-3x text-success mb-3"></i>
+        <h5>All caught up!</h5>
+        <p class="text-muted">No pending user approvals at the moment.</p>
+      </div>
+
+      <div class="list-group">
+        <button 
+          *ngFor="let user of pendingUsers"
+          type="button" 
+          class="list-group-item list-group-item-action"
+          [class.active]="selectedUser?.id === user.id"
+          (click)="selectUser(user)">
+          <div class="d-flex w-100 justify-content-between">
+            <div class="d-flex align-items-center">
+              <img 
+                [src]="user.imageUrl" 
+                alt="Profile" 
+                class="rounded-circle me-2"
+                style="width: 40px; height: 40px; object-fit: cover;"
+                *ngIf="user.imageUrl">
+              <div *ngIf="!user.imageUrl" 
+                   class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2"
+                   style="width: 40px; height: 40px;">
+                <i class="fa fa-user text-muted"></i>
+              </div>
+              <div>
+                <h6 class="mb-1">{{user.name || 'No Name'}}</h6>
+                <small class="text-muted">{{user.mobileNumber}}</small>
+              </div>
+            </div>
+            <small class="text-warning">
+              <i class="fa fa-clock"></i>
+            </small>
+          </div>
+          <p class="mb-1 small text-muted">{{user.description || 'No service description'}}</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="col-md-8">
+      <div *ngIf="!selectedUser" class="text-center py-5">
+        <i class="fa fa-user-check fa-3x text-muted mb-3"></i>
+        <h5>Select a user to review</h5>
+        <p class="text-muted">Choose a user from the list to view their profile details and approval status.</p>
+      </div>
+
+      <div *ngIf="selectedUser" class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Profile Review</h5>
+          <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
+        </div>
+        
+        <div class="card-body">
+          <!-- Profile Header -->
+          <div class="row mb-4">
+            <div class="col-md-3 text-center">
+              <img 
+                [src]="selectedUser.imageUrl" 
+                alt="Profile Picture" 
+                class="rounded-circle mb-2"
+                style="width: 100px; height: 100px; object-fit: cover;"
+                *ngIf="selectedUser.imageUrl">
+              <div *ngIf="!selectedUser.imageUrl" 
+                   class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto"
+                   style="width: 100px; height: 100px;">
+                <i class="fa fa-user text-muted fa-2x"></i>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <h4>{{selectedUser.name || 'No Name Provided'}}</h4>
+              <p class="text-muted mb-1">
+                <i class="fa fa-phone me-1"></i>
+                {{selectedUser.mobileNumber}}
+              </p>
+              <p class="text-muted mb-1" *ngIf="selectedUser.emailAddress">
+                <i class="fa fa-envelope me-1"></i>
+                {{selectedUser.emailAddress}}
+              </p>
+              <p class="text-muted" *ngIf="selectedUser.address">
+                <i class="fa fa-map-marker me-1"></i>
+                {{selectedUser.address}}
+              </p>
+              <span class="badge bg-warning">
+                <i class="fa fa-clock me-1"></i>
+                Pending Approval
+              </span>
+            </div>
+          </div>
+
+          <!-- Basic Information -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <h6>Basic Information</h6>
+              <table class="table table-sm">
+                <tr *ngIf="selectedUser.name">
+                  <td><strong>Name:</strong></td>
+                  <td>{{selectedUser.name}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.surname">
+                  <td><strong>Surname:</strong></td>
+                  <td>{{selectedUser.surname}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.dateOfBirth">
+                  <td><strong>Date of Birth:</strong></td>
+                  <td>{{selectedUser.dateOfBirth}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.idNumber">
+                  <td><strong>ID Number:</strong></td>
+                  <td>{{selectedUser.idNumber}}</td>
+                </tr>
+                <tr>
+                  <td><strong>Role:</strong></td>
+                  <td>{{selectedUser.role}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.description">
+                  <td><strong>Service Description:</strong></td>
+                  <td>{{selectedUser.description}}</td>
+                </tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h6>Bank Information</h6>
+              <table class="table table-sm" *ngIf="selectedUser.bank">
+                <tr>
+                  <td><strong>Type:</strong></td>
+                  <td>{{selectedUser.bank.type}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.name">
+                  <td><strong>Bank:</strong></td>
+                  <td>{{selectedUser.bank.name}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.accountId">
+                  <td><strong>Account:</strong></td>
+                  <td>{{selectedUser.bank.accountId}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.branchCode">
+                  <td><strong>Branch Code:</strong></td>
+                  <td>{{selectedUser.bank.branchCode}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Additional Fields from Tags -->
+          <div *ngIf="selectedUser.tags && Object.keys(selectedUser.tags).length > 0" class="mb-4">
+            <h6>Additional Information</h6>
+            <div class="row">
+              <div class="col-md-6" *ngFor="let tag of Object.keys(selectedUser.tags); let i = index">
+                <div class="mb-3" *ngIf="i % 2 === 0">
+                  <strong>{{tag | titlecase}}:</strong>
+                  <div class="mt-1">
+                    <span *ngIf="!isImageUrl(selectedUser.tags[tag]) && !isDocumentUrl(selectedUser.tags[tag])">
+                      {{getFieldDisplayValue(selectedUser.tags[tag])}}
+                    </span>
+                    <img 
+                      *ngIf="isImageUrl(selectedUser.tags[tag])" 
+                      [src]="selectedUser.tags[tag]" 
+                      class="img-thumbnail" 
+                      style="max-width: 150px; max-height: 100px;">
+                    <a 
+                      *ngIf="isDocumentUrl(selectedUser.tags[tag])" 
+                      [href]="selectedUser.tags[tag]" 
+                      target="_blank" 
+                      class="btn btn-sm btn-outline-primary">
+                      <i class="fa fa-download me-1"></i>
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngFor="let tag of Object.keys(selectedUser.tags); let i = index">
+                <div class="mb-3" *ngIf="i % 2 === 1">
+                  <strong>{{tag | titlecase}}:</strong>
+                  <div class="mt-1">
+                    <span *ngIf="!isImageUrl(selectedUser.tags[tag]) && !isDocumentUrl(selectedUser.tags[tag])">
+                      {{getFieldDisplayValue(selectedUser.tags[tag])}}
+                    </span>
+                    <img 
+                      *ngIf="isImageUrl(selectedUser.tags[tag])" 
+                      [src]="selectedUser.tags[tag]" 
+                      class="img-thumbnail" 
+                      style="max-width: 150px; max-height: 100px;">
+                    <a 
+                      *ngIf="isDocumentUrl(selectedUser.tags[tag])" 
+                      [href]="selectedUser.tags[tag]" 
+                      target="_blank" 
+                      class="btn btn-sm btn-outline-primary">
+                      <i class="fa fa-download me-1"></i>
+                      View Document
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed Bottom Approval Bar -->
+<div *ngIf="selectedUser" class="fixed-bottom bg-white border-top p-3 shadow">
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h6 class="mb-0">{{selectedUser.name}} - Profile Review</h6>
+        <small class="text-muted">Review all information before approving</small>
+      </div>
+      <div>
+        <button 
+          type="button" 
+          class="btn btn-outline-danger me-2" 
+          (click)="rejectUser()"
+          [disabled]="approving">
+          <i class="fa fa-times me-1"></i>
+          Reject
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-success" 
+          (click)="approveUser()"
+          [disabled]="approving">
+          <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>
+          {{approving ? 'Approving...' : 'Approve Profile'}}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add padding to prevent content from being hidden behind fixed bottom bar -->
+<div *ngIf="selectedUser" style="height: 100px;"></div>

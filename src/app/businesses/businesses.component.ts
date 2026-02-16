@@ -6,9 +6,6 @@ import { ActivatedRoute, Route, Router } from '@angular/router';
 
 import { map, mergeMap, catchError, flatMap } from 'rxjs/operators';
 import { from, Observable, of, throwError } from 'rxjs';
-import { StoreProfile } from '../model/storeProfile';
-import { Stock } from '../model/stock';
-import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { StoreSummary } from '../model/store-summary';
 

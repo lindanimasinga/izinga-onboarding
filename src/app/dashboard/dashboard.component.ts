@@ -14,6 +14,7 @@ import { Device } from '../model/device';
 export class DashboardComponent {
 
   isStoreAdmin: boolean = false
+  isAdmin: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
 
@@ -28,10 +29,11 @@ export class DashboardComponent {
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     .subscribe(user => {
       this.isStoreAdmin = user.role == UserProfile.RoleEnum.STOREADMIN || user.role == UserProfile.RoleEnum.ADMIN
+      this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
       this.user = user
       this.storageService.userProfile = user
       
-      // Check if user has accepted terms and conditions
+      // Check if user has accepted terms and conditions  
       if (!user.termsAccepted) {
         // Redirect to terms page with user ID, maintaining current route context
         const currentUrl = this.router.url;
@@ -47,6 +49,21 @@ export class DashboardComponent {
       }
       
       this.updateDevice()
+    }, error => { 
+      //if error is 404 navigate to user update
+      console.log("Error fetching user:", error)
+      if (error.status == 404) {
+        // User not found, redirect to user registration flow
+        const currentUrl = this.router.url;
+        if (currentUrl.includes('/indivisuals/')) {
+          this.router.navigate(['/indivisuals/user']);
+        } else if (currentUrl.includes('/business/')) {
+          this.router.navigate(['/business/user']);
+        } else {
+          // Default fallback
+          this.router.navigate(['/indivisuals/user']);
+        }
+      }
     })
   }
 
@@ -108,5 +125,15 @@ export class DashboardComponent {
     });
   }
 
+  setAvailabilityStatus(status: 'ONLINE' | 'AWAY' | 'OFFLINE') {
+    if (this.user) {
+      this.user.availabilityStatus = status;
+      this.izingaOrderManagementService.updateCustomer(this.user)
+      .subscribe(resp => {
+        console.log("Updated availability status to ", status)
+        alert(`Your availability status has been set to ${status}`);
+      });
+    }
+  }
 
 }

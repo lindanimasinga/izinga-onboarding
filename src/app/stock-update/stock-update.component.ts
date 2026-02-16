@@ -29,7 +29,10 @@ export class StockUpdateComponent {
       { day: 'FRIDAY', open: new Date(), close: new Date() },
       { day: 'SATURDAY', open: new Date(), close: new Date() },
       { day: 'SUNDAY', open: new Date(), close: new Date() }
-    ] as BusinessHours[]
+    ] as BusinessHours[],
+    rates: {
+      
+    }
   }
 
   stockItem: Stock = {};
@@ -136,8 +139,8 @@ export class StockUpdateComponent {
       .pipe(
         map (response => {
           console.log('File uploaded successfully:', response);
-          this.stockItem.images![0]=response.url
-          return response.url
+          this.stockItem.images![0]=response["url"]
+          return response["url"]
         })
       );
     

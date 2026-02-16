@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import {Device, UserProfile} from '../model/models'
+import {Device, UserProfile, UserConfig, DocType} from '../model/models'
 import { environment } from 'src/environments/environment';
 import { catchError } from 'rxjs/operators';
 import { UserCardLink } from '../model/user-card-link';
@@ -144,6 +144,16 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  getPendingApprovals(): Observable<UserProfile[]> {
+    return this.http
+        .get<UserProfile[]>(`${environment.izingaUrl}/user/pending-approvals`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error fetching pending approvals:', error);
+            return throwError(error);
+          }))
+  }
+
   linkCard(userProfile: UserProfile, cardId: string) : Observable<UserCardLink> {
     var userCardLink = {
       "userId": userProfile.id,
@@ -176,6 +186,15 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  getUserConfig(): Observable<Array<UserConfig>> {
+    return this.http
+        .get<Array<UserConfig>>(`${environment.izingaUrl}/user-config`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
     // New headers for file upload (multipart/form-data)
     get uploadHeaders(){
       return {
@@ -184,13 +203,29 @@ export class IzingaOrderManagementService {
     }
   
     // New method to upload a file
-    uploadFile(file: File): Observable<any> {
+    uploadFile(file: File, docType?: DocType | undefined, docMeta?: UserConfig | undefined): Observable<{[key: string]: any}> {
       const formData: FormData = new FormData();
       formData.append('file', file);
-      return this.http.post<any>(`${environment.izingaUrl}/document`, formData, {headers: this.uploadHeaders}).pipe(
+      
+      // Build URL with metadata parameter and optional docType
+      let url = `${environment.izingaUrl}/document?metadata=true`;
+      if (docType) {
+        url += `&docType=${docType}`;
+      }
+
+      if (docMeta) {
+        var dataAsString = JSON.stringify(docMeta);
+        //url encoding to handle special characters
+        dataAsString = encodeURIComponent(dataAsString);
+        url += `&docData=${dataAsString}`;
+      }
+      
+      return this.http.post<{[key: string]: any}>(url, formData, {headers: this.uploadHeaders}).pipe(
         catchError((error: HttpErrorResponse) => {
           return throwError(error);
         })
       );
     }
+
+
 }

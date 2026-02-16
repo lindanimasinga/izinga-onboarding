@@ -38,6 +38,10 @@ export interface UserProfile {
     yearsInService?: number;
     termsAccepted?: boolean;
     termsAcceptedDate?: Date;
+    availabilityStatus?: ProfileAvailabilityStatus.Availability;
+    profileApproved?: boolean;
+    profileApprovedDate?: Date;
+    tags : { [key: string]: any };
 }
 export namespace UserProfile {
     export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'ADMIN';
@@ -47,5 +51,14 @@ export namespace UserProfile {
         STORE: 'STORE' as RoleEnum,
         MESSENGER: 'MESSENGER' as RoleEnum,
         ADMIN: 'ADMIN' as RoleEnum
-    };
+    }; 
 }
+
+export namespace ProfileAvailabilityStatus {
+        export type Availability = 'ONLINE' | 'OFFLINE' | 'AWAY';
+        export const Availability = {
+            ONLINE: 'ONLINE' as Availability,
+            OFFLINE: 'OFFLINE' as Availability,
+            AWAY: 'AWAY' as Availability
+        };
+    }   

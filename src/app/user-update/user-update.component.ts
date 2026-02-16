@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { UserProfile } from '../model/models';
+import { DataType, UserConfig, UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { ActivatedRoute, Route, Router } from '@angular/router';
 
@@ -32,17 +32,24 @@ export class UserUpdateComponent {
   businessName?: string
   businessHours?: string
   storeType?: StoreProfile.StoreTypeEnum
+  
+  // Upload progress tracking
+  uploadProgress: { [key: string]: number } = {};
 
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
-    role: UserProfile.RoleEnum.CUSTOMER,
+    role: UserProfile.RoleEnum.MESSENGER,
     bank: {
       type: "EWALLET",
       name: "FNB",
       accountId: "",
       branchCode: "250655"
-    }
+    },
+    tags: {}
   }
+  
+  userConfig: Array<UserConfig> = [];
+  config?: UserConfig;
 
   constructor(private izingaOrderManager: IzingaOrderManagementService,
     private router: Router,
@@ -55,16 +62,20 @@ export class UserUpdateComponent {
   ngOnInit() {
 
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
-
     userObservable.subscribe(user => {
       this.userProfile = user
       this.storageService.userProfile = user
       if(!user.bank) user.bank = this.userProfile.bank
+      if(!user.tags) user.tags = {}; // Initialize tags if not present
       this.roleDescription = user.description
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
+      
+      // Load existing dynamic field data if present
+      this.loadExistingDynamicFields(user);
     })
+    this.loadUserConfig()
   }
 
   isStoreAdmin(): boolean {
@@ -77,7 +88,11 @@ export class UserUpdateComponent {
 
     this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
 
+    // Ensure tags field is initialized
+    this.addDynamicFieldsToProfile();
+
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
+    console.log('User profile tags:', this.userProfile.tags);
 
     this.izingaOrderManager.registerCustomer(this.userProfile)
     .pipe(
@@ -97,7 +112,12 @@ export class UserUpdateComponent {
     this.userProfile.address = this.city
     this.userProfile.description = this.roleDescription
     this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
+    
+    // Ensure tags field is initialized
+    this.addDynamicFieldsToProfile();
+    
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
+    console.log('User profile tags:', this.userProfile.tags);
 
     this.izingaOrderManager.updateCustomer(this.userProfile)
     .pipe(
@@ -207,7 +227,303 @@ export class UserUpdateComponent {
 
   logout() {
     this.storageService.logout()
-    this.router.navigate(['/'])
+    location.reload();
+  }
+
+  loadUserConfig() {
+    this.izingaOrderManager.getUserConfig()
+    .subscribe(config => {
+      console.log("Loaded user config: ", config)
+      this.userConfig = config
+    }, error => console.error("Error loading user config: ", error))
+  }
+
+  getInputType(dataType: DataType): string {
+    switch(dataType) {
+      case 'STRING':
+        return 'text'
+      case 'NUMBER':
+        return 'number'
+      case 'DATE':
+        return 'date'
+      case 'BOOLEAN':
+        return 'checkbox'
+      case 'DOCUMENT_URL':
+        return 'file'  
+      default:
+        return 'text'
+    }
+  }
+
+  getUserConfigFields(roleDescriptionLabel: string): Array<{name: string, label: string, dataType: DataType}> {
+    this.config = this.userConfig.find(config => config.label === roleDescriptionLabel)
+    console.log("Found config for role description ", roleDescriptionLabel, this.config)
+    if (this.config) {
+      return [...this.config.mandatoryFields, ...this.config.optionalFields]
+    }
+    return [] 
+  }
+
+  /**
+   * Ensure tags field exists on user profile
+   * Since we're storing data directly in tags, this just ensures the field is initialized
+   */
+  private addDynamicFieldsToProfile(): void {
+    // Initialize tags if not present
+    if (!this.userProfile.tags) {
+      this.userProfile.tags = {};
+    }
+    // Data is already stored directly in tags, so no copying needed
+  }
+
+  /**
+   * Initialize user profile tags if not present when the component loads
+   * @param user The user profile to initialize
+   */
+  private loadExistingDynamicFields(user: UserProfile): void {
+    // Simply ensure tags exist - no need to copy data since we're using tags directly
+    if (!user.tags) {
+      user.tags = {};
+    }
+  }
+
+  /**
+   * Handle file selection and upload for dynamic form fields
+   * @param event File input change event
+   * @param fieldName Name of the dynamic field
+   */
+  onFileSelect(event: any, fieldName: string): void {
+    const file = event.target.files[0];
+    if (file) {
+      console.log(`File selected for field ${fieldName}:`, file.name);
+      
+      // Initialize progress
+      this.uploadProgress[fieldName] = 0;
+      
+      // Upload file using the izinga service
+      this.izingaOrderManager.uploadFile(file, undefined, this.config).subscribe({
+        next: (response: {[key: string]: any}) => {
+          console.log(`File uploaded successfully for field ${fieldName}:`, response);
+          
+          // Store the uploaded file URL directly in userProfile.tags
+          if (!this.userProfile.tags) {
+            this.userProfile.tags = {};
+          }
+          //loop through possible keys to find url
+          for (const key of Object.keys(response)) {
+            if (response[key]) {
+              this.userProfile.tags[key] = response[key];
+              break;
+            }
+          }
+          
+          // Complete progress
+          this.uploadProgress[fieldName] = 100;
+          
+          // Remove progress indicator after a short delay
+          setTimeout(() => {
+            delete this.uploadProgress[fieldName];
+          }, 2000);
+        },
+        error: (error: any) => {
+          console.error(`Error uploading file for field ${fieldName}:`, error);
+          delete this.uploadProgress[fieldName];
+          
+          // You could add error handling UI here
+          alert(`Failed to upload file for ${fieldName}. Please try again.`);
+        }
+      });
+    }
+  }
+
+  /**
+   * Handle profile picture upload from file
+   * @param event File input change event
+   */
+  onProfilePictureSelect(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.uploadProfilePicture(file);
+    }
+  }
+
+  /**
+   * Take a selfie using device camera
+   */
+  async takeSelfie(): Promise<void> {
+    try {
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('Camera access is not supported on this device or browser');
+        return;
+      }
+
+      // Request camera access with front camera preference
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'user', // Front camera for selfie
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        },
+        audio: false
+      });
+
+      // Create video element for camera preview
+      const video = document.createElement('video');
+      video.srcObject = stream;
+      video.autoplay = true;
+      video.playsInline = true;
+
+      // Create canvas for capturing photo
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+
+      // Create modal for camera interface
+      const modal = this.createCameraModal(video, () => {
+        // Capture photo
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to blob
+        canvas.toBlob((blob) => {
+          if (blob) {
+            // Create file from blob
+            const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
+            this.uploadProfilePicture(file);
+          }
+          
+          // Clean up
+          stream.getTracks().forEach(track => track.stop());
+          modal.remove();
+        }, 'image/jpeg', 0.8);
+      }, () => {
+        // Cancel - clean up
+        stream.getTracks().forEach(track => track.stop());
+        modal.remove();
+      });
+
+      document.body.appendChild(modal);
+
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert('Unable to access camera. Please check your permissions or use file upload instead.');
+    }
+  }
+
+  /**
+   * Create camera modal interface
+   */
+  private createCameraModal(video: HTMLVideoElement, onCapture: () => void, onCancel: () => void): HTMLElement {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    `;
+
+    const container = document.createElement('div');
+    container.style.cssText = `
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 90vw;
+      max-height: 90vh;
+      text-align: center;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Take a Selfie';
+    title.style.marginBottom = '20px';
+
+    video.style.cssText = `
+      max-width: 100%;
+      max-height: 400px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    `;
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    `;
+
+    const captureBtn = document.createElement('button');
+    captureBtn.textContent = '📸 Take Photo';
+    captureBtn.className = 'btn btn-primary';
+    captureBtn.onclick = onCapture;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.className = 'btn btn-secondary';
+    cancelBtn.onclick = onCancel;
+
+    buttonContainer.appendChild(captureBtn);
+    buttonContainer.appendChild(cancelBtn);
+    
+    container.appendChild(title);
+    container.appendChild(video);
+    container.appendChild(buttonContainer);
+    modal.appendChild(container);
+
+    return modal;
+  }
+
+  /**
+   * Upload profile picture file
+   * @param file Image file to upload
+   */
+  private uploadProfilePicture(file: File): void {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (JPG, PNG, GIF, etc.)');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    console.log('Profile picture selected:', file.name);
+    
+    // Initialize progress for profile picture
+    this.uploadProgress['profilePicture'] = 0;
+    
+    // Upload file using the izinga service
+    this.izingaOrderManager.uploadFile(file, undefined, this.config).subscribe({
+      next: (response: {[key: string]: any}) => {
+        console.log('Profile picture uploaded successfully:', response);        
+
+        this.userProfile.imageUrl = response['url'];
+        console.log('Profile picture URL assigned:', this.userProfile.imageUrl);
+        
+        // Complete progress
+        this.uploadProgress['profilePicture'] = 100;
+        
+        // Remove progress indicator after a short delay to show success
+        setTimeout(() => {
+          delete this.uploadProgress['profilePicture'];
+        }, 1500);
+      },
+      error: (error: any) => {
+        console.error('Error uploading profile picture:', error);
+        delete this.uploadProgress['profilePicture'];
+        alert('Failed to upload profile picture. Please try again.');
+      }
+    });
   }
 
 }

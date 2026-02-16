@@ -11,10 +11,11 @@
  */
 import { Bank } from './bank';
 import { BusinessHours } from './businessHours';
+import { ProfileAvailabilityStatus } from './models';
 import { Stock } from './stock';
 
 
-export class StoreProfile {
+export interface StoreProfile {
     brandSecondaryColor?: string;
     brandPrimaryColor?: string;
     shortName?: string; 
@@ -48,7 +49,13 @@ export class StoreProfile {
     yearsInService?: number;
     storeOffline?: boolean;
     deliversFromMultipleAddresses?: boolean;
-    storeMessenger?: Array<StoreMessenger>
+    storeMessenger?: Array<StoreMessenger>;
+    availabilityStatus?: ProfileAvailabilityStatus.Availability;
+    generateMissingImages?: boolean;
+    rates: StoreRates;
+    profileApproved?: boolean;
+    profileApprovedDate?: Date;
+    
 }
 
 export interface StoreMessenger {
@@ -70,4 +77,12 @@ export namespace StoreProfile {
         SALON: 'SALON' as StoreTypeEnum,
         CARWASH: 'CAR_WASH' as StoreTypeEnum
     };
+}
+
+export interface StoreRates {
+    standardDeliveryPrice?: number;
+    standardDeliveryKm?: number;
+    ratePerKm?: number;
+    ratePerVolumeCM2?: number;
+    ratePerWeightKg?: number;
 }

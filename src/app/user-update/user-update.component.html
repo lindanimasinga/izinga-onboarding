@@ -2,6 +2,80 @@
     <div class="row">
         <div class="col order-md-1">
             <form class="needs-validation mb-3" novalidate>
+                                <!-- Profile Picture Section -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Profile Picture</label>
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3 position-relative">
+                                <!-- Profile Picture -->
+                                <img [src]="userProfile.imageUrl" 
+                                    alt="Profile Picture" 
+                                    class="rounded-circle"
+                                    style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #ddd;"
+                                    *ngIf="userProfile.imageUrl && !uploadProgress['profilePicture']">
+                                
+                                <!-- Loading Placeholder -->
+                                <div *ngIf="uploadProgress['profilePicture']" 
+                                    class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                    style="width: 60px; height: 60px; border: 1px solid #ddd;">
+                                    <i class="fa fa-spinner fa-spin text-muted" style="font-size: 16px;"></i>
+                                </div>
+                                
+                                <!-- Default Placeholder -->
+                                <div *ngIf="!userProfile.imageUrl && !uploadProgress['profilePicture']" 
+                                    class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+                                    style="width: 60px; height: 60px; border: 1px solid #ddd;">
+                                    <i class="fa fa-user text-muted" style="font-size: 20px;"></i>
+                                </div>
+                                
+                                <!-- Success Indicator -->
+                                <div *ngIf="userProfile.imageUrl && !uploadProgress['profilePicture']" 
+                                    class="position-absolute"
+                                    style="bottom: -2px; right: -2px;">
+                                    <span class="badge badge-success rounded-circle" style="width: 18px; height: 18px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fa fa-check" style="font-size: 10px;"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="btn-group btn-group-toggle mb-2" data-toggle="buttons">
+                                    <label class="btn btn-secondary active bg-not-selected" (click)="takeSelfie()">
+                                        
+                                        Take Selfie
+                                    </label>
+                                    <label class="btn btn-secondary active bg-not-selected" for="profilePictureInput">
+                                        Upload Photo
+                                    </label>
+                                </div>
+                                <input type="file" 
+                                    id="profilePictureInput"
+                                    class="d-none"
+                                    accept="image/*"
+                                    (change)="onProfilePictureSelect($event)">
+                                        
+                                <!-- Upload Progress -->
+                                <div *ngIf="uploadProgress['profilePicture']" class="mt-2">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar progress-bar-animated" 
+                                            [style.width.%]="uploadProgress['profilePicture']"
+                                            role="progressbar">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Uploading... {{uploadProgress['profilePicture']}}%</small>
+                                </div>
+                                
+                                <!-- Success Message -->
+                                <div *ngIf="userProfile.imageUrl && !uploadProgress['profilePicture']" class="mt-2">
+                                    <small class="text-success">
+                                        <i class="fa fa-check-circle"></i> Profile picture updated successfully
+                                    </small>
+                                </div>
+                            
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="firstName">First name</label>
@@ -59,21 +133,44 @@
 
                 <div class="mb-3">
                     <label for="roleDescription">Tell us about your hustle?</label>
-                    <div class="input-group">
+                    <div class="input-group mb-3">
                         <select class="form-control" [(ngModel)]="roleDescription" name="roleDescription" required>
                             <option value="" disabled selected>Select your service type</option>
-                            <option value="Delivery Driver">Delivery Driver</option>
-                            <option value="Cab Driver">Cab Driver</option>
-                            <option value="Barber">Barber</option>
-                            <option value="Hairstylist">Hairstylist</option>
-                            <option value="Car Guard">Car Guard</option>
-                            <option value="Promoter">Promoter</option>
-                            <option value="Reseller">Reseller</option>
-                            <option value="Plumber">Plumber</option>
-                            <option value="Electrician">Electrician</option>
-                            <option value="Builder">Builder</option>
-                            <option value="Other">Other</option>
+                            <option *ngFor="let config of userConfig" [value]="config.label">{{ config.label }}</option>
                         </select>
+                    </div>
+                    <!-- ask for the required and optional information based on the user type config selected -->
+                    <div *ngIf="roleDescription">
+                        <div *ngFor="let field of getUserConfigFields(roleDescription)" class="mb-3">
+                            <label>{{ field.label }}</label>
+                            <input 
+                                *ngIf="getInputType(field.dataType) !== 'file'"
+                                [type]="getInputType(field.dataType)" 
+                                class="form-control"
+                                [name]="field.name"
+                                [(ngModel)]="userProfile.tags[field.name]">
+                            <input 
+                                *ngIf="getInputType(field.dataType) === 'file'"
+                                type="file" 
+                                class="form-control"
+                                (change)="onFileSelect($event, field.name)"
+                                [name]="field.name"
+                                accept="image/*,.pdf,.doc,.docx">
+                            <div *ngIf="getInputType(field.dataType) === 'file' && userProfile.tags[field.name]" class="mt-2">
+                                <small class="text-success">
+                                    <i class="fa fa-check"></i> File uploaded successfully
+                                </small>
+                            </div>
+                            <div *ngIf="uploadProgress[field.name]" class="mt-2 uploadProgress">
+                                <div class="progress">
+                                    <div class="progress-bar" 
+                                         [style.width.%]="uploadProgress[field.name]" 
+                                         role="progressbar">
+                                        {{ uploadProgress[field.name] }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -92,11 +189,9 @@
                 
 
                 <div class="mb-3">
-                    <label for="cellphone">Name your city or town?</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" [(ngModel)]="city" name="city"
-                            placeholder="Durban">
-                    </div>
+                    <label for="cityPicker">Town, township or village you provide services</label>
+                    <app-place-autocomplete [address]="city!" (addressChanged)="city = $event" (latitudeChanged)="newAddressLatitude = $event" (longitudeChanged)="newAddressLongitude = $event"></app-place-autocomplete>
+                    <small class="text-muted">Search for your town, city, or village using Google Places</small>
                 </div>
 
                 <div class="mb-3">

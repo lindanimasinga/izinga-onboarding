@@ -2,6 +2,19 @@
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <h3 class="mb-5">Dashboard</h3>
+            <div *ngIf="!isStoreAdmin" class="col-md-6 mb-5">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-secondary active" [ngClass]="{'bg-selected': user?.availabilityStatus === 'ONLINE', 'bg-not-selected': user?.availabilityStatus !== 'ONLINE'}">
+                                <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> AVAILABLE
+                            </label>
+                            <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'AWAY', 'bg-not-selected': user?.availabilityStatus !== 'AWAY'}">
+                                <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('AWAY')"> AWAY
+                            </label>
+                            <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'OFFLINE', 'bg-not-selected': user?.availabilityStatus !== 'OFFLINE'}">
+                                <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('OFFLINE')"> OFFLINE
+                            </label>
+                        </div>
+            </div>
             <div class="row justify-content-center mb-5 menu-items">
                 <div class="col-6 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
@@ -15,6 +28,13 @@
                         <div style="font-size:48px;">🏬</div>
                         <div class="fw-bold mt-2 ">My Shops</div>
                         <div class="small ">List your shops, manage inventory, and track sales.</div>
+                    </div>
+                </div>
+                <div *ngIf="isStoreAdmin" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #7847d6;" routerLink="../pending-approvals">
+                        <div style="font-size:48px;">👥</div>
+                        <div class="fw-bold mt-2 ">Pending Approvals</div>
+                        <div class="small ">Review and approve user profiles awaiting verification.</div>
                     </div>
                 </div>
                 <div class="col-6 mb-3">

@@ -16,7 +16,9 @@ export class StockItemComponent implements OnInit {
   @Input()
   themeDark = false;
   @Input()
-  shop: StoreProfile = {}
+  shop: StoreProfile = {
+    rates: {}
+  }
 
   constructor() { }
 

@@ -1,0 +1,47 @@
+.list-group-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.list-group-item:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.list-group-item.active {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.card {
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.fixed-bottom {
+  z-index: 1030;
+}
+
+.img-thumbnail {
+  cursor: pointer;
+}
+
+.img-thumbnail:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+@media (max-width: 768px) {
+  .fixed-bottom .d-flex {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .fixed-bottom .d-flex > div:last-child {
+    text-align: center;
+  }
+}

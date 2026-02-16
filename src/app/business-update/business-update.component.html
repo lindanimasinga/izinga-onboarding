@@ -3,6 +3,17 @@
 <!-- Business Details Section -->
 <div class="business-details-section mb-5">
 
+    <div class="col-md-6 mb-3 d-flex justify-content-center">
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                <label class="btn btn-secondary active" [ngClass]="{'bg-selected': shop?.availabilityStatus === 'ONLINE', 'bg-not-selected': shop?.availabilityStatus !== 'ONLINE'}">
+                    <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> ONLINE
+                </label>
+                <label class="btn btn-secondary" [ngClass]="{'bg-selected': shop?.availabilityStatus === 'OFFLINE', 'bg-not-selected': shop?.availabilityStatus !== 'OFFLINE'}">
+                    <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('OFFLINE')"> OFFLINE
+                </label>
+            </div>
+    </div>
+
     <div class="d-flex justify-content-center">
         <img class="business-logo mb-3" [src]="shop.imageUrl">
     </div>
@@ -70,6 +81,137 @@
         <label for="businessDescription">Business Description</label>
         <textarea class="form-control" [(ngModel)]="shop.description" name="businessDescription" rows="3" placeholder="Brief description of your business"></textarea>
     </div>
+</div>
+
+<!-- Store Rates Section -->
+<div class="mb-5">
+    <h4 class="mb-3 d-flex align-items-center">
+        <i class="material-icons me-2">local_shipping</i>
+        Delivery Rates & Pricing
+    </h4>
+    <p class="mb-4">Set your delivery rates and pricing structure. These rates will be used to calculate delivery costs for your customers.</p>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="standardDeliveryPrice">Standard Delivery Price (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryPrice"
+                [(ngModel)]="shop.rates.standardDeliveryPrice" 
+                name="standardDeliveryPrice" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+            <small class="form-text ">Base delivery price for standard distance</small>
+        </div>
+        
+        <div class="col-md-6 mb-3">
+            <label for="standardDeliveryKm">Standard Delivery Distance (km)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryKm"
+                [(ngModel)]="shop.rates.standardDeliveryKm" 
+                name="standardDeliveryKm" 
+                placeholder="0"
+                min="0"
+                step="0.1">
+            <small class="form-text">Maximum distance for standard delivery price</small>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="ratePerKm">Rate per Kilometer (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="ratePerKm"
+                [(ngModel)]="shop.rates.ratePerKm" 
+                name="ratePerKm" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+            <small class="form-text ">Additional charge per km beyond standard distance</small>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <label for="ratePerVolumeCM2">Rate per Volume (R/cm²)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="ratePerVolumeCM2"
+                [(ngModel)]="shop.rates.ratePerVolumeCM2" 
+                name="ratePerVolumeCM2" 
+                placeholder="0.00"
+                min="0"
+                step="0.001">
+            <small class="form-text">Rate based on package volume</small>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <label for="ratePerWeightKg">Rate per Weight (R/kg)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="ratePerWeightKg"
+                [(ngModel)]="shop.rates.ratePerWeightKg" 
+                name="ratePerWeightKg" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+            <small class="form-text">Rate based on package weight</small>
+        </div>
+    </div>
+    
+    <!-- Rate Calculation Preview -->
+    <div class="">
+        <h6 class="mb-3">
+            <i class="material-icons me-2">calculate</i>
+            Rate Calculation Preview
+        </h6>
+        <div class="row text-center">
+            <div class="col-6 col-md-3 mb-2">
+                <div class="preview-card p-2 border rounded ">
+                    <strong>5km</strong><br>
+                    <span class="text-success">R{{ calculateDeliveryRate(5, 0.5, 1) | number:'1.2-2' }}</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-2">
+                <div class="preview-card p-2 border rounded">
+                    <strong>10km</strong><br>
+                    <span class="text-warning">R{{ calculateDeliveryRate(10, 1, 2) | number:'1.2-2' }}</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-2">
+                <div class="preview-card p-2 border rounded ">
+                    <strong>15km</strong><br>
+                    <span class="text-info">R{{ calculateDeliveryRate(15, 1.5, 3) | number:'1.2-2' }}</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3 mb-2">
+                <div class="preview-card p-2 border rounded ">
+                    <strong>20km</strong><br>
+                    <span class="text-danger">R{{ calculateDeliveryRate(20, 2, 5) | number:'1.2-2' }}</span>
+                </div>
+            </div>
+        </div>
+        <small class="">Preview calculations based on sample distances, volumes (cm²), and weights (kg)</small>
+    </div>
+</div>
+
+<!-- Generate Missing Images Section -->
+<div class="mb-5">
+        <label class="form-label"><strong>Generate Missing Images:</strong></label>
+        <div class="btn-group btn-group-toggle d-block" data-toggle="buttons">
+            <label class="btn btn-secondary" [ngClass]="{'bg-selected': shop.generateMissingImages === true, 'bg-not-selected': shop.generateMissingImages !== true}">
+                <input type="radio" name="generateMissingImages" [value]="true" (click)="shop.generateMissingImages = true"> YES
+            </label>
+            <label class="btn btn-secondary" [ngClass]="{'bg-selected': shop.generateMissingImages === false, 'bg-not-selected': shop.generateMissingImages !== false}">
+                <input type="radio" name="generateMissingImages" [value]="false" (click)="shop.generateMissingImages = false"> NO
+            </label>
+        </div>
 </div>
 
 <div *ngIf="shop.id">

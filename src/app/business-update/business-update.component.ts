@@ -29,7 +29,14 @@ export class BusinessUpdateComponent {
       { day: 'FRIDAY', open: new Date(), close: new Date() },
       { day: 'SATURDAY', open: new Date(), close: new Date() },
       { day: 'SUNDAY', open: new Date(), close: new Date() }
-    ] as BusinessHours[]
+    ] as BusinessHours[],
+    rates: {
+      standardDeliveryPrice: 0,
+      standardDeliveryKm: 0,
+      ratePerKm: 0,
+      ratePerVolumeCM2: 0,
+      ratePerWeightKg: 0
+    }
   }
 
   stockList: Stock[] = [];
@@ -56,6 +63,15 @@ export class BusinessUpdateComponent {
         this.categories = new Set(this.shop?.stockList?.sort((a, b) => this.isPromotion(a) ? -1 : 1).map(stk => stk.group))
         this.stockList = this.shop.stockList!
         console.log('Store details fetched successfully:', this.shop);
+        if (this.shop.rates == undefined) {
+          this.shop.rates = {
+            standardDeliveryPrice: 0,
+            standardDeliveryKm: 0,
+            ratePerKm: 0,
+            ratePerVolumeCM2: 0,
+            ratePerWeightKg: 0
+          }
+        }
       })
     })
   }
@@ -153,7 +169,7 @@ export class BusinessUpdateComponent {
     uploadImage(): Observable<string> {
       return this.izingaOrderManagementService.uploadFile(this.selectedFile!)
         .pipe(
-          map (response => {
+          map ((response: any) => {
             console.log('File uploaded successfully:', response);
             this.shop.imageUrl=response.url
             return response.url
@@ -178,6 +194,56 @@ export class BusinessUpdateComponent {
   isPromotionCategory(category: string): boolean {
     var promoTags = ["deal", "special", "promotion", "promotions", "deals", "specials", "family meals", "featured items"]
     return promoTags.includes(category?.toLowerCase())
+  }
+
+  setAvailabilityStatus(status: 'ONLINE' | 'AWAY' | 'OFFLINE') {
+    if (this.shop) {
+      this.shop.availabilityStatus = status;
+      this.izingaOrderManagementService.updateStore(this.shop)
+      .subscribe(resp => {
+        console.log("Updated availability status to ", status)
+        alert(`Your availability status has been set to ${status}`);
+      });
+    }
+  }
+
+  /**
+   * Calculate delivery rate based on distance, volume, and weight
+   * @param distance Distance in kilometers
+   * @param volumeCM2 Volume in square centimeters
+   * @param weightKg Weight in kilograms
+   * @returns Total delivery rate
+   */
+  calculateDeliveryRate(distance: number, volumeCM2: number, weightKg: number): number {
+    if (!this.shop?.rates) {
+      return 0;
+    }
+
+    const rates = this.shop.rates;
+    let totalRate = 0;
+
+    // Base delivery price for standard distance
+    if (rates.standardDeliveryPrice) {
+      totalRate += rates.standardDeliveryPrice;
+    }
+
+    // Additional rate for distance beyond standard delivery km
+    if (rates.standardDeliveryKm && rates.ratePerKm && distance > rates.standardDeliveryKm) {
+      const extraDistance = distance - rates.standardDeliveryKm;
+      totalRate += extraDistance * rates.ratePerKm;
+    }
+
+    // Volume-based rate
+    if (rates.ratePerVolumeCM2 && volumeCM2 > 0) {
+      totalRate += volumeCM2 * rates.ratePerVolumeCM2;
+    }
+
+    // Weight-based rate
+    if (rates.ratePerWeightKg && weightKg > 0) {
+      totalRate += weightKg * rates.ratePerWeightKg;
+    }
+
+    return Math.max(totalRate, 0); // Ensure rate is never negative
   }
 
 }

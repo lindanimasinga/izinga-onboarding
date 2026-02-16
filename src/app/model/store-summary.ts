@@ -12,9 +12,10 @@
 import { Bank } from './bank';
 import { BusinessHours } from './businessHours';
 import { Stock } from './stock';
+import { StoreRates } from './storeProfile';
 
 
-export class StoreSummary {
+export interface StoreSummary {
     description?: string;
     id?: string;
     imageUrl?: string;
@@ -22,6 +23,7 @@ export class StoreSummary {
     longitude?: number;
     group?: string;
     name?: string
+    rates: StoreRates;
 }
 
 export interface StoreMessenger {

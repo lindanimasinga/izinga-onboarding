@@ -5,3 +5,5 @@ export * from './profile';
 export * from './userProfile';
 export * from './current-location';
 export * from './view';
+export * from './user-config';
+export * from './doc-types';
