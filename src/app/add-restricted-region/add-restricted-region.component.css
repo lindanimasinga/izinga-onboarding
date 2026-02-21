@@ -1,0 +1,62 @@
+.google-map {
+  height: 100%;
+  width: 100%;
+}
+
+.form-range {
+  cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb {
+  background-color: #e74c3c;
+  border: 2px solid #fff;
+}
+
+.form-range::-moz-range-thumb {
+  background-color: #e74c3c;
+  border: 2px solid #fff;
+}
+
+.form-check-input:checked {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.alert-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn-danger {
+  background-color: #e74c3c;
+  border-color: #e74c3c;
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+  border-color: #c0392b;
+}
+
+.border-end {
+  border-right: 1px solid #dee2e6;
+}
+
+.text-danger {
+  color: #e74c3c !important;
+}
+
+@media (max-width: 768px) {
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100% - 1rem);
+  }
+  
+  .map-container {
+    height: 300px;
+  }
+  
+  .border-end {
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+}

@@ -31,10 +31,17 @@
                     </div>
                 </div>
                 <div *ngIf="isStoreAdmin" class="col-6 mb-3">
-                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #7847d6;" routerLink="../pending-approvals">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #00a9a1;" routerLink="../pending-approvals">
                         <div style="font-size:48px;">👥</div>
                         <div class="fw-bold mt-2 ">Pending Approvals</div>
                         <div class="small ">Review and approve user profiles awaiting verification.</div>
+                    </div>
+                </div>
+                <div *ngIf="isStoreAdmin" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #e74c3c;" routerLink="../restricted-regions">
+                        <div style="font-size:48px;">🚫</div>
+                        <div class="fw-bold mt-2 ">Restricted Regions</div>
+                        <div class="small ">Manage delivery restricted areas and regions.</div>
                     </div>
                 </div>
                 <div class="col-6 mb-3">

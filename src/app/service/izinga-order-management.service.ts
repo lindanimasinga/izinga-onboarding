@@ -208,7 +208,7 @@ export class IzingaOrderManagementService {
       formData.append('file', file);
       
       // Build URL with metadata parameter and optional docType
-      let url = `${environment.izingaUrl}/document?metadata=true`;
+      let url = `${environment.izingaUrl}/document?metadata=false`;
       if (docType) {
         url += `&docType=${docType}`;
       }
@@ -225,6 +225,63 @@ export class IzingaOrderManagementService {
           return throwError(error);
         })
       );
+    }
+
+    // Restricted Regions API methods
+    getRestrictedRegions(): Observable<any[]> {
+      return this.http.get<any[]>(`${environment.izingaUrl}/restricted-regions`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
+
+    updateRestrictedRegionStatus(regionId: string, isActive: boolean): Observable<any> {
+      return this.http.put<any>(`${environment.izingaUrl}/restricted-regions/${regionId}/status`, 
+        { isActive }, 
+        {headers: this.headers}
+      ).pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error);
+        })
+      );
+    }
+
+    deleteRestrictedRegion(regionId: string): Observable<any> {
+      return this.http.delete<any>(`${environment.izingaUrl}/restricted-regions/${regionId}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
+
+    createRestrictedRegion(regionData: any): Observable<any> {
+      return this.http.post<any>(`${environment.izingaUrl}/restricted-regions`, regionData, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
+
+    getRestrictedRegion(regionId: string): Observable<any> {
+      return this.http.get<any>(`${environment.izingaUrl}/restricted-regions/${regionId}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
+
+    updateRestrictedRegion(regionId: string, regionData: any): Observable<any> {
+      return this.http.put<any>(`${environment.izingaUrl}/restricted-regions/${regionId}`, regionData, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
     }
 
 

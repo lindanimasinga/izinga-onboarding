@@ -45,7 +45,7 @@ export class UserUpdateComponent {
       accountId: "",
       branchCode: "250655"
     },
-    tags: {}
+    tag: {}
   }
   
   userConfig: Array<UserConfig> = [];
@@ -66,7 +66,7 @@ export class UserUpdateComponent {
       this.userProfile = user
       this.storageService.userProfile = user
       if(!user.bank) user.bank = this.userProfile.bank
-      if(!user.tags) user.tags = {}; // Initialize tags if not present
+      if(!user.tag) user.tag = {}; // Initialize tags if not present
       this.roleDescription = user.description
       this.city = user.address
       this.ewallet = user.mobileNumber
@@ -92,7 +92,7 @@ export class UserUpdateComponent {
     this.addDynamicFieldsToProfile();
 
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
-    console.log('User profile tags:', this.userProfile.tags);
+    console.log('User profile tags:', this.userProfile.tag);
 
     this.izingaOrderManager.registerCustomer(this.userProfile)
     .pipe(
@@ -117,7 +117,7 @@ export class UserUpdateComponent {
     this.addDynamicFieldsToProfile();
     
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
-    console.log('User profile tags:', this.userProfile.tags);
+    console.log('User profile tags:', this.userProfile.tag);
 
     this.izingaOrderManager.updateCustomer(this.userProfile)
     .pipe(
@@ -270,8 +270,8 @@ export class UserUpdateComponent {
    */
   private addDynamicFieldsToProfile(): void {
     // Initialize tags if not present
-    if (!this.userProfile.tags) {
-      this.userProfile.tags = {};
+    if (!this.userProfile.tag) {
+      this.userProfile.tag = {};
     }
     // Data is already stored directly in tags, so no copying needed
   }
@@ -282,8 +282,8 @@ export class UserUpdateComponent {
    */
   private loadExistingDynamicFields(user: UserProfile): void {
     // Simply ensure tags exist - no need to copy data since we're using tags directly
-    if (!user.tags) {
-      user.tags = {};
+    if (!user.tag) {
+      user.tag = {};
     }
   }
 
@@ -301,18 +301,19 @@ export class UserUpdateComponent {
       this.uploadProgress[fieldName] = 0;
       
       // Upload file using the izinga service
-      this.izingaOrderManager.uploadFile(file, undefined, this.config).subscribe({
+      this.izingaOrderManager.uploadFile(file, undefined, this.config)
+      .subscribe({
         next: (response: {[key: string]: any}) => {
           console.log(`File uploaded successfully for field ${fieldName}:`, response);
           
           // Store the uploaded file URL directly in userProfile.tags
-          if (!this.userProfile.tags) {
-            this.userProfile.tags = {};
+          if (!this.userProfile.tag) {
+            this.userProfile.tag = {};
           }
           //loop through possible keys to find url
           for (const key of Object.keys(response)) {
-            if (response[key]) {
-              this.userProfile.tags[key] = response[key];
+            if (response['url']) {
+              this.userProfile.tag[fieldName] = response['url'];
               break;
             }
           }

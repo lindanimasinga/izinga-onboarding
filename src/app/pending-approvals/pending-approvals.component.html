@@ -1,4 +1,4 @@
-<div class="container-fluid p-3">
+<div>
   <div class="row">
     <!-- Users List -->
     <div class="col-md-4">
@@ -33,7 +33,7 @@
               <img 
                 [src]="user.imageUrl" 
                 alt="Profile" 
-                class="rounded-circle me-2"
+                class="rounded-circle mr-2"
                 style="width: 40px; height: 40px; object-fit: cover;"
                 *ngIf="user.imageUrl">
               <div *ngIf="!user.imageUrl" 
@@ -43,14 +43,14 @@
               </div>
               <div>
                 <h6 class="mb-1">{{user.name || 'No Name'}}</h6>
-                <small class="text-muted">{{user.mobileNumber}}</small>
+                <small class="">{{user.mobileNumber}}</small>
               </div>
             </div>
             <small class="text-warning">
               <i class="fa fa-clock"></i>
             </small>
           </div>
-          <p class="mb-1 small text-muted">{{user.description || 'No service description'}}</p>
+          <p class="mb-1 small">{{user.description || 'No service description'}}</p>
         </button>
       </div>
     </div>
@@ -111,27 +111,27 @@
             <div class="col-md-6">
               <h6>Basic Information</h6>
               <table class="table table-sm">
-                <tr *ngIf="selectedUser.name">
+                <tr *ngIf="selectedUser.name" class="text-muted">
                   <td><strong>Name:</strong></td>
                   <td>{{selectedUser.name}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.surname">
+                <tr *ngIf="selectedUser.surname" class="text-muted">
                   <td><strong>Surname:</strong></td>
                   <td>{{selectedUser.surname}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.dateOfBirth">
+                <tr *ngIf="selectedUser.dateOfBirth" class="text-muted">
                   <td><strong>Date of Birth:</strong></td>
                   <td>{{selectedUser.dateOfBirth}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.idNumber">
+                <tr *ngIf="selectedUser.idNumber" class="text-muted">
                   <td><strong>ID Number:</strong></td>
                   <td>{{selectedUser.idNumber}}</td>
                 </tr>
-                <tr>
+                <tr class="text-muted">
                   <td><strong>Role:</strong></td>
                   <td>{{selectedUser.role}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.description">
+                <tr *ngIf="selectedUser.description" class="text-muted">
                   <td><strong>Service Description:</strong></td>
                   <td>{{selectedUser.description}}</td>
                 </tr>
@@ -140,19 +140,19 @@
             <div class="col-md-6">
               <h6>Bank Information</h6>
               <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr>
+                <tr class="text-muted"> 
                   <td><strong>Type:</strong></td>
                   <td>{{selectedUser.bank.type}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.bank.name">
+                <tr *ngIf="selectedUser.bank.name" class="text-muted">
                   <td><strong>Bank:</strong></td>
                   <td>{{selectedUser.bank.name}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.bank.accountId">
+                <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
                   <td><strong>Account:</strong></td>
                   <td>{{selectedUser.bank.accountId}}</td>
                 </tr>
-                <tr *ngIf="selectedUser.bank.branchCode">
+                <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
                   <td><strong>Branch Code:</strong></td>
                   <td>{{selectedUser.bank.branchCode}}</td>
                 </tr>
@@ -160,25 +160,25 @@
             </div>
           </div>
 
-          <!-- Additional Fields from Tags -->
-          <div *ngIf="selectedUser.tags && Object.keys(selectedUser.tags).length > 0" class="mb-4">
+          <!-- Additional Fields from tag -->
+          <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
             <h6>Additional Information</h6>
             <div class="row">
-              <div class="col-md-6" *ngFor="let tag of Object.keys(selectedUser.tags); let i = index">
+              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
                 <div class="mb-3" *ngIf="i % 2 === 0">
                   <strong>{{tag | titlecase}}:</strong>
                   <div class="mt-1">
-                    <span *ngIf="!isImageUrl(selectedUser.tags[tag]) && !isDocumentUrl(selectedUser.tags[tag])">
-                      {{getFieldDisplayValue(selectedUser.tags[tag])}}
+                    <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
                     <img 
-                      *ngIf="isImageUrl(selectedUser.tags[tag])" 
-                      [src]="selectedUser.tags[tag]" 
+                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
+                      [src]="selectedUser.tag[tag]" 
                       class="img-thumbnail" 
                       style="max-width: 150px; max-height: 100px;">
                     <a 
-                      *ngIf="isDocumentUrl(selectedUser.tags[tag])" 
-                      [href]="selectedUser.tags[tag]" 
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
+                      [href]="selectedUser.tag[tag]" 
                       target="_blank" 
                       class="btn btn-sm btn-outline-primary">
                       <i class="fa fa-download me-1"></i>
@@ -187,21 +187,21 @@
                   </div>
                 </div>
               </div>
-              <div class="col-md-6" *ngFor="let tag of Object.keys(selectedUser.tags); let i = index">
+              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
                 <div class="mb-3" *ngIf="i % 2 === 1">
                   <strong>{{tag | titlecase}}:</strong>
                   <div class="mt-1">
-                    <span *ngIf="!isImageUrl(selectedUser.tags[tag]) && !isDocumentUrl(selectedUser.tags[tag])">
-                      {{getFieldDisplayValue(selectedUser.tags[tag])}}
+                    <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
                     <img 
-                      *ngIf="isImageUrl(selectedUser.tags[tag])" 
-                      [src]="selectedUser.tags[tag]" 
+                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
+                      [src]="selectedUser.tag[tag]" 
                       class="img-thumbnail" 
                       style="max-width: 150px; max-height: 100px;">
                     <a 
-                      *ngIf="isDocumentUrl(selectedUser.tags[tag])" 
-                      [href]="selectedUser.tags[tag]" 
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
+                      [href]="selectedUser.tag[tag]" 
                       target="_blank" 
                       class="btn btn-sm btn-outline-primary">
                       <i class="fa fa-download me-1"></i>
@@ -219,33 +219,18 @@
 </div>
 
 <!-- Fixed Bottom Approval Bar -->
-<div *ngIf="selectedUser" class="fixed-bottom bg-white border-top p-3 shadow">
-  <div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center">
-      <div>
-        <h6 class="mb-0">{{selectedUser.name}} - Profile Review</h6>
-        <small class="text-muted">Review all information before approving</small>
-      </div>
-      <div>
-        <button 
-          type="button" 
-          class="btn btn-outline-danger me-2" 
-          (click)="rejectUser()"
-          [disabled]="approving">
-          <i class="fa fa-times me-1"></i>
-          Reject
-        </button>
-        <button 
-          type="button" 
-          class="btn btn-success" 
-          (click)="approveUser()"
-          [disabled]="approving">
-          <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>
-          {{approving ? 'Approving...' : 'Approve Profile'}}
-        </button>
-      </div>
+
+<div class="d-flex justify-content-between align-items-center">
+    <div *ngIf="selectedUser" class="fixed-bottom">
+    <button 
+        type="button" 
+        class="btn btn-lg btn-block bg-dark" 
+        (click)="approveUser()"
+        [disabled]="approving">
+        <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>
+        {{approving ? 'Approving...' : 'Approve Profile'}}
+    </button>
     </div>
-  </div>
 </div>
 
 <!-- Add padding to prevent content from being hidden behind fixed bottom bar -->

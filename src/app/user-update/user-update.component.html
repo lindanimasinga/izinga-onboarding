@@ -148,7 +148,7 @@
                                 [type]="getInputType(field.dataType)" 
                                 class="form-control"
                                 [name]="field.name"
-                                [(ngModel)]="userProfile.tags[field.name]">
+                                [(ngModel)]="userProfile.tag[field.name]">
                             <input 
                                 *ngIf="getInputType(field.dataType) === 'file'"
                                 type="file" 
@@ -156,7 +156,7 @@
                                 (change)="onFileSelect($event, field.name)"
                                 [name]="field.name"
                                 accept="image/*,.pdf,.doc,.docx">
-                            <div *ngIf="getInputType(field.dataType) === 'file' && userProfile.tags[field.name]" class="mt-2">
+                            <div *ngIf="getInputType(field.dataType) === 'file' && userProfile.tag[field.name]" class="mt-2">
                                 <small class="text-success">
                                     <i class="fa fa-check"></i> File uploaded successfully
                                 </small>

@@ -1,0 +1,193 @@
+<!-- Add Restricted Region Page -->
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <!-- Page Header -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+          <h4 class="mb-0">{{isEditMode ? 'Edit' : 'Add'}} Restricted Region</h4>
+          <p class="text-muted mb-0">
+            {{isEditMode ? 'Update the delivery restricted area settings' : 'Create a new delivery restricted area using the map interface'}}
+          </p>
+        </div>
+        <div>
+          <button class="btn btn-outline-secondary btn-sm me-2" (click)="cancel()">
+            <i class="fa fa-times me-1"></i>
+            Cancel
+          </button>
+          <button 
+            class="btn btn-primary btn-sm" 
+            (click)="saveRegion()" 
+            [disabled]="saving || !isFormValid()">
+            <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!saving" class="fa fa-save me-1"></i>
+            {{saving ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Region' : 'Create Region')}}
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="row">
+                <!-- Map Section -->
+        <!-- Search Input -->
+        <div class="col-12 mb-3">
+            <label for="searchInput" class="form-label">Search Location</label>
+            <input 
+                #searchInput
+                type="text" 
+                class="form-control" 
+                placeholder="Search for a place in South Africa..."
+                autocomplete="off">
+            <small class="text-muted">Search and select a location to auto-fill coordinates</small>
+        </div>
+                      <!-- Radius -->
+              <div class="col-12 mb-3">
+                <label for="radius" class="form-label">
+                  Restriction Radius:  {{newRegion.radius}}m
+                </label>
+                <input 
+                  type="range" 
+                  id="radius"
+                  class="form-range" 
+                  min="100"
+                  max="10000"
+                  step="100"
+                  [(ngModel)]="newRegion.radius"
+                  (ngModelChange)="onRadiusChange()">
+                <div class="d-flex justify-content-between small text-muted">
+                  <span>100m</span>
+                  <span>10km</span>
+                </div>
+              </div>
+        <div class="col-12">
+          <div class="">
+              <div #mapContainer class="google-map" style="min-height: 400px;"></div>
+              <div class="position-absolute top-0 start-0 m-3">
+                <div class="alert alert-warning alert-sm mb-0">
+                  <i class="fa fa-info-circle me-1"></i>
+                  <small>Click anywhere on the map to set the restriction center</small>
+                </div>
+              </div>
+            </div>
+        </div>
+        <!-- Form Section -->
+        <div class="col-12">
+          <div class=" h-100">
+            <div class="card-header">
+              <h5 class="card-title mb-0">
+                <i class="fa fa-edit me-2"></i>Region Details
+              </h5>
+            </div>
+            <div class="">
+
+              <!-- Region Name -->
+              <div class="mb-3">
+                <label for="regionName" class="form-label">Region Name *</label>
+                <input 
+                  type="text" 
+                  id="regionName"
+                  class="form-control" 
+                  [(ngModel)]="newRegion.name"
+                  placeholder="Enter region name"
+                  required>
+              </div>
+
+              <!-- Description -->
+              <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea 
+                  id="description"
+                  class="form-control" 
+                  rows="3"
+                  [(ngModel)]="newRegion.description"
+                  placeholder="Optional description for this restriction"></textarea>
+              </div>
+
+              <!-- Coordinates -->
+              <div class="mb-3">
+                <label class="form-label">Coordinates</label>
+                <div class="row">
+                  <div class="col-6">
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="newRegion.center.latitude"
+                      (ngModelChange)="onCoordinateChange()"
+                      placeholder="Latitude"
+                      step="0.0001"
+                      min="-35"
+                      max="-22">
+                  </div>
+                  <div class="col-6">
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      [(ngModel)]="newRegion.center.longitude"
+                      (ngModelChange)="onCoordinateChange()"
+                      placeholder="Longitude"
+                      step="0.0001"
+                      min="16"
+                      max="33">
+                  </div>
+                </div>
+                <small class="text-muted">Click on the map to set coordinates</small>
+              </div>
+
+              <!-- Status -->
+              <div class="mb-3">
+                <div class="form-check form-switch">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="isActive"
+                    [(ngModel)]="newRegion.isActive">
+                  <label class="form-check-label" for="isActive">
+                    Active Region
+                  </label>
+                </div>
+                <small class="text-muted">Inactive regions won't restrict deliveries</small>
+              </div>
+
+              <!-- Current Location Display -->
+              <div class="alert alert-info">
+                <small>
+                  <strong>Selected Location:</strong><br>
+                  {{getCurrentLocationName()}}
+                  <br>
+                  <strong>Radius:</strong> {{newRegion.radius}}m
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="row mt-3">
+        <div class="col-12">
+          <div class="alert alert-light">
+            <h6 class="alert-heading">
+              <i class="fa fa-info-circle me-1"></i>How to use:
+            </h6>
+            <ul class="mb-0 small">
+              <li>Search for a location using the search box or enter coordinates manually</li>
+              <li>Click on the map to set the center point of the restricted region</li>
+              <li>Drag the marker to fine-tune the position</li>
+              <li>Adjust the radius using the slider to define the restricted area size</li>
+              <li>The red circle shows the exact area that will be restricted for deliveries</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button 
+    class="btn btn-lg btn-block bg-dark fixed-bottom" 
+    (click)="saveRegion()" 
+    [disabled]="saving || !isFormValid()">
+    <span *ngIf="saving" class="spinner-border spinner-border-sm me-1"></span>
+    <i *ngIf="!saving" class="fa fa-save me-1"></i>
+    {{saving ? 'Saving...' : 'Save'}}
+</button>

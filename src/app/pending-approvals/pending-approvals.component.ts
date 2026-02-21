@@ -108,4 +108,8 @@ export class PendingApprovalsComponent implements OnInit {
     if (typeof value !== 'string') return false;
     return value.startsWith('http') && !this.isImageUrl(value);
   }
+
+  getObjectKeys(obj: any): string[] {
+    return Object.keys(obj || {});
+  }
 }

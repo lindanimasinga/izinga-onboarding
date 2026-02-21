@@ -32,6 +32,9 @@ import { PayoutDetailsComponent } from './payout-details/payout-details.componen
 import { PayoutOdersComponent } from './payout-oders/payout-oders.component';
 import { PlaceAutocompleteComponent } from './place-autocomplete/place-autocomplete.component';
 import { TermsConditionsComponent } from './terms-conditions/terms-conditions.component';
+import { PendingApprovalsComponent } from './pending-approvals/pending-approvals.component';
+import { RestrictedRegionsComponent } from './restricted-regions/restricted-regions.component';
+import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
 
 @NgModule({
   declarations: [
@@ -56,7 +59,10 @@ import { TermsConditionsComponent } from './terms-conditions/terms-conditions.co
     PayoutDetailsComponent,
     PayoutOdersComponent,
     PlaceAutocompleteComponent,
-    TermsConditionsComponent
+    TermsConditionsComponent,
+    PendingApprovalsComponent,
+    RestrictedRegionsComponent,
+    AddRestrictedRegionComponent
   ],
   imports: [
     BrowserModule,

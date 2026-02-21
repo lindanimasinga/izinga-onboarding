@@ -41,7 +41,7 @@ export interface UserProfile {
     availabilityStatus?: ProfileAvailabilityStatus.Availability;
     profileApproved?: boolean;
     profileApprovedDate?: Date;
-    tags : { [key: string]: any };
+    tag : { [key: string]: any };
 }
 export namespace UserProfile {
     export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'ADMIN';

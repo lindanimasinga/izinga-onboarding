@@ -17,6 +17,9 @@ import { PayoutComponent } from './payout/payout.component';
 import { PayoutDetailsComponent } from './payout-details/payout-details.component';
 import { PayoutOdersComponent } from './payout-oders/payout-oders.component';
 import { TermsConditionsComponent } from './terms-conditions/terms-conditions.component';
+import { PendingApprovalsComponent } from './pending-approvals/pending-approvals.component';
+import { RestrictedRegionsComponent } from './restricted-regions/restricted-regions.component';
+import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -30,6 +33,10 @@ const routes: Routes = [
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
+      { path: 'pending-approvals', component: PendingApprovalsComponent},
+      { path: 'restricted-regions', component: RestrictedRegionsComponent},
+      { path: 'add-restricted-region', component: AddRestrictedRegionComponent},
+      { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
@@ -43,6 +50,10 @@ const routes: Routes = [
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
+      { path: 'pending-approvals', component: PendingApprovalsComponent},
+      { path: 'restricted-regions', component: RestrictedRegionsComponent},
+      { path: 'add-restricted-region', component: AddRestrictedRegionComponent},
+      { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},
