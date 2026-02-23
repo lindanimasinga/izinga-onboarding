@@ -20,6 +20,8 @@ import { TermsConditionsComponent } from './terms-conditions/terms-conditions.co
 import { PendingApprovalsComponent } from './pending-approvals/pending-approvals.component';
 import { RestrictedRegionsComponent } from './restricted-regions/restricted-regions.component';
 import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
+import { MessangerOrderComponent } from './quote-approval/quote-approval.component';
+import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -37,6 +39,8 @@ const routes: Routes = [
       { path: 'restricted-regions', component: RestrictedRegionsComponent},
       { path: 'add-restricted-region', component: AddRestrictedRegionComponent},
       { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
+      { path: 'quote-approval/:orderId', component: MessangerOrderComponent },
+      { path: 'orders', component: MessangerOrdersComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
@@ -54,6 +58,7 @@ const routes: Routes = [
       { path: 'restricted-regions', component: RestrictedRegionsComponent},
       { path: 'add-restricted-region', component: AddRestrictedRegionComponent},
       { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
+      { path: 'orders', component: MessangerOrdersComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},

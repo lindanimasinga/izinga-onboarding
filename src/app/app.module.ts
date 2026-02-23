@@ -15,7 +15,7 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { WelcomeBusinessComponent } from './welcome-business/welcome-business.component';
 import { WelcomeSelectionComponent } from './welcome/welcome-selection.component';
 import { BusinessUpdateComponent } from './business-update/business-update.component';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { StorageService } from './service/storage-service.service';
 import { StockItemComponent } from './stock-item/stock-item.component';
@@ -35,6 +35,8 @@ import { TermsConditionsComponent } from './terms-conditions/terms-conditions.co
 import { PendingApprovalsComponent } from './pending-approvals/pending-approvals.component';
 import { RestrictedRegionsComponent } from './restricted-regions/restricted-regions.component';
 import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
+import { MessangerOrderComponent } from './quote-approval/quote-approval.component';
+import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
 
 @NgModule({
   declarations: [
@@ -62,7 +64,9 @@ import { AddRestrictedRegionComponent } from './add-restricted-region/add-restri
     TermsConditionsComponent,
     PendingApprovalsComponent,
     RestrictedRegionsComponent,
-    AddRestrictedRegionComponent
+    AddRestrictedRegionComponent,
+    MessangerOrderComponent,
+    MessangerOrdersComponent
   ],
   imports: [
     BrowserModule,
@@ -81,7 +85,8 @@ import { AddRestrictedRegionComponent } from './add-restricted-region/add-restri
     IzingaOrderManagementService,
     FirebaseService,
     StorageService,
-    DatePipe
+    DatePipe,
+    DecimalPipe
   ],
   bootstrap: [AppComponent]
 })

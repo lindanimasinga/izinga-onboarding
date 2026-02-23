@@ -15,6 +15,7 @@ export class DashboardComponent {
 
   isStoreAdmin: boolean = false
   isAdmin: boolean = false
+  isMessenger: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
 
@@ -30,6 +31,7 @@ export class DashboardComponent {
     .subscribe(user => {
       this.isStoreAdmin = user.role == UserProfile.RoleEnum.STOREADMIN || user.role == UserProfile.RoleEnum.ADMIN
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
+      this.isMessenger = user.role == UserProfile.RoleEnum.MESSENGER
       this.user = user
       this.storageService.userProfile = user
       

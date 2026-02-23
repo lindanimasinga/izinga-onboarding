@@ -10,6 +10,8 @@
  * Do not edit the class manually.
  */
 
+import { from } from "rxjs";
+
 
 export interface ShippingData { 
     additionalInstructions: string;
@@ -20,6 +22,8 @@ export interface ShippingData {
     fromBuildingType?: ShippingData.BuildingTypeEnum
     fromUnitNumber?: String
     fromBuildingName?: String
+    fromFloorLevel?: number
+    fromBuildingHasElevator?: boolean
     id?: string;
     messengerId?: string;
     pickUpTime?: Date;
@@ -27,6 +31,9 @@ export interface ShippingData {
     type: ShippingData.TypeEnum;
     unitNumber?: string;
     distance?: number;
+    floorLevel?: number;
+    buildingHasElevator?: boolean;
+    shippingDataGeoData?: GeoData;
 }
 
 export namespace ShippingData {
@@ -42,4 +49,14 @@ export namespace ShippingData {
         DELIVERY: 'DELIVERY' as TypeEnum,
         SCHEDULED_DELIVERY: 'SCHEDULED_DELIVERY' as TypeEnum
     };
+}
+
+export interface GeoData {
+    fromGeoPoint: GeoPoint;
+    toGeoPoint: GeoPoint;
+}
+
+export interface GeoPoint {
+    latitude: number;
+    longitude: number;
 }

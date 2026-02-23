@@ -77,12 +77,12 @@ export class AddRestrictedRegionComponent implements OnInit {
             this.newRegion.name = region.name;
             this.newRegion.description = region.description || '';
             
-            if (region.coordinates) {
+            if (region.center) {
               this.newRegion.center = {
-                latitude: region.coordinates.lat,
-                longitude: region.coordinates.lng
+                latitude: region.center.latitude,
+                longitude: region.center.longitude
               };
-              this.newRegion.radius = region.coordinates.radius;
+              this.newRegion.radius = region.radius;
             }
             
             this.newRegion.isActive = region.isActive;

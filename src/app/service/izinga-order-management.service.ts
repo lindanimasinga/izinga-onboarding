@@ -9,6 +9,7 @@ import { StoreProfile } from '../model/storeProfile';
 import { Order } from '../model/order';
 import { StoreSummary } from '../model/store-summary';
 import { Payout, PayoutType } from '../payout/payout.component';
+import { QuoteApproval } from '../model/quoteApproval';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,15 @@ export class IzingaOrderManagementService {
     "Content-type": "application/json",
     "app-version": environment.appVersion,
     };
+  }
+
+  acceptQuote(orderId: string, quoteApproval: QuoteApproval): Observable<Order> {
+    return this.http
+      .patch<Order>(`${environment.izingaUrl}/order/${orderId}/quote`, quoteApproval, {headers: this.headers})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        }))
   }
 
   getAllStores(userId: string): Observable<Array<StoreProfile>> {
@@ -43,6 +53,14 @@ export class IzingaOrderManagementService {
 
   getAllStoreOrders(storeId: string): Observable<Array<Order>> {
     return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?storeId=${storeId}`, {headers: this.headers})
+    .pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(error)
+      }));
+  }
+
+    getAllMessengerOrders(messengerId: string): Observable<Array<Order>> {
+    return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerId=${messengerId}`, {headers: this.headers})
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)
@@ -276,7 +294,7 @@ export class IzingaOrderManagementService {
     }
 
     updateRestrictedRegion(regionId: string, regionData: any): Observable<any> {
-      return this.http.put<any>(`${environment.izingaUrl}/restricted-regions/${regionId}`, regionData, {headers: this.headers})
+      return this.http.patch<any>(`${environment.izingaUrl}/restricted-regions/${regionId}`, regionData, {headers: this.headers})
         .pipe(
           catchError((error: HttpErrorResponse) => {
             return throwError(error);

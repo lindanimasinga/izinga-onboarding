@@ -1,0 +1,111 @@
+.card {
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.order-card {
+  background: var(--bkg-card-color);
+  height: 100px;
+  width: 346px;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.status {
+  width: 120px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+.btn {
+  font-weight: 500;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Status badge specific styling */
+.badge.bg-primary {
+  background: linear-gradient(45deg, #007bff, #0056b3) !important;
+}
+
+.badge.bg-info {
+  background: linear-gradient(45deg, #17a2b8, #0c7489) !important;
+}
+
+.badge.bg-warning {
+  background: linear-gradient(45deg, #ffc107, #d39e00) !important;
+  color: #212529 !important;
+}
+
+.badge.bg-success {
+  background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+}
+
+.badge.bg-danger {
+  background: linear-gradient(45deg, #dc3545, #a71e2a) !important;
+}
+
+.badge.bg-secondary {
+  background: linear-gradient(45deg, #6c757d, #545b62) !important;
+}
+
+.text-primary {
+  color: var(--btn-bg-color) !important;
+}
+
+.btn-primary {
+  background-color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-bg-hover-color);
+  border-color: var(--btn-bg-hover-color);
+}
+
+.btn-outline-primary {
+  color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.fa-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Status-specific colors */
+.bg-primary { background-color: #007bff !important; }
+.bg-info { background-color: #17a2b8 !important; }
+.bg-warning { background-color: #ffc107 !important; color: #212529 !important; }
+.bg-success { background-color: #28a745 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+.bg-secondary { background-color: #6c757d !important; }

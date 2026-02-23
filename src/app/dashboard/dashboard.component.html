@@ -37,6 +37,13 @@
                         <div class="small ">Review and approve user profiles awaiting verification.</div>
                     </div>
                 </div>
+                <div  *ngIf="isMessenger" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #f39c12;" routerLink="../orders">
+                        <div style="font-size:48px;">📋</div>
+                        <div class="fw-bold mt-2 ">Orders</div>
+                        <div class="small ">Review and manage your orders.</div>
+                    </div>
+                </div>
                 <div *ngIf="isStoreAdmin" class="col-6 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #e74c3c;" routerLink="../restricted-regions">
                         <div style="font-size:48px;">🚫</div>
