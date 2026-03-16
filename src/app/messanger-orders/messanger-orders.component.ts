@@ -4,6 +4,7 @@ import { Order } from '../model/order';
 import { UserProfile } from '../model/userProfile';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-messanger-orders',
@@ -20,10 +21,12 @@ export class MessangerOrdersComponent implements OnInit {
   constructor(
     private router: Router,
     private izingaOrderService: IzingaOrderManagementService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private analytics: AnalyticsService
   ) { }
 
   ngOnInit(): void {
+    this.analytics.logScreenView('orders_received');
     this.user = this.storageService.userProfile;
     if (!this.user) {
       this.router.navigate(['/welcome']);

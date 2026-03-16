@@ -65,8 +65,32 @@
     </div>
 </div>
  
-<div class="row fixed-bottom">
-    <!-- Add New Stock Item Button -->
-        <button *ngIf="cancellable" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-red-color) !important;" (click)="cancelOrder()">Cancel Order</button>
-        <button *ngIf="updatable" type="button" class="col btn bg-dark shadow-sm" style="background-color: var(--btn-pill-color) !important;" (click)="updateStatus()">Update Status</button>
+<div class="row fixed-bottom d-flex">
+    <!-- Chat Button -->
+    <button 
+        *ngIf="customer" 
+        type="button" 
+        class="col btn shadow-sm me-2" 
+        style="background-color: var(--btn-green-color); color: white;" 
+        (click)="startChat()">
+        <i class="fas fa-comments me-2"></i>Open Chat
+    </button>
+    <!-- Cancel Order Button -->
+    <button 
+        *ngIf="cancellable" 
+        type="button" 
+        class="col btn bg-dark shadow-sm" 
+        style="background-color: var(--btn-red-color) !important;" 
+        (click)="cancelOrder()">
+        Cancel Order
+    </button>
+    <!-- Update Status Button -->
+    <button 
+        *ngIf="updatable" 
+        type="button" 
+        class="col btn bg-dark shadow-sm" 
+        style="background-color: var(--btn-pill-color) !important;" 
+        (click)="updateStatus()">
+        Update Status
+    </button>
 </div>

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { UserProfile } from '../model/userProfile';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-terms-conditions',
@@ -19,10 +20,12 @@ export class TermsConditionsComponent {
     private router: Router,
     private route: ActivatedRoute,
     private storageService: StorageService,
-    private izingaOrderManager: IzingaOrderManagementService
+    private izingaOrderManager: IzingaOrderManagementService,
+    private analytics: AnalyticsService
   ) {}
 
   ngOnInit() {
+    this.analytics.logScreenView('terms_conditions');
     // Get user ID from route parameters
     this.route.params.subscribe(params => {
       this.userId = params['id'];
@@ -41,6 +44,7 @@ export class TermsConditionsComponent {
         this.izingaOrderManager.updateCustomer(this.user).subscribe((updatedUser: UserProfile) => {
           console.log('Terms accepted and user updated');
           this.storageService.userProfile = updatedUser;
+          this.analytics.logEvent('terms_accepted', { userId: this.userId });
           
           // Navigate based on user role and current route context
           const currentUrl = this.router.url;

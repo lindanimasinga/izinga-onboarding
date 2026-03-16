@@ -1,6 +1,6 @@
-/* Quote Approval Styles - matching app design system */
+/* Quote Approval Styles - Optimized */
 
-/* Button Loading States - matching shipping component */
+/* Button States */
 .btn-loading {
   position: relative;
   pointer-events: none;
@@ -18,33 +18,28 @@
   border-color: #6c757d !important;
 }
 
-/* Quote breakdown section */
-.quote-breakdown-section {
+/* Cards and Sections */
+.quote-breakdown-section, .directions-section {
   background: var(--bkg-card-color);
   padding: 1.5rem;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.quote-item label {
-  color: var(--text-color);
-  font-weight: 500;
+.quote-breakdown-card {
+  border-left: 4px solid var(--btn-pill-color);
 }
 
-.quote-total label {
-  color: var(--text-color);
-  font-weight: 600;
+.action-buttons-card {
+  border-left: 4px solid #28a745;
+  background: linear-gradient(135deg, var(--bkg-card-color), #f8f9fa);
 }
 
-/* Input group styling */
+/* Form Elements */
 .input-group-text {
   background-color: var(--bkg-card-color);
   color: var(--text-color);
   border-color: #dee2e6;
-}
-
-.nput-group-text .material-icons {
-  color: white !important;
 }
 
 .form-control:disabled {
@@ -53,113 +48,24 @@
   border-color: #dee2e6;
 }
 
-/* Form text styling */
 .form-text {
   color: var(--text-color);
   opacity: 0.7;
   font-size: 0.875rem;
 }
 
-/* Success text color for total */
-.text-success {
-  color: var(--btn-bg-color) !important;
+.form-label {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Button styling to match app */
+/* Buttons */
 .btn:disabled {
   cursor: not-allowed;
   opacity: 0.6;
-}
-
-.btn[title]:disabled:hover::after {
-  content: attr(title);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  white-space: nowrap;
-  z-index: 1000;
-  margin-bottom: 5px;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .quote-breakdown-section {
-    padding: 1rem;
-  }
-  
-  .btn-lg {
-    font-size: 1rem;
-    padding: 12px 16px;
-  }
-  
-  .input-group-text i {
-    font-size: 1rem !important;
-  }
-}
-
-.path-info {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translateX(-50%) translateY(-50%);
-}
-
-.path-info small {
-  background: var(--bkg-card-color);
-  padding: 4px 12px;
-  border-radius: 20px;
-  border: 1px solid #e9ecef;
-  font-weight: 500;
-  color: var(--text-color);
-}
-
-/* Instructions Box */
-.instructions-box {
-  background: #fff9c4;
-  border: 1px solid #ffeaa7;
-  border-radius: 8px;
-  padding: 12px;
-  color: #856404;
-  display: flex;
-  align-items: flex-start;
-}
-
-.instructions-box i {
-  color: #ffeaa7 !important;
-  margin-top: 2px;
-}
-
-/* Quote Breakdown */
-.quote-breakdown-card {
-  border-left: 4px solid var(--btn-pill-color);
-}
-
-.quote-item {
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.quote-item:last-child {
-  border-bottom: none;
-}
-
-.quote-total {
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-  padding: 1rem;
-  border-radius: 8px;
-  border: 2px solid var(--btn-bg-color);
-}
-
-/* Action Buttons */
-.action-buttons-card {
-  border-left: 4px solid #28a745;
-  background: linear-gradient(135deg, var(--bkg-card-color), #f8f9fa);
 }
 
 .btn-lg {
@@ -171,7 +77,7 @@
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #28a745, #20c997);
+  background: #28a745;
   border: none;
   box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
 }
@@ -194,12 +100,6 @@
   box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
 }
 
-.btn-loading {
-  position: relative;
-  pointer-events: none;
-  opacity: 0.8;
-}
-
 .btn-link {
   color: var(--text-color);
   text-decoration: none;
@@ -214,169 +114,7 @@
   font-size: 1rem !important;
 }
 
-/* Loading State */
-.spinner-border {
-  color: var(--btn-bg-color) !important;
-}
-
-/* Alert Styling */
-.alert {
-  border-radius: 8px;
-  border: none;
-  padding: 1rem 1.25rem;
-}
-
-.alert-danger {
-  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-  color: #721c24;
-  border-left: 4px solid #dc3545;
-}
-
-.alert-success {
-  background: linear-gradient(135deg, #d4edda, #c3e6cb);
-  color: #155724;
-  border-left: 4px solid #28a745;
-}
-
-.alert i {
-  font-size: 1.25rem !important;
-  vertical-align: middle;
-}
-
-/* Form Labels */
-.form-label {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-  font-size: 0.875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Badges */
-.badge {
-  padding: 6px 12px;
-  font-size: 0.75rem;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.bg-primary {
-  background: linear-gradient(135deg, var(--btn-bg-color), var(--btn-pill-color)) !important;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-  .quote-approval-container {
-    padding: 15px 10px;
-  }
-
-  .card-body {
-    padding: 1rem;
-  }
-
-  .card-header {
-    padding: 1rem;
-  }
-
-  .page-header {
-    font-size: 1.5rem;
-  }
-
-  .address-marker {
-    width: 35px;
-    height: 35px;
-  }
-
-  .address-marker i {
-    font-size: 1.25rem !important;
-  }
-
-  .btn-lg {
-    font-size: 1rem;
-    padding: 10px 20px;
-  }
-
-  .quote-total {
-    padding: 0.75rem;
-  }
-
-  .path-info small {
-    font-size: 0.75rem;
-    padding: 3px 8px;
-  }
-
-  .instructions-box {
-    padding: 10px;
-    font-size: 0.875rem;
-  }
-}
-
-/* Dark Theme Support */
-body.dark-theme .card {
-  background: var(--bkg-card-color);
-  border-color: #444;
-}
-
-body.dark-theme .card-header {
-  background: var(--bkg-color);
-  border-color: #444;
-}
-
-body.dark-theme .path-info small {
-  background: var(--bkg-color);
-  border-color: #444;
-}
-
-body.dark-theme .quote-total {
-  background: var(--bkg-color);
-  border-color: var(--btn-bg-color);
-}
-
-body.dark-theme .instructions-box {
-  background: rgba(255, 249, 196, 0.1);
-  border-color: rgba(255, 234, 167, 0.3);
-  color: #ffeaa7;
-}
-
-/* High Contrast Mode */
-@media (prefers-contrast: high) {
-  .card {
-    border: 2px solid var(--text-color);
-  }
-
-  .quote-total {
-    border: 3px solid var(--text-color);
-  }
-
-  .btn-success {
-    background: #28a745;
-  }
-
-  .alert-danger {
-    background: #f8d7da;
-    color: #000;
-  }
-
-  .alert-success {
-    background: #d4edda;
-    color: #000;
-  }
-}
-
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-  .btn-success:hover,
-  .btn-outline-danger:hover {
-    transform: none;
-    transition: none;
-  }
-  
-  .btn-loading {
-    animation: none;
-  }
-}
-
-/* Navigation buttons */
+/* Input Groups */
 .input-group .btn-outline-primary {
   border-color: var(--btn-bg-color);
   color: var(--btn-bg-color);
@@ -388,13 +126,11 @@ body.dark-theme .instructions-box {
   background-color: var(--btn-bg-color);
   border-color: var(--btn-bg-color);
   color: white;
-  transform: none;
 }
 
 .input-group .btn-outline-primary:disabled {
   border-color: #6c757d;
   color: #6c757d;
-  background-color: transparent;
   opacity: 0.5;
 }
 
@@ -403,18 +139,11 @@ body.dark-theme .instructions-box {
 }
 
 .maps-button {
-    background: var(--btn-bg-color);
-    color: white !important;
+  background: var(--btn-bg-color);
+  color: white !important;
 }
 
-/* Maps and Directions Section */
-.directions-section {
-  background: var(--bkg-card-color);
-  padding: 1.5rem;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
+/* Map and Path Info */
 .map-container {
   position: relative;
   overflow: hidden;
@@ -422,11 +151,65 @@ body.dark-theme .instructions-box {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.map-container iframe {
-  transition: opacity 0.3s ease;
+.path-info {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 
-/* Route Information */
+.path-info small {
+  background: var(--bkg-card-color);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* Instructions */
+.instructions-box {
+  background: #fff9c4;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 12px;
+  color: #856404;
+  display: flex;
+  align-items: flex-start;
+}
+
+.instructions-box i {
+  color: #ffeaa7 !important;
+  margin-top: 2px;
+}
+
+/* Quote Items */
+.quote-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.quote-item:last-child {
+  border-bottom: none;
+}
+
+.quote-item label, .quote-total label {
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.quote-total {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid var(--btn-bg-color);
+}
+
+.quote-total label {
+  font-weight: 600;
+}
+
+/* Route Info */
 .route-info {
   border: 1px solid #e9ecef;
   background: rgba(248, 249, 250, 0.8);
@@ -452,23 +235,64 @@ body.dark-theme .instructions-box {
   line-height: 1;
 }
 
-/* Direction buttons */
-.directions-section .btn {
-  transition: all 0.2s ease;
+/* Alerts */
+.alert {
+  border-radius: 8px;
+  border: none;
+  padding: 1rem 1.25rem;
 }
 
-.directions-section .btn:hover:not(:disabled) {
-  transform: translateY(-1px);
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+  border-left: 4px solid #dc3545;
 }
 
-.directions-section .btn i {
-  font-size: 1.1rem;
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border-left: 4px solid #28a745;
 }
 
-/* Responsive design for maps */
+.alert i {
+  font-size: 1.25rem !important;
+  vertical-align: middle;
+}
+
+/* Badges */
+.badge {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.bg-primary {
+  background: var(--btn-bg-color) !important;
+}
+
+/* Utilities */
+.text-success {
+  color: var(--btn-bg-color) !important;
+}
+
+.spinner-border {
+  color: var(--btn-bg-color) !important;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .directions-section {
+  .quote-breakdown-section, .directions-section {
     padding: 1rem;
+  }
+  
+  .btn-lg {
+    font-size: 1rem;
+    padding: 12px 16px;
+  }
+  
+  .input-group-text i {
+    font-size: 1rem !important;
   }
   
   .map-container {
@@ -483,7 +307,17 @@ body.dark-theme .instructions-box {
     font-size: 1.25rem;
   }
   
-  .route-stat .fw-bold {
-    font-size: 0.8rem;
+  .quote-total {
+    padding: 0.75rem;
+  }
+  
+  .path-info small {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+  }
+  
+  .instructions-box {
+    padding: 10px;
+    font-size: 0.875rem;
   }
 }

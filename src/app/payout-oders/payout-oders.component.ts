@@ -4,6 +4,7 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 import { ActivatedRoute } from '@angular/router';
 import { mergeMap } from 'rxjs';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-payout-oders',
@@ -17,10 +18,12 @@ export class PayoutOdersComponent {
 
   constructor(
     private storageService: StorageService,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
+    this.analytics.logScreenView('payout_orders');
     // Get the store ID from the route parameters
     this.activeRoute.queryParams.subscribe(params => {
       this.stage = params['stage']

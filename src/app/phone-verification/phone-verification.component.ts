@@ -7,6 +7,7 @@ import { map, mergeMap, catchError } from 'rxjs/operators';
 import { from, Observable, of, throwError } from 'rxjs';
 import { FirebaseService } from '../service/firebase.service';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-phone-verification',
@@ -29,11 +30,13 @@ export class PhoneVerificationComponent {
     private storageService: StorageService,
     private firebaseService: FirebaseService,
     private router: Router,
-    private route: ActivatedRoute) {
+    private route: ActivatedRoute,
+    private analytics: AnalyticsService) {
 
     }
 
   ngOnInit(): void {
+    this.analytics.logScreenView('phone_verification');
   }
 
   ngAfterViewInit() {
@@ -52,6 +55,7 @@ export class PhoneVerificationComponent {
       .subscribe(() => {
         this.isVerificationRequested = true
         this.hasError = false;
+        this.analytics.logEvent('verification_code_sent');
       }, (error) => {
         this.hasError = true;
         this.errorMessage = error.message;
@@ -63,6 +67,7 @@ export class PhoneVerificationComponent {
       .subscribe(cred => {
         this.isPhoneNumberVerified = true
         this.storageService.phoneNumber = this.phoneNumber!!;
+        this.analytics.logEvent('phone_verified');
         this.router.navigate(["../dashboard"], { relativeTo: this.route }  )
       }, (error) => {
         console.log(error)

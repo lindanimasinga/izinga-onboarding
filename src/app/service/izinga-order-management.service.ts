@@ -302,5 +302,16 @@ export class IzingaOrderManagementService {
         );
     }
 
+    notifyNewMessage(chatSessionId: string, messageId: string): Observable<any> {
+      return this.http.get<any>(`${environment.izingaUrl}/forward/chatSession/${chatSessionId}/message/${messageId}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
+
+
+
 
 }

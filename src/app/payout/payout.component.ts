@@ -5,6 +5,7 @@ import { Order } from '../model/order';
 import { filter, from, map, mergeMap, Observable } from 'rxjs';
 import { StoreProfile } from '../model/storeProfile';
 import { StoreSummary } from '../model/store-summary';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-payout',
@@ -16,7 +17,7 @@ export class PayoutComponent {
   payouts: {[key: string]: Payout[] } = {};
   stores: {[key: string]: StoreSummary } = {};
 
-  constructor(private izingaService: IzingaOrderManagementService, private storageService: StorageService) {
+  constructor(private izingaService: IzingaOrderManagementService, private storageService: StorageService, private analytics: AnalyticsService) {
   }
 
   get storeEntries() {
@@ -46,6 +47,7 @@ export class PayoutComponent {
   }
 
   ngOnInit() {
+    this.analytics.logScreenView('payouts_overview');
     var userProfile = this.storageService.userProfile
     var userId = userProfile?.id
     var toDate = new Date()

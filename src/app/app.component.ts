@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { StorageService } from './service/storage-service.service';
 import { FirebaseService } from './service/firebase.service';
@@ -17,13 +17,9 @@ export class AppComponent {
   title = 'izinga business';
 
   constructor(private router: Router, private storageService: StorageService, 
-    private firebaseService: FirebaseService) {}
+    private firebaseService: FirebaseService, private activatedRoute: ActivatedRoute) {}
 
   ngOnInit(): void {
-    if (!this.storageService.phoneNumber) {
-      this.storageService.logout()
-      this.router.navigate([''])
-    }
 
     // Scroll to top on route change
     this.router.events.pipe(

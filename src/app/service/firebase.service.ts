@@ -1,11 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import * as firebase from "firebase/app";
+import { initializeApp, FirebaseApp } from "firebase/app";
 // Add the Firebase services that you want to use
-import "firebase/auth";
-import "firebase/firestore";
-import "firebase/messaging";
-import "firebase/analytics";
+import { getAuth, Auth, RecaptchaVerifier, ConfirmationResult, signInWithPhoneNumber } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
+import { Analytics, getAnalytics } from "firebase/analytics";
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -16,10 +16,12 @@ import { environment } from 'src/environments/environment';
 export class FirebaseService {
 
   recaptchaVerifier: any;
-  confirmResults?: firebase.default.auth.ConfirmationResult;
-  firebaseApp
-  storage = localStorage
-  messaging: any
+  confirmResults?: ConfirmationResult;
+  firebaseApp: FirebaseApp;
+  auth: Auth;
+  analytics: Analytics;
+  storage = localStorage;
+  messaging: Messaging | null = null;
 
   constructor() {
     var firebaseConfig = {
@@ -33,10 +35,11 @@ export class FirebaseService {
     };
 
     // Initialize Firebase
-    this.firebaseApp = firebase.default.initializeApp(firebaseConfig);
-    this.firebaseApp.analytics();
+    this.firebaseApp = initializeApp(firebaseConfig);
+    this.auth = getAuth(this.firebaseApp);
+    this.analytics = getAnalytics(this.firebaseApp);
     if (this.isMessagingSupported()) {
-      this.messaging = this.firebaseApp.messaging();
+      this.messaging = getMessaging(this.firebaseApp);
     }
 
     setTimeout(() => {
@@ -46,14 +49,14 @@ export class FirebaseService {
   }
 
   createCapture() {
-    this.recaptchaVerifier = new firebase.default.auth.RecaptchaVerifier('recaptcha-container');
+    this.recaptchaVerifier = new RecaptchaVerifier(this.auth, 'recaptcha-container', {} );
     this.recaptchaVerifier.render()
   }
 
 
-  requestVerification(phoneNumber: string): Observable<firebase.default.auth.ConfirmationResult> {
+  requestVerification(phoneNumber: string): Observable<ConfirmationResult> {
     const appVerifier = this.recaptchaVerifier;
-    var promise = firebase.default.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+    var promise = signInWithPhoneNumber(this.auth, phoneNumber, appVerifier)
     return from(promise)
       .pipe(
         map(resp => this.confirmResults = resp)
@@ -76,8 +79,8 @@ export class FirebaseService {
 
   requestPermission() {
     if(this.storage.getItem("fcmToken") != null) return
-    const messaging = this.firebaseApp.messaging();
-    messaging.getToken({ vapidKey: environment.firebaseVapidKey}).then(
+    if (!this.messaging) return;
+    getToken(this.messaging, { vapidKey: environment.firebaseVapidKey}).then(
        (currentToken: string) => {
          if (currentToken) {
            console.log("Hurraaa!!! we got the token.....");
@@ -100,7 +103,8 @@ export class FirebaseService {
   }
 
   listen() {
-    this.messaging.onMessage((payload: any) => {
+    if (!this.messaging) return;
+    onMessage(this.messaging, (payload: any) => {
       console.log('Message received. ', payload);
     });
   }

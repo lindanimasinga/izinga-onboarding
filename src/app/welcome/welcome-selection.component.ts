@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { StorageService } from '../service/storage-service.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-welcome',
@@ -9,10 +10,23 @@ import { Router } from '@angular/router';
 })
 export class WelcomeSelectionComponent {
 
-  constructor(private storageService: StorageService, private router: Router) {
+  userType: string = '';
+
+  constructor(private storageService: StorageService, private router: Router, private activatedRoute: ActivatedRoute, private analytics: AnalyticsService) {
   }
 
   ngOnInit(): void {
+    this.analytics.logScreenView('welcome_selection');
+    this.activatedRoute.queryParams.subscribe(params => {
+      console.log("User profile on welcome page:", params);
+      if (params['type']) {
+        this.userType = params['type'];
+        console.log("User type from query params: " + this.userType);
+      }
+    });
+
+    console.log("User profile from storage service on welcome page:", this.activatedRoute.snapshot.queryParamMap.get('type'));
+
     // Scroll to top on route change
     if (this.storageService.userProfile?.role == 'ADMIN' || this.storageService.userProfile?.role == 'STORE_ADMIN') {
       this.router.navigate(['/business/dashboard'])

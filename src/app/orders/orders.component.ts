@@ -10,6 +10,7 @@ import { StoreProfile } from '../model/storeProfile';
 import { Stock } from '../model/stock';
 import { StorageService } from '../service/storage-service.service';
 import { Order } from '../model/order';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-orders',
@@ -23,10 +24,12 @@ export class OrdersComponent {
   constructor(
     private izingaOrderManagementService: IzingaOrderManagementService,
     private storageService: StorageService,
-    private activeRoute: ActivatedRoute
+    private activeRoute: ActivatedRoute,
+    private analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
+    this.analytics.logScreenView('store_orders');
     // Get the store ID from the route parameters
     this.activeRoute.params.subscribe(params => {
       var storeId = params['businessId']

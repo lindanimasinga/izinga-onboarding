@@ -5,6 +5,7 @@ import { UserProfile } from '../model/userProfile';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../service/firebase.service';
 import { Device } from '../model/device';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,7 +23,8 @@ export class DashboardComponent {
   constructor(
     private izingaOrderManagementService: IzingaOrderManagementService,
     private storageService: StorageService, private router: Router, 
-    private firebaseService: FirebaseService
+    private firebaseService: FirebaseService,
+    private analytics: AnalyticsService
   ) {}
   
   ngOnInit(): void {
@@ -30,10 +32,11 @@ export class DashboardComponent {
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     .subscribe(user => {
       this.isStoreAdmin = user.role == UserProfile.RoleEnum.STOREADMIN || user.role == UserProfile.RoleEnum.ADMIN
+      this.isMessenger = user.role == UserProfile.RoleEnum.MESSENGER || user.role == UserProfile.RoleEnum.CUSTOMER
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
-      this.isMessenger = user.role == UserProfile.RoleEnum.MESSENGER
       this.user = user
       this.storageService.userProfile = user
+      this.analytics.logScreenView('dashboard', { user_role: user.role });
       
       // Check if user has accepted terms and conditions  
       if (!user.termsAccepted) {

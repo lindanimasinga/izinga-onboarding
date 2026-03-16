@@ -1,53 +1,87 @@
 <div>
     <div class="container-fluid circle"></div>
     <div class="contents pt-3 ">
-        <div class="welcome" >
-        <div class="text-center mb-3">
-            <h2>Get Paid Instantly</h2>
-            <p>List your products and services, attract customers, and get paid with daily payouts and easy withdrawals</p>
+        <div class="welcome">
+            <div class="text-center mb-3">
+                <!-- ...existing code... -->
+                <ng-container *ngIf="userType === ''">
+                    <h2>Get Paid Instantly</h2>
+                    <p>List your products and services, attract customers, and get paid with daily payouts and easy withdrawals</p>
+                </ng-container>
+
+                <ng-container *ngIf="userType === 'shop'">
+                    <h2>Sell Online with Ease</h2>
+                    <p>List your products and services, attract customers, and get paid with daily payouts and easy withdrawals</p>
+                </ng-container>
+
+                <ng-container *ngIf="userType === 'individual'">
+                    <h2>Receive Payments Seamlessly</h2>
+                    <p>Receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.</p>
+                </ng-container>
+
+                <ng-container *ngIf="userType === 'driver'">
+                    <h2>Join As A Driver</h2>
+                    <p>Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!</p>
+                </ng-container>
+                <!-- ...existing code... -->
+            </div>
+
+            <div *ngIf="userType !== 'driver'" class="mb-3 d-flex justify-content-center">
+                <img class="welcome-logo" src="../../assets/images/ai-2.jpg">
+            </div>
+
+            <div *ngIf="userType === 'driver'" class="mb-3 d-flex justify-content-center">
+                <img class="welcome-logo" src="../../assets/images/izinga-driver.png">
+            </div>
+
+            <div *ngIf="userType === ''" class="text-center mb-3">
+                <div class="badge badge-pill" style="background-color: var(--btn-pill-color);">Groceries and Food</div>
+                <div class="badge badge-pill" style="background-color: var(--btn-red-color);">Tuckshops</div>
+                <div class="badge badge-pill" style="background-color: var(--btn-bg-color);">Deliveries</div>
+                <span class="badge badge-pill" style="background-color: var(--btn-pill-color);">Salon</span>
+                <span class="badge badge-pill" style="background-color: var(--btn-bg-color);">Clothing</span>
+                <span class="badge badge-pill" style="background-color: var(--footer-bkg-color);">Car Wash</span>
+                <span class="badge badge-pill" style="background-color: var(--btn-bg-color);">Fundraising</span>
+                <span class="badge badge-pill" style="background-color: var(--btn-pill-color);">Vehicle Licensing</span>
+                <span class="badge badge-pill" style="background-color: var(--btn-red-color);">Donations</span>
+                <span class="badge badge-pill" style="background-color: var(--footer-bkg-color);">Other</span>
+            </div>
         </div>
 
-        <div class="mb-3 d-flex justify-content-center">
-            <img class="welcome-logo" src="../../assets/images/ai-2.jpg">
-        </div>
-
-        <div class="text-center mb-3"> 
-            <div class="badge badge-pill" style="background-color: var(--btn-pill-color);">Groceries and Food</div>
-            <div class="badge badge-pill" style="background-color: var(--btn-red-color);">Tuckshops</div>
-            <div class="badge badge-pill" style="background-color: var(--btn-bg-color);">Deliveries</div>
-            <span class="badge badge-pill" style="background-color: var(--btn-pill-color);">Salon</span>
-            <span class="badge badge-pill" style="background-color: var(--btn-bg-color);">Clothing</span>
-            <span class="badge badge-pill" style="background-color: var(--footer-bkg-color);">Car Wash</span>
-            <span class="badge badge-pill" style="background-color: var(--btn-bg-color);">Fundraising</span>
-            <span class="badge badge-pill" style="background-color: var(--btn-pill-color);">Vehicle Licensing</span>
-            <span class="badge badge-pill" style="background-color: var(--btn-red-color);">Donations</span>
-            <span class="badge badge-pill" style="background-color: var(--footer-bkg-color);">Other</span>
-
-        </div>
-        </div>
-
-            <div class="row justify-content-center mb-5">
-                <div class="col-md-4 mb-4">
+        <div *ngIf="userType === '' || userType === 'shop'" class="row justify-content-center mb-5">
+            <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        <h3 class="card-title">🏬 Sign up to sell online</h3>
+                        <h3 class="card-title">Sign up to sell online</h3>
                         <p class="card-text">Register to list your shop on iZinga, reach more customers, and enjoy seamless transactions with daily payouts.</p>
                         <a routerLink="./business" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as a shop</a>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div *ngIf="userType === '' || userType === 'individual'" class="row justify-content-center mb-5">
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        <h3 class="card-title">🙋 Sign up to receive tips and payments</h3>
+                        <h3 class="card-title">Sign up to receive tips and payments</h3>
                         <p class="card-text">Sign up as an individual to receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.</p>
                         <a routerLink="./indivisuals" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as an individual</a>
-                        <!--<a class="btn btn-lg btn-block btn-secondary mt-5 shadow-sm">Coming Soon</a> -->
                     </div>
                 </div>
             </div>
+        </div>
 
+        <div *ngIf="userType === '' || userType === 'driver'" class="row justify-content-center mb-5">
+            <div *ngIf="userType === 'driver'" class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="card-title">Become A Driver</h3>
+                        <p class="card-text">Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!</p>
+                        <a routerLink="./indivisuals" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as a driver</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="text-center mt-5">

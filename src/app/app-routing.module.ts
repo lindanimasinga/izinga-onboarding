@@ -22,6 +22,8 @@ import { RestrictedRegionsComponent } from './restricted-regions/restricted-regi
 import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
 import { MessangerOrderComponent } from './quote-approval/quote-approval.component';
 import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
+import { ChatSessionsComponent } from './chat-sessions/chat-sessions.component';
+import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -41,6 +43,8 @@ const routes: Routes = [
       { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
       { path: 'quote-approval/:orderId', component: MessangerOrderComponent },
       { path: 'orders', component: MessangerOrdersComponent },
+      { path: 'chat-sessions', component: ChatSessionsComponent },
+      { path: 'signup-welcome/:id', component: SignupWelcomeComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
@@ -59,6 +63,8 @@ const routes: Routes = [
       { path: 'add-restricted-region', component: AddRestrictedRegionComponent},
       { path: 'add-restricted-region/:id', component: AddRestrictedRegionComponent},
       { path: 'orders', component: MessangerOrdersComponent },
+      { path: 'chat-sessions', component: ChatSessionsComponent },
+      { path: 'signup-welcome/:id', component: SignupWelcomeComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},

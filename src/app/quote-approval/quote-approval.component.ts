@@ -6,6 +6,7 @@ import { UserProfile } from '../model/userProfile';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { StorageService } from '../service/storage-service.service';
 import { QuoteApproval } from '../model/quoteApproval';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-messanger-order',
@@ -32,10 +33,12 @@ export class MessangerOrderComponent implements OnInit {
     private router: Router,
     private sanitizer: DomSanitizer,
     private orderService: IzingaOrderManagementService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private analytics: AnalyticsService
   ) { }
 
   ngOnInit(): void {
+    this.analytics.logScreenView('order_detail');
     this.quoteId = this.route.snapshot.paramMap.get('orderId'); // orderId is same as quoteId
     
     if (this.quoteId) {

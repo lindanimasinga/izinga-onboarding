@@ -4,6 +4,7 @@ import { UserProfile } from '../model/userProfile';
 import { Device } from '../model/device';
 import { StoreSummary } from '../model/store-summary';
 import { Payout } from '../payout/payout.component';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +25,7 @@ export class StorageService {
   _payouts: Payout[] | undefined;
   _shopToPayout: StoreSummary| undefined;
 
-  constructor() { }
+  constructor(private router: Router) { }
 
   get payouts():  Payout[] | undefined {
     var data = this.cache.getItem(this.PAYOUT)
@@ -48,6 +49,9 @@ export class StorageService {
 
   logout() {
     this.cache.clear()
+    this.userProfile = undefined
+    this.phoneNumber = undefined
+    this.router.navigate([''])
   }
 
   get phoneNumber():  string | undefined {

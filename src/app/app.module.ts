@@ -37,6 +37,8 @@ import { RestrictedRegionsComponent } from './restricted-regions/restricted-regi
 import { AddRestrictedRegionComponent } from './add-restricted-region/add-restricted-region.component';
 import { MessangerOrderComponent } from './quote-approval/quote-approval.component';
 import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
+import { ChatSessionsComponent } from './chat-sessions/chat-sessions.component';
+import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.component';
 
 @NgModule({
   declarations: [
@@ -66,7 +68,9 @@ import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.co
     RestrictedRegionsComponent,
     AddRestrictedRegionComponent,
     MessangerOrderComponent,
-    MessangerOrdersComponent
+    MessangerOrdersComponent,
+    ChatSessionsComponent,
+    SignupWelcomeComponent
   ],
   imports: [
     BrowserModule,

@@ -7,6 +7,7 @@ import { map, mergeMap, catchError } from 'rxjs/operators';
 import { from, Observable, of, throwError } from 'rxjs';
 import { StoreProfile } from '../model/storeProfile';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-user-update',
@@ -54,12 +55,14 @@ export class UserUpdateComponent {
   constructor(private izingaOrderManager: IzingaOrderManagementService,
     private router: Router,
     private route: ActivatedRoute, 
-    private storageService: StorageService) {
+    private storageService: StorageService,
+    private analytics: AnalyticsService) {
       console.log(`bank is ${JSON.stringify(this.userProfile.bank)}`)
       this.userProfile.mobileNumber = this.storageService.phoneNumber
   }
 
   ngOnInit() {
+    this.analytics.logScreenView('profile_setup');
 
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
@@ -104,7 +107,12 @@ export class UserUpdateComponent {
       if (this.cardId) {
         this.linkCode()
       }
-      this.router.navigate(['./terms', resp.id], {relativeTo: this.route }  )
+      const firstName = (resp.name || this.userProfile.name || 'there').split(' ')[0]
+      this.analytics.logEvent('profile_created', { role: this.userProfile.role });
+      this.router.navigate(['../signup-welcome', resp.id], {
+        relativeTo: this.route,
+        queryParams: { name: firstName }
+      })
     }, error => console.error(error))
   }
 
@@ -129,6 +137,7 @@ export class UserUpdateComponent {
       if (this.cardId) {
         this.linkCode()
       }
+      this.analytics.logEvent('profile_updated', { role: this.userProfile.role });
       this.router.navigate(['../info'], {relativeTo: this.route }  )
     }, error => console.error(error))
   }
@@ -227,7 +236,7 @@ export class UserUpdateComponent {
 
   logout() {
     this.storageService.logout()
-    location.reload();
+    this.router.navigate([''])
   }
 
   loadUserConfig() {

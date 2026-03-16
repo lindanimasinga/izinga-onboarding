@@ -10,6 +10,7 @@ import { StoreProfile } from '../model/storeProfile';
 import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-stock-update',
@@ -43,10 +44,12 @@ export class StockUpdateComponent {
     private route: ActivatedRoute,
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
+    this.analytics.logScreenView('stock_item_edit');
     // Get the store ID from the route parameters
       this.route.params.subscribe(params => {
         var businessId = params['businessId']
@@ -121,6 +124,7 @@ export class StockUpdateComponent {
     ).subscribe(
       data => {
         this.storageService.shop = data;
+        this.analytics.logEvent('stock_item_saved', { storeId: this.storeProfile.id });
         console.log('stock details fetched successfully:', data);
         location.reload()
       },

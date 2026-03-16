@@ -10,6 +10,7 @@ import { StoreProfile } from '../model/storeProfile';
 import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
+import { AnalyticsService } from '../service/analytics.service';
 
 @Component({
   selector: 'app-business-update',
@@ -51,10 +52,12 @@ export class BusinessUpdateComponent {
     private router: Router,
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
+    this.analytics.logScreenView('store_menu');
     // Get the store ID from the route parameters
     this.route.params.subscribe(params => {
       this.izingaOrderManagementService.getStoreById(params['id'])
