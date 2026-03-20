@@ -1,0 +1,279 @@
+<div>
+  <div class="row">
+    <!-- Search and Users List -->
+    <div class="col-md-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="mb-0">Search Users</h4>
+        <button class="btn btn-outline-secondary btn-sm" (click)="resetSearch()" [disabled]="isLoading">
+          <i class="fa fa-search"></i>
+        </button>
+      </div>
+
+      <!-- Search Box -->
+      <div class="input-group mb-3">
+        <input 
+          type="tel" 
+          class="form-control" 
+          placeholder="Enter mobile no."
+          [(ngModel)]="searchPhone"
+          (keyup.enter)="searchUser()">
+        <button 
+          class="btn btn-dark search" 
+          type="button"
+          (click)="searchUser()"
+          [disabled]="isLoading">
+          <i class="fa fa-search">search</i>
+        </button>
+      </div>
+
+      <!-- Alerts -->
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      </div>
+
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+
+      <!-- No Results -->
+      <div *ngIf="!isLoading && searchResults.length === 0 && searchPhone.length > 0" class="text-center py-4">
+        <i class="fa fa-search fa-2x  mb-2"></i>
+        <p class="">No user found</p>
+      </div>
+
+      <!-- Users List -->
+      <div class="list-group">
+        <button 
+          *ngFor="let user of searchResults"
+          type="button" 
+          class="list-group-item list-group-item-action text-start"
+          [class.active]="selectedUser?.id === user.id"
+          (click)="selectUser(user)"
+          [class.border-danger]="user.tag && user.tag['blocked']">
+          <div class="d-flex w-100 justify-content-between">
+            <div class="d-flex align-items-center">
+              <img 
+                [src]="user.imageUrl" 
+                alt="Profile" 
+                class="rounded-circle me-2"
+                style="width: 40px; height: 40px; object-fit: cover;"
+                *ngIf="user.imageUrl">
+              <div *ngIf="!user.imageUrl" 
+                   class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2"
+                   style="width: 40px; height: 40px;">
+                <i class="fa fa-user "></i>
+              </div>
+              <div>
+                <h6 class="mb-1">{{user.name || 'No Name'}}</h6>
+                <small>{{user.mobileNumber}}</small>
+              </div>
+            </div>
+            <small *ngIf="user.tag && user.tag['blocked']" class="text-danger">
+              <i class="fa fa-ban"></i>
+            </small>
+          </div>
+          <p class="mb-0 mt-1 small">{{user.role}}</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- User Details -->
+    <div class="col-md-8">
+      <div *ngIf="!selectedUser" class="text-center py-5">
+        <i class="fa fa-user-circle fa-3x  mb-3"></i>
+        <h5>Search for a user</h5>
+        <p class="">Enter a mobile number to find and manage a user account.</p>
+      </div>
+
+      <div *ngIf="selectedUser" class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">User Details</h5>
+          <button type="button" class="btn-close" (click)="selectedUser = null"></button>
+        </div>
+        
+        <div class="card-body">
+          <!-- Profile Header -->
+          <div class="row mb-4">
+            <div class="col-md-3 text-center">
+              <img 
+                [src]="selectedUser.imageUrl" 
+                alt="Profile Picture" 
+                class="rounded-circle mb-2"
+                style="width: 100px; height: 100px; object-fit: cover;"
+                *ngIf="selectedUser.imageUrl">
+              <div *ngIf="!selectedUser.imageUrl" 
+                   class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto"
+                   style="width: 100px; height: 100px;">
+                <i class="fa fa-user  fa-2x"></i>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <h4 class="d-flex align-items-center gap-2 flex-wrap">
+                <span>{{selectedUser.name || 'No Name'}}</span>
+                <span *ngIf="selectedUser.tag && selectedUser.tag['blocked']" class="badge bg-danger">
+                  <i class="fa fa-ban me-1"></i>BLOCKED
+                </span>
+              </h4>
+              <p class=" mb-1">
+                <i class="fa fa-phone me-1"></i>
+                {{selectedUser.mobileNumber}}
+              </p>
+              <p class=" mb-1" *ngIf="selectedUser.emailAddress">
+                <i class="fa fa-envelope me-1"></i>
+                {{selectedUser.emailAddress}}
+              </p>
+              <p class=" mb-2" *ngIf="selectedUser.address">
+                <i class="fa fa-map-marker me-1"></i>
+                {{selectedUser.address}}
+              </p>
+              <div>
+                <span *ngIf="!selectedUser.termsAccepted" class="badge bg-warning me-1">
+                  <i class="fa fa-exclamation-triangle me-1"></i>TERMS NOT ACCEPTED
+                </span>
+                <span class="badge" [ngClass]="selectedUser.profileApproved ? 'bg-success' : 'bg-secondary'">
+                  {{selectedUser.profileApproved ? '✓ Approved' : '⏳ Pending'}}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Information -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <h6><strong>Basic Information</strong></h6>
+              <table class="table table-sm">
+                <tr *ngIf="selectedUser.name">
+                  <td><strong>Name:</strong></td>
+                  <td>{{selectedUser.name}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.role">
+                  <td><strong>Role:</strong></td>
+                  <td>{{selectedUser.role}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.description">
+                  <td><strong>Description:</strong></td>
+                  <td>{{selectedUser.description}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.dateOfBirth">
+                  <td><strong>DOB:</strong></td>
+                  <td>{{selectedUser.dateOfBirth}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.idNumber">
+                  <td><strong>ID Number:</strong></td>
+                  <td>{{selectedUser.idNumber}}</td>
+                </tr>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h6><strong>Bank Information</strong></h6>
+              <table class="table table-sm" *ngIf="selectedUser.bank">
+                <tr>
+                  <td><strong>Type:</strong></td>
+                  <td>{{selectedUser.bank.type}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.name">
+                  <td><strong>Bank:</strong></td>
+                  <td>{{selectedUser.bank.name}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.accountId">
+                  <td><strong>Account:</strong></td>
+                  <td>{{selectedUser.bank.accountId}}</td>
+                </tr>
+                <tr *ngIf="selectedUser.bank.branchCode">
+                  <td><strong>Branch:</strong></td>
+                  <td>{{selectedUser.bank.branchCode}}</td>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Additional Fields from tag -->
+          <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
+            <h6><strong>Additional Information</strong></h6>
+            <div class="row">
+              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
+                <div class="mb-3" *ngIf="i % 2 === 0">
+                  <strong>{{tag | titlecase}}:</strong>
+                  <div class="mt-1">
+                    <span class="" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
+                    </span>
+                    <img 
+                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
+                      [src]="selectedUser.tag[tag]" 
+                      class="img-thumbnail" 
+                      style="max-width: 150px; max-height: 100px;">
+                    <a 
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
+                      [href]="selectedUser.tag[tag]" 
+                      target="_blank" 
+                      class="btn btn-sm btn-outline-primary">
+                      <i class="fa fa-download me-1"></i>View
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
+                <div class="mb-3" *ngIf="i % 2 === 1">
+                  <strong>{{tag | titlecase}}:</strong>
+                  <div class="mt-1">
+                    <span class="" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
+                    </span>
+                    <img 
+                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
+                      [src]="selectedUser.tag[tag]" 
+                      class="img-thumbnail" 
+                      style="max-width: 150px; max-height: 100px;">
+                    <a 
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
+                      [href]="selectedUser.tag[tag]" 
+                      target="_blank" 
+                      class="btn btn-sm btn-outline-primary">
+                      <i class="fa fa-download me-1"></i>View
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed Bottom Action Bar -->
+<div *ngIf="selectedUser" class="fixed-bottom row">
+        <button 
+          type="button" 
+          class="btn btn-lg bg-dark col-6"
+          (click)="toggleTermsAccepted(selectedUser)">
+          <i class="fa me-1" [ngClass]="{'fa-check': !selectedUser.termsAccepted, 'fa-times': selectedUser.termsAccepted }"></i>
+          {{!selectedUser.termsAccepted ? 'Restore Terms' : 'Revoke Terms'}}
+        </button>
+        <button *ngIf="!(selectedUser.tag && selectedUser.tag['blocked'])"
+          type="button" 
+          class="btn btn-lg btn-danger col-6"
+          (click)="blockUser(selectedUser)">
+          <i class="fa fa-ban me-1"></i>Block User
+        </button>
+        <button *ngIf="selectedUser.tag && selectedUser.tag['blocked']"
+          type="button" 
+          class="btn btn-lg bg-dark col-6"
+          (click)="unblockUser(selectedUser)">
+          <i class="fa fa-check me-1"></i>Unblock User
+        </button>
+</div>
+
+<!-- Padding to prevent content hidden behind fixed bar -->
+<div *ngIf="selectedUser" style="height: 80px;"></div>

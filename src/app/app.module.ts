@@ -39,6 +39,9 @@ import { MessangerOrderComponent } from './quote-approval/quote-approval.compone
 import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
 import { ChatSessionsComponent } from './chat-sessions/chat-sessions.component';
 import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.component';
+import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
+import { LegalInfoComponent } from './legal-info/legal-info.component';
+import { UserManagementComponent } from './user-management/user-management.component';
 
 @NgModule({
   declarations: [
@@ -70,7 +73,10 @@ import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.componen
     MessangerOrderComponent,
     MessangerOrdersComponent,
     ChatSessionsComponent,
-    SignupWelcomeComponent
+    SignupWelcomeComponent,
+    PrivacyPolicyComponent,
+    LegalInfoComponent,
+    UserManagementComponent
   ],
   imports: [
     BrowserModule,

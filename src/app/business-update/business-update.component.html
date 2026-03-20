@@ -165,39 +165,78 @@
         </div>
     </div>
     
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="labourRatePerFloor">Labour Rate per Floor (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="labourRatePerFloor"
+                [(ngModel)]="shop.rates.labourRatePerFloor" 
+                name="labourRatePerFloor" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+            <small class="form-text">Additional charge per floor for carrying items</small>
+        </div>
+    
     <!-- Rate Calculation Preview -->
     <div class="">
         <h6 class="mb-3">
             <i class="material-icons me-2">calculate</i>
             Rate Calculation Preview
         </h6>
+        <div class="row mb-3">
+            <label for="previewWeightKg" class="form-label col-6">Preview Weight (kg): <strong>{{ previewWeightKg }}</strong></label>
+            <input
+                id="previewWeightKg"
+                type="range"
+                class="form-range col-6"
+                min="0"
+                max="2000"
+                step="1"
+                [(ngModel)]="previewWeightKg"
+                name="previewWeightKg">
+        </div>
+        <div class="row mb-3">
+            <label for="previewFloors" class="form-label col-6">Preview Floors: <strong>{{ previewFloors }}</strong></label>
+            <input
+                id="previewFloors"
+                type="range"
+                class="form-range col-6"
+                min="0"
+                max="20"
+                step="1"
+                [(ngModel)]="previewFloors"
+                name="previewFloors">
+        </div>
         <div class="row text-center">
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>5km</strong><br>
-                    <span class="text-success">R{{ calculateDeliveryRate(5, 0.5, 1) | number:'1.2-2' }}</span>
+                    <span class="text-success">R{{ calculateDeliveryRate(5, 0.5, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded">
                     <strong>10km</strong><br>
-                    <span class="text-warning">R{{ calculateDeliveryRate(10, 1, 2) | number:'1.2-2' }}</span>
+                    <span class="text-warning">R{{ calculateDeliveryRate(10, 1, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>15km</strong><br>
-                    <span class="text-info">R{{ calculateDeliveryRate(15, 1.5, 3) | number:'1.2-2' }}</span>
+                    <span class="text-info">R{{ calculateDeliveryRate(15, 1.5, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>20km</strong><br>
-                    <span class="text-danger">R{{ calculateDeliveryRate(20, 2, 5) | number:'1.2-2' }}</span>
+                    <span class="text-danger">R{{ calculateDeliveryRate(20, 2, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
                 </div>
             </div>
         </div>
-        <small class="">Preview calculations based on sample distances, volumes (cm²), and weights (kg)</small>
+        <small class="">Preview calculations based on sample distances, volumes (cm²), and your selected weight/floors values</small>
     </div>
 </div>
 

@@ -141,4 +141,8 @@ export class DashboardComponent {
     }
   }
 
+  isProfileBlocked(): boolean {
+    return this.user == null || !!(this.user?.tag && this.user.tag['blocked']);
+  }
+
 }

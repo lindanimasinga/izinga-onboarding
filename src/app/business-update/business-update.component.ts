@@ -36,7 +36,8 @@ export class BusinessUpdateComponent {
       standardDeliveryKm: 0,
       ratePerKm: 0,
       ratePerVolumeCM2: 0,
-      ratePerWeightKg: 0
+      ratePerWeightKg: 0,
+      labourRatePerFloor: 0
     }
   }
 
@@ -45,6 +46,8 @@ export class BusinessUpdateComponent {
   categories = new Set<string | undefined>()
   selectedFile: File | null = null;
   userId: string | undefined
+  previewWeightKg = 2;
+  previewFloors = 0;
 
 
   constructor(
@@ -72,7 +75,8 @@ export class BusinessUpdateComponent {
             standardDeliveryKm: 0,
             ratePerKm: 0,
             ratePerVolumeCM2: 0,
-            ratePerWeightKg: 0
+            ratePerWeightKg: 0,
+            labourRatePerFloor: 0
           }
         }
       })
@@ -211,13 +215,9 @@ export class BusinessUpdateComponent {
   }
 
   /**
-   * Calculate delivery rate based on distance, volume, and weight
-   * @param distance Distance in kilometers
-   * @param volumeCM2 Volume in square centimeters
-   * @param weightKg Weight in kilograms
-   * @returns Total delivery rate
+   * Calculate delivery rate based on distance, volume, weight, and floors.
    */
-  calculateDeliveryRate(distance: number, volumeCM2: number, weightKg: number): number {
+  calculateDeliveryRate(distance: number, volumeCM2: number, weightKg: number, floors: number = 0): number {
     if (!this.shop?.rates) {
       return 0;
     }
@@ -244,6 +244,11 @@ export class BusinessUpdateComponent {
     // Weight-based rate
     if (rates.ratePerWeightKg && weightKg > 0) {
       totalRate += weightKg * rates.ratePerWeightKg;
+    }
+
+    // Labour-based rate for carrying items across floors
+    if (rates.labourRatePerFloor && floors > 0) {
+      totalRate += floors * rates.labourRatePerFloor * weightKg;
     }
 
     return Math.max(totalRate, 0); // Ensure rate is never negative

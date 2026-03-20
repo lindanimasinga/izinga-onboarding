@@ -23,3 +23,12 @@
 .menu-items .card{
     color: white;
 }
+
+.menu-items.cards-blocked .card {
+    background-color: #9ea3a8 !important;
+    color: #f1f3f5 !important;
+    pointer-events: none;
+    cursor: not-allowed;
+    filter: grayscale(100%);
+    opacity: 0.75;
+}

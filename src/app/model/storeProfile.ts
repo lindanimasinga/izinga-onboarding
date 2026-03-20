@@ -85,4 +85,5 @@ export interface StoreRates {
     ratePerKm?: number;
     ratePerVolumeCM2?: number;
     ratePerWeightKg?: number;
+    labourRatePerFloor?: number;
 }

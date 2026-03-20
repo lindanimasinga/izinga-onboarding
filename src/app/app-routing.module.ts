@@ -24,6 +24,9 @@ import { MessangerOrderComponent } from './quote-approval/quote-approval.compone
 import { MessangerOrdersComponent } from './messanger-orders/messanger-orders.component';
 import { ChatSessionsComponent } from './chat-sessions/chat-sessions.component';
 import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.component';
+import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
+import { LegalInfoComponent } from './legal-info/legal-info.component';
+import { UserManagementComponent } from './user-management/user-management.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -46,6 +49,9 @@ const routes: Routes = [
       { path: 'chat-sessions', component: ChatSessionsComponent },
       { path: 'signup-welcome/:id', component: SignupWelcomeComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
+      { path: 'privacy-policy', component: PrivacyPolicyComponent},
+      { path: 'legal-info', component: LegalInfoComponent},
+      { path: 'user-management', component: UserManagementComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
   { path: 'business',
@@ -66,6 +72,9 @@ const routes: Routes = [
       { path: 'chat-sessions', component: ChatSessionsComponent },
       { path: 'signup-welcome/:id', component: SignupWelcomeComponent },
       { path: 'terms/:id', component: TermsConditionsComponent},
+      { path: 'privacy-policy', component: PrivacyPolicyComponent},
+      { path: 'legal-info', component: LegalInfoComponent},
+      { path: 'user-management', component: UserManagementComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},
       { path: 'list', component: BusinessesComponent},
