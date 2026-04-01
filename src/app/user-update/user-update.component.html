@@ -149,18 +149,23 @@
                                 class="form-control"
                                 [name]="field.name"
                                 [(ngModel)]="userProfile.tag[field.name]">
-                            <input 
-                                *ngIf="getInputType(field.dataType) === 'file'"
-                                type="file" 
-                                class="form-control"
-                                (change)="onFileSelect($event, field.name)"
-                                [name]="field.name"
-                                accept="image/*,.pdf,.doc,.docx">
-                            <div *ngIf="getInputType(field.dataType) === 'file' && userProfile.tag[field.name]" class="mt-2">
-                                <small class="text-success">
-                                    <i class="fa fa-check"></i> File uploaded successfully
-                                </small>
-                            </div>
+                            <div *ngIf="getInputType(field.dataType) === 'file'" class="input-group upload-box dl-flex align-items-between justify-content-between">
+                                <img *ngIf="userProfile.tag[field.name]" [src]="userProfile.tag[field.name]" class="upload-icon mb-2" />
+                                <div class="input-container">
+                                    <input 
+                                        type="file" 
+                                        class="form-control"
+                                        [ngClass]="{'input-image': userProfile.tag[field.name]}"
+                                        (change)="onFileSelect($event, field.name)"
+                                        [name]="field.name"
+                                        accept="image/*,.pdf,.doc,.docx">
+                                    <div *ngIf="userProfile.tag[field.name]" class="mt-2">
+                                        <small class="text-success">
+                                            <i class="fa fa-check"></i> File uploaded successfully
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>    
                             <div *ngIf="uploadProgress[field.name]" class="mt-2 uploadProgress">
                                 <div class="progress">
                                     <div class="progress-bar" 
@@ -174,7 +179,7 @@
                     </div>
                 </div>
                 
-                <!-- New section for adding a shop or business -->
+                <!-- New section for adding a shop or business 
                 <div *ngIf="!isStoreAdmin()" class="mb-3">
                     <label>Would you like to add a shop or business on iZinga?</label>
                     <div class="btn-group btn-group-toggle" data-toggle="buttons">
@@ -185,7 +190,7 @@
                             <input type="radio" name="addBusiness" value="false" (click)="wantsToAddBusiness = false"> No
                         </label>
                     </div>
-                </div>
+                </div> -->
                 
 
                 <div class="mb-3">

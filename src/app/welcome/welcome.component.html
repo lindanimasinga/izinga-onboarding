@@ -3,27 +3,8 @@
     <div class="contents pt-3 ">
         <div class="welcome">
             <div class="text-center mb-3">
-                <!-- ...existing code... -->
-                <ng-container *ngIf="userType === ''">
-                    <h2>Get Paid Instantly</h2>
-                    <p>List your products and services, attract customers, and get paid with daily payouts and easy withdrawals</p>
-                </ng-container>
-
-                <ng-container *ngIf="userType === 'shop'">
-                    <h2>Sell Online with Ease</h2>
-                    <p>List your products and services, attract customers, and get paid with daily payouts and easy withdrawals</p>
-                </ng-container>
-
-                <ng-container *ngIf="userType === 'individual'">
-                    <h2>Receive Payments Seamlessly</h2>
-                    <p>Receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.</p>
-                </ng-container>
-
-                <ng-container *ngIf="userType === 'driver'">
-                    <h2>Join As A Driver</h2>
-                    <p>Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!</p>
-                </ng-container>
-                <!-- ...existing code... -->
+                <h2>{{ currentHeroCopy.heading }}</h2>
+                <p>{{ currentHeroCopy.description }}</p>
             </div>
 
             <div *ngIf="userType !== 'driver'" class="mb-3 d-flex justify-content-center">
@@ -48,44 +29,40 @@
             </div>
         </div>
 
-        <div *ngIf="userType === '' || userType === 'shop'" class="row justify-content-center mb-5">
+        <div *ngIf="userType === '' || userType === 'shop'" class="row justify-content-center mt-5">
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        <h3 class="card-title">Sign up to sell online</h3>
-                        <p class="card-text">Register to list your shop on iZinga, reach more customers, and enjoy seamless transactions with daily payouts.</p>
-                        <a routerLink="./business" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as a shop</a>
+                        <h3 class="card-title">{{ signupCardConfig.shop.title }}</h3>
+                        <p class="card-text">{{ signupCardConfig.shop.description }}</p>
+                        <a [routerLink]="signupCardConfig.shop.route" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">{{ signupCardConfig.shop.cta }}</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div *ngIf="userType === '' || userType === 'individual'" class="row justify-content-center mb-5">
+        <div *ngIf="userType === '' || userType === 'individual'" class="row justify-content-center mt-5">
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        <h3 class="card-title">Sign up to receive tips and payments</h3>
-                        <p class="card-text">Sign up as an individual to receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.</p>
-                        <a routerLink="./indivisuals" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as an individual</a>
+                        <h3 class="card-title">{{ signupCardConfig.individual.title }}</h3>
+                        <p class="card-text">{{ signupCardConfig.individual.description }}</p>
+                        <a [routerLink]="signupCardConfig.individual.route" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">{{ signupCardConfig.individual.cta }}</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div *ngIf="userType === '' || userType === 'driver'" class="row justify-content-center mb-5">
+        <div *ngIf="userType === '' || userType === 'driver'" class="row justify-content-center mt-5">
             <div *ngIf="userType === 'driver'" class="col-md-4 mb-4">
                 <div class="card shadow-sm">
                     <div class="card-body text-center">
-                        <h3 class="card-title">Become A Driver</h3>
-                        <p class="card-text">Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!</p>
-                        <a routerLink="./indivisuals" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">Start as a driver</a>
+                        <h3 class="card-title">{{ signupCardConfig.driver.title }}</h3>
+                        <p class="card-text">{{ signupCardConfig.driver.description }}</p>
+                        <a [routerLink]="signupCardConfig.driver.route" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">{{ signupCardConfig.driver.cta }}</a>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="text-center mt-5">
-            <p>Not sure which option to choose? <a href="#">Learn more about the benefits for individuals and shops.</a></p>
         </div>
     </div>
 </div>

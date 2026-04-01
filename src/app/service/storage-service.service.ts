@@ -22,8 +22,10 @@ export class StorageService {
   errorMessage: string | undefined;
   infoMessage: string | undefined;
   DEVICE_KEY = "skjda287nndfsd";
+  USER_TYPE_KEY = "kjsdfkjsdf_user_type";
   _payouts: Payout[] | undefined;
   _shopToPayout: StoreSummary| undefined;
+  _userType?: string;
 
   constructor(private router: Router) { }
 
@@ -84,6 +86,18 @@ export class StorageService {
   set userProfile(userProfile: UserProfile | undefined) {
     this._userProfile = userProfile
     this.cache.setItem(this.USER_PROFILE_KEY, JSON.stringify(this._userProfile))
+  }
+
+  get userType(): string | undefined {
+    if (!this._userType && this.cache.getItem(this.USER_TYPE_KEY)) {
+      this._userType = JSON.parse(this.cache.getItem(this.USER_TYPE_KEY)!);
+    }
+    return this._userType;
+  }
+
+  set userType(userType: string | undefined) {
+    this._userType = userType;
+    this.cache.setItem(this.USER_TYPE_KEY, JSON.stringify(this._userType));
   }
 
 }

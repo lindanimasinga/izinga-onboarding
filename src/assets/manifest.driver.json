@@ -1,0 +1,22 @@
+{
+  "short_name": "iZinga Driver",
+  "name": "iZinga Driver",
+  "gcm_sender_id": "315529266651",
+  "description": "Earn money with your vehicle. Sign up on iZinga to become a driver.",
+  "icons": [
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "128x128" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "144x144" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "152x152" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "256x256" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "384x384" },
+    { "src": "images/izinga-short-green.png", "type": "image/png", "sizes": "512x512" }
+  ],
+  "background_color": "#00A9A1",
+  "theme_color": "#00A9A1",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/",
+  "orientation": "portrait",
+  "lang": "en"
+}

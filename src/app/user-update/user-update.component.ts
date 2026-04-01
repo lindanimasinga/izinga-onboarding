@@ -269,7 +269,10 @@ export class UserUpdateComponent {
     console.log("Found config for role description ", roleDescriptionLabel, this.config)
     if (this.config) {
       return [...this.config.mandatoryFields, ...this.config.optionalFields]
+      .sort((a, b) =>  b.label.localeCompare(a.label))
+      .sort((a, b) => a.dataType === 'DOCUMENT_URL' ? -1 : 1)
     }
+
     return [] 
   }
 
@@ -310,7 +313,7 @@ export class UserUpdateComponent {
       this.uploadProgress[fieldName] = 0;
       
       // Upload file using the izinga service
-      this.izingaOrderManager.uploadFile(file, undefined, this.config)
+      this.izingaOrderManager.uploadFile(file, true, undefined, this.config)
       .subscribe({
         next: (response: {[key: string]: any}) => {
           console.log(`File uploaded successfully for field ${fieldName}:`, response);
@@ -324,6 +327,14 @@ export class UserUpdateComponent {
             if (response['url']) {
               this.userProfile.tag[fieldName] = response['url'];
               break;
+            }
+          }
+
+          var metadata = response['metadata'] || {}
+          // Store any additional metadata if needed
+          for (const metaKey of Object.keys(metadata)) {
+            if (metadata[metaKey] && metadata[metaKey] !== '' && metaKey !== fieldName) {
+              this.userProfile.tag[metaKey] = metadata[metaKey];
             }
           }
           
@@ -513,7 +524,7 @@ export class UserUpdateComponent {
     this.uploadProgress['profilePicture'] = 0;
     
     // Upload file using the izinga service
-    this.izingaOrderManager.uploadFile(file, undefined, this.config).subscribe({
+    this.izingaOrderManager.uploadFile(file, false, undefined, this.config).subscribe({
       next: (response: {[key: string]: any}) => {
         console.log('Profile picture uploaded successfully:', response);        
 

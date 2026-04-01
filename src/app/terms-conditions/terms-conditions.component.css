@@ -8,8 +8,8 @@
 }
 
 .form-check-input:checked {
-    background-color: var(--btn-bg-color, #be833d);
-    border-color: var(--btn-bg-color, #be833d);
+    background-color: var(--btn-bg-color);
+    border-color: var(--btn-bg-color);
 }
 
 .btn:disabled {

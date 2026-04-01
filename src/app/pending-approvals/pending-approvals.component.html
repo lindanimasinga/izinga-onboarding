@@ -1,9 +1,51 @@
 <div>
-  <div class="row">
+  <div class="row mb-3">
+    <div class="col-md-6 col-lg-5">
+      <label for="userConfigFilter" class="form-label mb-1">Filter by Service Type</label>
+      <div class="input-group">
+        <span class="input-group-text">
+          <i class="fa fa-filter"></i>
+        </span>
+        <select
+          id="userConfigFilter"
+          class="form-control"
+          [(ngModel)]="selectedUserConfigLabel"
+          (ngModelChange)="onUserConfigFilterChange()">
+          <option value="">All service types</option>
+          <option *ngFor="let config of userConfigOptions" [value]="config.label">{{config.label}}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3 pending-tabs">
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'list'"
+        (click)="setActiveTab('list')">
+        <i class="fa fa-list me-1"></i>
+        Pending List
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'map'"
+        (click)="setActiveTab('map')">
+        <i class="fa fa-map-marker me-1"></i>
+        Map View
+      </button>
+    </li>
+  </ul>
+
+  <div *ngIf="activeTab === 'list'" class="row">
     <!-- Users List -->
     <div class="col-md-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="mb-0">Pending Approvals</h4>
+        <h4 class="mb-0">Pending Approvals({{filteredPendingUsers.length}})</h4>
         <button class="btn btn-outline-secondary btn-sm" (click)="loadPendingApprovals()" [disabled]="loading">
           <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
         </button>
@@ -15,15 +57,15 @@
         </div>
       </div>
 
-      <div *ngIf="!loading && pendingUsers.length === 0" class="text-center py-4">
+      <div *ngIf="!loading && filteredPendingUsers.length === 0" class="text-center py-4">
         <i class="fa fa-check-circle fa-3x text-success mb-3"></i>
-        <h5>All caught up!</h5>
-        <p class="text-muted">No pending user approvals at the moment.</p>
+        <h5>No matching users</h5>
+        <p class="text-muted">No pending users match the selected service type.</p>
       </div>
 
       <div class="list-group">
         <button 
-          *ngFor="let user of pendingUsers"
+          *ngFor="let user of filteredPendingUsers"
           type="button" 
           class="list-group-item list-group-item-action"
           [class.active]="selectedUser?.id === user.id"
@@ -99,10 +141,28 @@
                 <i class="fa fa-map-marker me-1"></i>
                 {{selectedUser.address}}
               </p>
-              <span class="badge bg-warning">
-                <i class="fa fa-clock me-1"></i>
-                Pending Approval
-              </span>
+              <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null">
+                <i class="fa fa-crosshairs me-1"></i>
+                {{selectedUser.latitude}}, {{selectedUser.longitude}}
+              </p>
+              <p class="text-muted mb-2" *ngIf="coordinateLookupInProgress">
+                <i class="fa fa-spinner fa-spin me-1"></i>
+                Looking up GPS coordinates from address...
+              </p>
+              <p class="text-danger mb-2" *ngIf="coordinateLookupError">
+                <i class="fa fa-exclamation-circle me-1"></i>
+                {{coordinateLookupError}}
+              </p>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-warning mr-2">
+                  <i class="fa fa-clock me-1"></i>
+                  Pending Approval
+                </span>
+                <button class="btn bg-dark" title="Chat with applicant" (click)="startChat()">
+                  <i class="fa fa-comments me-1"></i>
+                  Chat
+                </button>
+              </div>
             </div>
           </div>
 
@@ -216,12 +276,34 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="activeTab === 'map'" class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Pending Users Map</h5>
+      <span class="badge bg-warning text-dark">{{filteredPendingUsers.length}} Shown</span>
+    </div>
+    <div class="card-body p-0 position-relative">
+      <div class="map-loading-overlay" *ngIf="mapLoading">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading map...</span>
+        </div>
+        <span>Loading map markers...</span>
+      </div>
+      <div id="pending-users-map" class="pending-users-map"></div>
+    </div>
+    <div class="card-footer" *ngIf="mapError">
+      <div class="alert alert-warning mb-0">
+        <i class="fa fa-exclamation-triangle me-1"></i>
+        {{mapError}}
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Fixed Bottom Approval Bar -->
 
 <div class="d-flex justify-content-between align-items-center">
-    <div *ngIf="selectedUser" class="fixed-bottom">
+    <div *ngIf="activeTab === 'list' && selectedUser" class="fixed-bottom">
     <button 
         type="button" 
         class="btn btn-lg btn-block bg-dark" 
@@ -234,4 +316,4 @@
 </div>
 
 <!-- Add padding to prevent content from being hidden behind fixed bottom bar -->
-<div *ngIf="selectedUser" style="height: 100px;"></div>
+<div *ngIf="activeTab === 'list' && selectedUser" style="height: 100px;"></div>

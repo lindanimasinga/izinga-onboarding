@@ -1,7 +1,33 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { StorageService } from '../service/storage-service.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AnalyticsService } from '../service/analytics.service';
+import { Meta, Title } from '@angular/platform-browser';
+import { environment } from '../../environments/environment';
+
+type UserType = '' | 'shop' | 'individual' | 'driver';
+
+interface WelcomeHeroCopy {
+  heading: string;
+  description: string;
+}
+
+interface SignupCardCopy {
+  title: string;
+  description: string;
+  cta: string;
+  route: string;
+}
+
+interface SeoConfig {
+  title: string;
+  description: string;
+  keywords: string;
+  ogTitle: string;
+  ogDescription: string;
+  twitterTitle: string;
+  twitterDescription: string;
+}
 
 @Component({
   selector: 'app-welcome',
@@ -10,20 +36,29 @@ import { AnalyticsService } from '../service/analytics.service';
 })
 export class WelcomeSelectionComponent {
 
-  userType: string = '';
+  userType: UserType = environment.userTypeConfig.defaultUserType as UserType;
+  readonly heroCopyConfig = environment.userTypeConfig.heroCopy as Record<UserType, WelcomeHeroCopy>;
+  readonly signupCardConfig = environment.userTypeConfig.signupCards as Record<'shop' | 'individual' | 'driver', SignupCardCopy>;
 
-  constructor(private storageService: StorageService, private router: Router, private activatedRoute: ActivatedRoute, private analytics: AnalyticsService) {
+  constructor(
+    private storageService: StorageService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+    private analytics: AnalyticsService
+  ) {
+  }
+
+  get currentHeroCopy(): WelcomeHeroCopy {
+    const resolvedUserType = this.userType as UserType;
+    return this.heroCopyConfig[resolvedUserType] || this.heroCopyConfig.driver;
   }
 
   ngOnInit(): void {
     this.analytics.logScreenView('welcome_selection');
-    this.activatedRoute.queryParams.subscribe(params => {
-      console.log("User profile on welcome page:", params);
-      if (params['type']) {
-        this.userType = params['type'];
-        console.log("User type from query params: " + this.userType);
-      }
-    });
+
+    if (this.storageService.userType) {
+      this.userType = this.storageService.userType as UserType;
+    }
 
     console.log("User profile from storage service on welcome page:", this.activatedRoute.snapshot.queryParamMap.get('type'));
 
@@ -34,5 +69,7 @@ export class WelcomeSelectionComponent {
       this.router.navigate(['/indivisuals/dashboard'])
     }
   }
+
+
 
 }

@@ -221,12 +221,12 @@ export class IzingaOrderManagementService {
     }
   
     // New method to upload a file
-    uploadFile(file: File, docType?: DocType | undefined, docMeta?: UserConfig | undefined): Observable<{[key: string]: any}> {
+    uploadFile(file: File, metaData: boolean, docType?: DocType | undefined, docMeta?: UserConfig | undefined): Observable<{[key: string]: any}> {
       const formData: FormData = new FormData();
       formData.append('file', file);
       
       // Build URL with metadata parameter and optional docType
-      let url = `${environment.izingaUrl}/document?metadata=false`;
+      let url = `${environment.izingaUrl}/document?metadata=${metaData}`;
       if (docType) {
         url += `&docType=${docType}`;
       }

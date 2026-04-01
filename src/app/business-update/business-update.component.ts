@@ -174,7 +174,7 @@ export class BusinessUpdateComponent {
     }
   
     uploadImage(): Observable<string> {
-      return this.izingaOrderManagementService.uploadFile(this.selectedFile!)
+      return this.izingaOrderManagementService.uploadFile(this.selectedFile!, false)
         .pipe(
           map ((response: any) => {
             console.log('File uploaded successfully:', response);

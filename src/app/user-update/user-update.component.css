@@ -1,0 +1,11 @@
+.input-container {
+    width: 100%;
+}
+
+.upload-icon {
+    width: 121px;
+    object-fit: cover;
+}
+
+.input-image {
+}
