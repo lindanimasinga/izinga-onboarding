@@ -19,6 +19,7 @@ export class DashboardComponent {
   isMessenger: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
+  missingDocuments: string[] = []
 
   constructor(
     private izingaOrderManagementService: IzingaOrderManagementService,
@@ -52,8 +53,8 @@ export class DashboardComponent {
         }
         return;
       }
-      
       this.updateDevice()
+      this.findMissingDocuments()
     }, error => { 
       //if error is 404 navigate to user update
       console.log("Error fetching user:", error)
@@ -70,6 +71,30 @@ export class DashboardComponent {
         }
       }
     })
+  }
+
+  findMissingDocuments() {
+    console.log("Checking for missing documents for user:", this.user)
+    this.missingDocuments = []
+    if (this.user && this.user.role == UserProfile.RoleEnum.MESSENGER) {
+      this.izingaOrderManagementService.getUserConfig()
+      .subscribe(config => {
+        config.filter(cfg => cfg.label == this.user?.description)[0].mandatoryFields
+        .forEach(field => {
+          if (!this.user?.tag || !this.user?.tag[field.name]) {
+            this.missingDocuments.push(field.name)
+          }
+        })
+      })
+    }
+  }
+
+  formatDocumentName(documentName: string): string {
+    return documentName
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[_-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   registerDevice() {

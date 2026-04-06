@@ -5,6 +5,10 @@
             <div *ngIf="user?.profileApproved === false" class="alert alert-warning text-start mb-4" role="alert">
                 Your profile is being reviewed. We will contact you if additional information is required.
             </div>
+            <div *ngIf="missingDocuments.length > 0" class="alert alert-danger text-start mb-4" role="alert">
+                <div class="fw-bold mb-2 font-weight-bold">Missing Documents</div>
+                <div *ngFor="let document of missingDocuments">{{formatDocumentName(document).trim()| titlecase}}</div>
+            </div>
             <div *ngIf="isProfileBlocked()" class="alert alert-danger text-start mb-4" role="alert">
                 Your profile is blocked. Dashboard actions are disabled.
             </div>
