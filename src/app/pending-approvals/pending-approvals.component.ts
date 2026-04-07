@@ -17,7 +17,7 @@ declare var google: any;
 })
 export class PendingApprovalsComponent implements OnInit {
 
-  activeTab: 'list' | 'map' = 'list';
+  activeTab: 'list' | 'map' | 'criminal-check' = 'list';
   selectedUserConfigLabel: string = '';
   userConfigOptions: UserConfig[] = [];
   pendingUsers: UserProfile[] = [];
@@ -68,13 +68,21 @@ export class PendingApprovalsComponent implements OnInit {
       });
   }
 
+  get criminalCheckPendingUsers(): UserProfile[] {
+    return this.pendingUsers.filter(user => this.isCriminalCheckPending(user));
+  }
+
   get filteredPendingUsers(): UserProfile[] {
+    const visibleUsers = this.activeTab === 'criminal-check'
+      ? this.criminalCheckPendingUsers
+      : this.pendingUsers;
+
     const selectedLabel = this.selectedUserConfigLabel.trim().toLowerCase();
     if (!selectedLabel) {
-      return this.pendingUsers;
+      return visibleUsers;
     }
 
-    return this.pendingUsers.filter(user =>
+    return visibleUsers.filter(user =>
       (user.description || '').trim().toLowerCase() === selectedLabel
     );
   }
@@ -89,6 +97,11 @@ export class PendingApprovalsComponent implements OnInit {
     }
   }
 
+  isCriminalCheckPending(user: UserProfile): boolean {
+    return user.criminalCheckData?.criminalRecordCheckAccepted === true
+      && user.criminalCheckData?.criminalCheckPass == null;
+  }
+
   private loadUserConfig(): void {
     this.izingaOrderManager.getUserConfig().subscribe({
       next: config => {
@@ -101,8 +114,13 @@ export class PendingApprovalsComponent implements OnInit {
     });
   }
 
-  setActiveTab(tab: 'list' | 'map'): void {
+  setActiveTab(tab: 'list' | 'map' | 'criminal-check'): void {
     this.activeTab = tab;
+
+    if (this.selectedUser && !this.filteredPendingUsers.some(user => user.id === this.selectedUser!.id)) {
+      this.selectedUser = undefined;
+    }
+
     if (tab === 'map') {
       this.loadMapView();
     }

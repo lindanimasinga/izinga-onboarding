@@ -39,9 +39,20 @@
         Map View
       </button>
     </li>
+        <li class="nav-item">
+      <button
+        type="button"
+        class="nav-link"
+        [class.active]="activeTab === 'criminal-check'"
+        (click)="setActiveTab('criminal-check')">
+        <i class="fa fa-shield me-1"></i>
+        Criminal Checks
+        <span class="badge bg-secondary ms-1">{{criminalCheckPendingUsers.length}}</span>
+      </button>
+    </li>
   </ul>
 
-  <div *ngIf="activeTab === 'list'" class="row">
+  <div *ngIf="activeTab === 'list' || activeTab === 'criminal-check'" class="row">
     <!-- Users List -->
     <div class="col-md-4">
       <div class="d-flex align-items-center justify-content-between mb-3">

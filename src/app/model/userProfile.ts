@@ -41,6 +41,7 @@ export interface UserProfile {
     availabilityStatus?: ProfileAvailabilityStatus.Availability;
     profileApproved?: boolean;
     profileApprovedDate?: Date;
+    criminalCheckData?: CriminalCheckData;
     tag : { [key: string]: any };
 }
 export namespace UserProfile {
@@ -62,3 +63,17 @@ export namespace ProfileAvailabilityStatus {
             AWAY: 'AWAY' as Availability
         };
     }   
+
+export interface CriminalCheckData {
+    criminalRecordCheckAccepted?: boolean;
+    criminalCheckMessageSent?: boolean;
+    criminalRecordCheckDate?: Date;
+    criminalRecordCheckDocument?: DocumentAttachment;
+    criminalCheckPass?: boolean;
+}
+
+export interface DocumentAttachment {
+    name: string
+    url: string
+    uploadedDate: Date
+}

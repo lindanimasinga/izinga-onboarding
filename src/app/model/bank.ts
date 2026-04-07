@@ -15,6 +15,16 @@ export interface Bank {
     accountId: string;
     name: string;
     phone?: string;
-    type: string;
+    type: Bank.AccountTypeEnum;
     branchCode: string;
+}
+
+export namespace Bank {
+    export type AccountTypeEnum = 'CURRENT' | 'SAVINGS'| 'EWALLET' | 'TRANSMISSION';
+    export const AccountTypeEnum = {
+        CURRENT: 'CURRENT' as AccountTypeEnum,
+        SAVINGS: 'SAVINGS' as AccountTypeEnum,
+        EWALLET: 'EWALLET' as AccountTypeEnum,
+        TRANSMISSION: 'TRANSMISSION' as AccountTypeEnum
+    }; 
 }
