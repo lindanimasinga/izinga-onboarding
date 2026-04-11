@@ -98,8 +98,45 @@ export class PendingApprovalsComponent implements OnInit {
   }
 
   isCriminalCheckPending(user: UserProfile): boolean {
-    return user.criminalCheckData?.criminalRecordCheckAccepted === true
-      && user.criminalCheckData?.criminalCheckPass == null;
+    return user.crminalCheckData?.criminalRecordCheckAccepted == true
+      && user.crminalCheckData?.criminalCheckPass == undefined;
+  }
+
+  getMissingFields(user: UserProfile): string[] {
+    const config = this.userConfigOptions.find(cfg => cfg.label === user.description);
+    if (!config) {
+      return [];
+    }
+
+    return config.mandatoryFields
+      .filter(field => !this.hasTagValue(user, field.name))
+      .map(field => field.label || field.name);
+  }
+
+  hasMissingFields(user: UserProfile): boolean {
+    return this.getMissingFields(user).length > 0;
+  }
+
+  formatMissingFieldName(fieldName: string): string {
+    return fieldName
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/[_-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private hasTagValue(user: UserProfile, fieldName: string): boolean {
+    const value = user.tag?.[fieldName];
+
+    if (value === null || value === undefined) {
+      return false;
+    }
+
+    if (typeof value === 'string') {
+      return value.trim().length > 0;
+    }
+
+    return true;
   }
 
   private loadUserConfig(): void {

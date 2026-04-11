@@ -76,17 +76,35 @@ export class DashboardComponent {
   findMissingDocuments() {
     console.log("Checking for missing documents for user:", this.user)
     this.missingDocuments = []
-    if (this.user && this.user.role == UserProfile.RoleEnum.MESSENGER) {
-      this.izingaOrderManagementService.getUserConfig()
-      .subscribe(config => {
-        config.filter(cfg => cfg.label == this.user?.description)[0].mandatoryFields
-        .forEach(field => {
-          if (!this.user?.tag || !this.user?.tag[field.name]) {
-            this.missingDocuments.push(field.name)
-          }
-        })
-      })
+
+    if (!this.user || this.user.role != UserProfile.RoleEnum.MESSENGER) {
+      return
     }
+
+    if (!this.user.address || this.user.address.trim().length === 0) {
+      this.missingDocuments.push('address')
+    }
+
+    if (!this.user.imageUrl || this.user.imageUrl.trim().length === 0) {
+      this.missingDocuments.push('profilePicture')
+    }
+
+    this.izingaOrderManagementService.getUserConfig()
+    .subscribe(config => {
+      const matchedConfig = config.find(cfg => cfg.label == this.user?.description)
+      if (!matchedConfig) {
+        return
+      }
+
+      matchedConfig.mandatoryFields.forEach(field => {
+        const value = this.user?.tag?.[field.name]
+        const isMissing = value === null || value === undefined || (typeof value === 'string' && value.trim().length === 0)
+
+        if (isMissing && !this.missingDocuments.includes(field.name)) {
+          this.missingDocuments.push(field.name)
+        }
+      })
+    })
   }
 
   formatDocumentName(documentName: string): string {

@@ -12,7 +12,7 @@ import { UserProfile } from '../model/userProfile';
   templateUrl: './pending-approvals.component.html',
   styleUrls: ['./pending-approvals.component.css']
 })
-export class MessangerOrderComponent implements OnInit {
+export class PendingApprovalsComponent implements OnInit {
   order: Order | null = null;
   messenger: UserProfile | null = null;
   quoteId: string | null = null;

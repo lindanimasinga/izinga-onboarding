@@ -86,7 +86,7 @@ export class UserUpdateComponent {
   }
 
   createCustomer() {
-    this.userProfile.address = this.city
+    this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
 
     this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
@@ -117,7 +117,7 @@ export class UserUpdateComponent {
   }
 
   updateCustomer() {
-    this.userProfile.address = this.city
+    this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
     this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
     
@@ -225,7 +225,7 @@ export class UserUpdateComponent {
   }
 
   linkCode() {
-    this.userProfile.address = this.city
+    this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
 
@@ -237,6 +237,31 @@ export class UserUpdateComponent {
   logout() {
     this.storageService.logout()
     this.router.navigate([''])
+  }
+
+  private syncAddressCoordinates(): void {
+    const nextAddress = (this.city || '').trim()
+    const previousAddress = (this.userProfile.address || '').trim()
+
+    this.userProfile.address = this.city
+
+    if (nextAddress !== previousAddress) {
+      if (this.newAddressLatitude != null && this.newAddressLongitude != null) {
+        this.userProfile.latitude = this.newAddressLatitude
+        this.userProfile.longitude = this.newAddressLongitude
+      } else {
+        this.userProfile.latitude = undefined
+        this.userProfile.longitude = undefined
+      }
+      return
+    }
+
+    if ((this.userProfile.latitude == null || this.userProfile.longitude == null)
+      && this.newAddressLatitude != null
+      && this.newAddressLongitude != null) {
+      this.userProfile.latitude = this.newAddressLatitude
+      this.userProfile.longitude = this.newAddressLongitude
+    }
   }
 
   loadUserConfig() {

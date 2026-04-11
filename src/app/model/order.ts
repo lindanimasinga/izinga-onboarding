@@ -32,6 +32,11 @@ export interface Order {
     stage?: Order.StageEnum;
     totalAmount?: number;
     freeDelivery?: boolean;
+    weightFee?: number;
+    volumeFee?: number;
+    totalWeight?: number;
+    totalVolume?: number;
+    tags: { [key: string]: string }; 
 }
 
 export namespace Order {

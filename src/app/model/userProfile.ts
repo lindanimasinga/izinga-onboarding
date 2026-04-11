@@ -41,7 +41,9 @@ export interface UserProfile {
     availabilityStatus?: ProfileAvailabilityStatus.Availability;
     profileApproved?: boolean;
     profileApprovedDate?: Date;
-    criminalCheckData?: CriminalCheckData;
+    missingDocumentsReminderSent?: boolean;
+    welcomeMessageSent?: boolean;
+    crminalCheckData?: CriminalCheckData;
     tag : { [key: string]: any };
 }
 export namespace UserProfile {

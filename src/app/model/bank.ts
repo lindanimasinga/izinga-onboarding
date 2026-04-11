@@ -20,9 +20,9 @@ export interface Bank {
 }
 
 export namespace Bank {
-    export type AccountTypeEnum = 'CURRENT' | 'SAVINGS'| 'EWALLET' | 'TRANSMISSION';
+    export type AccountTypeEnum = 'CHEQUE' | 'SAVINGS'| 'EWALLET' | 'TRANSMISSION';
     export const AccountTypeEnum = {
-        CURRENT: 'CURRENT' as AccountTypeEnum,
+        CURRENT: 'CHEQUE' as AccountTypeEnum,
         SAVINGS: 'SAVINGS' as AccountTypeEnum,
         EWALLET: 'EWALLET' as AccountTypeEnum,
         TRANSMISSION: 'TRANSMISSION' as AccountTypeEnum
