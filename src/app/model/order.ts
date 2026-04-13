@@ -36,7 +36,7 @@ export interface Order {
     volumeFee?: number;
     totalWeight?: number;
     totalVolume?: number;
-    tags: { [key: string]: string }; 
+    tag: { [key: string]: string }; 
 }
 
 export namespace Order {
@@ -68,7 +68,7 @@ export namespace Order {
     };
 
     export const stageEnumText = {
-        STAGE_0_CUSTOMER_NOT_PAID : "Not Paid",
+        STAGE_0_CUSTOMER_NOT_PAID : "Waiting Payment",
         STAGE_1_WAITING_STORE_CONFIRM: "Waiting Confirmation",
         STAGE_2_STORE_PROCESSING: "Processing",
         STAGE_3_READY_FOR_COLLECTION: "Driver is collecting",

@@ -60,7 +60,7 @@ export class IzingaOrderManagementService {
   }
 
     getAllMessengerOrders(messengerId: string): Observable<Array<Order>> {
-    return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerId=${messengerId}`, {headers: this.headers})
+    return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerId=${messengerId}&allStages=true`, {headers: this.headers})
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)

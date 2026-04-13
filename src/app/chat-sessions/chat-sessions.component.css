@@ -3,6 +3,50 @@
 .chat-interface { height: calc(100vh - 100px); }
 .messages-container { height: 500px; overflow-y: auto; scroll-behavior: smooth; }
 
+.chat-interface-card {
+    min-height: calc(100vh - 140px);
+}
+
+.chat-body {
+    height: calc(100vh - 230px);
+    min-height: 420px;
+    overflow: hidden;
+}
+
+.messages-scroll {
+    min-height: 0;
+    scroll-behavior: smooth;
+}
+
+.chat-list-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 140px);
+}
+
+.chat-list-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.chat-list-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-list-scroll::-webkit-scrollbar-thumb {
+    background: #c8c8c8;
+    border-radius: 10px;
+}
+
+.message-composer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    background: #fff;
+}
+
 .messages-container::-webkit-scrollbar { width: 6px; }
 .messages-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
 .messages-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
@@ -49,6 +93,23 @@
 .chat-sessions-container { padding: 10px; }
 .messages-container { height: 400px; }
 .chat-bubble { max-width: 85%; }
+
+.chat-interface-card {
+    min-height: auto;
+}
+
+.chat-body {
+    height: calc(100vh - 250px);
+    min-height: 55vh;
+}
+
+.chat-list-panel {
+    max-height: none;
+}
+
+.chat-list-scroll {
+    max-height: 45vh;
+}
 }
 
 /* Smooth animations */
@@ -70,6 +131,7 @@
 /* Modal styling */
 .modal {
     background: rgba(0, 0, 0, 0.5);
+    top: 108px;
 }
 
 .modal-content {
@@ -79,7 +141,7 @@
 }
 
 .modal-header {
-    background: linear-gradient(135deg, #0d6efd, #0056b3);
+    background: var(--btn-bg-color);
     color: white;
     border-radius: 12px 12px 0 0;
     border-bottom: none;
@@ -106,6 +168,24 @@
 .modal-footer {
     border-top: 1px solid #e9ecef;
     padding: 1rem 2rem;
+}
+
+.chat-session-modal .modal-body {
+    padding: 0;
+}
+
+.chat-session-modal {
+    top: 0;
+}
+
+.chat-session-modal .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
+
+.chat-session-modal .chat-body {
+    height: calc(100vh - 170px);
+    min-height: 60vh;
 }
 
 /* Store selection styling */
@@ -189,6 +269,17 @@
 @media (max-width: 576px) {
     .modal-dialog {
         margin: 1rem;
+    }
+
+    .chat-session-modal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        height: 100vh;
+    }
+
+    .chat-session-modal .modal-content {
+        border-radius: 0;
+        height: 100vh;
     }
     
     .modal-body {

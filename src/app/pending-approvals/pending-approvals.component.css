@@ -65,9 +65,55 @@
   height: 2rem;
 }
 
+.pending-user-modal {
+  top: 0;
+}
+
+.pending-user-modal .modal-content {
+  background: var(--bkg-card-color);
+  color: var(--text-color);
+  border: none;
+}
+
+.pending-user-modal .modal-header {
+  background: var(--btn-bg-color);
+  color: #fff;
+  border-bottom: none;
+}
+
+.pending-user-modal .modal-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.pending-user-modal .modal-footer {
+  background: var(--bkg-card-color);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.pending-user-modal .modal-backdrop.show,
+.modal-backdrop.show {
+  opacity: 0.4;
+}
+
+.pending-user-modal .modal-body {
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
 @media (max-width: 768px) {
   .pending-users-map {
     height: 420px;
+  }
+
+  .pending-user-modal .modal-dialog {
+    margin: 0;
+    max-width: 100%;
+    height: 100vh;
+  }
+
+  .pending-user-modal .modal-content {
+    border-radius: 0;
+    height: 100vh;
   }
 
   .fixed-bottom .d-flex {

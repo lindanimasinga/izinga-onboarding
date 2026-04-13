@@ -35,7 +35,7 @@ export class OrdersComponent {
       var storeId = params['businessId']
       this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
       .pipe( 
-          mergeMap(user => this.izingaOrderManagementService.getAllMessengerOrders(user.id!))
+          mergeMap(user => this.izingaOrderManagementService.getAllStoreOrders(storeId))
       ).subscribe(orders => {
         this.orders = orders.sort( (a, b) => {
           const dateA = new Date(a.date!).getTime();

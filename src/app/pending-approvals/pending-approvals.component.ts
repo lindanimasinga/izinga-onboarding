@@ -28,6 +28,7 @@ export class PendingApprovalsComponent implements OnInit {
   coordinateLookupError: string = '';
   mapLoading: boolean = false;
   mapError: string = '';
+  showUserReviewModal: boolean = false;
 
   private pendingUsersMap?: any;
   private mapInfoWindow?: any;
@@ -167,6 +168,10 @@ export class PendingApprovalsComponent implements OnInit {
     this.selectedUser = user;
     this.coordinateLookupError = '';
 
+    if (this.isMobileView()) {
+      this.showUserReviewModal = true;
+    }
+
     if (this.shouldLookupCoordinates(user)) {
       this.lookupCoordinatesFromAddress(user);
     }
@@ -215,6 +220,11 @@ export class PendingApprovalsComponent implements OnInit {
 
   closeUserDetails(): void {
     this.selectedUser = undefined;
+    this.showUserReviewModal = false;
+  }
+
+  isMobileView(): boolean {
+    return window.innerWidth <= 768;
   }
 
   startChat(): void {

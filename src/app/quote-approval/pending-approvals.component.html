@@ -13,13 +13,11 @@
   </div>
 
   <!-- Waiting for Final Confirmation -->
-  <div *ngIf="isWaitingForConfirmation()" class="text-center py-5 mt-3">
+  <div *ngIf="isWaitingForConfirmation()" class="text-center py-3">
     <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;">
-      <span class="visually-hidden">Waiting...</span>
     </div>
-    <p class="mt-3 h5 text-success">Quote Accepted!</p>
-    <p class="">Waiting for final confirmation...</p>
-    <small class="">The customer needs to complete payment to proceed with the order.</small>
+    <p class="mt-3 h5 text-success">You have accepted the quote!</p>
+    <p class="">Waiting for the customer needs to complete payment to proceed with the order.</p>
   </div>
 
   <!-- Error Message -->
@@ -253,7 +251,7 @@
         <!-- Action Buttons -->
         <div class="row fixed-bottom">
           <!-- Accept Button (for initial quote approval) -->
-          <button *ngIf="order?.stage == 'STAGE_0_CUSTOMER_NOT_PAID'" type="button action-button" 
+          <button *ngIf="order?.stage == 'STAGE_0_CUSTOMER_NOT_PAID' && !isApproved()" type="button action-button" 
                     class="btn btn-lg btn-block bg-dark" 
                     (click)="approveQuote()"
                     [disabled]="isProcessing"
@@ -262,7 +260,7 @@
               <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-label="Loading"></span>
               <i *ngIf="!isProcessing" class="material-icons me-2">check_circle</i>
               <span *ngIf="isProcessing">Processing...</span>
-              <span *ngIf="!isProcessing && !isApproved()">Accept</span>
+              <span *ngIf="!isProcessing">Accept</span>
           </button>
 
           <!-- Start Pickup Button (for STAGE_1_WAITING_STORE_CONFIRM) -->

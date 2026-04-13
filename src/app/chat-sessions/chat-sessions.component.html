@@ -1,7 +1,7 @@
 <div>
   <div class="row">
     <!-- Chat Sessions List -->
-    <div class="col-md-4">
+    <div class="col-md-4 chat-list-panel">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Chat Sessions</h4>
       </div>
@@ -26,28 +26,29 @@
         </li>
       </ul>
 
-      <div *ngIf="loading" class="text-center py-4">
-        <div class="spinner-border" role="status">
-          <span class="sr-only">Loading...</span>
+      <div class="chat-list-scroll">
+        <div *ngIf="loading" class="text-center py-4">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
         </div>
-      </div>
 
-      <div *ngIf="!loading && filteredSessions.length === 0" class="text-center py-4">
-        <i class="fa fa-comments fa-3x text-muted mb-3"></i>
-        <h5>No chat sessions</h5>
-        <p class="text-muted">No chat sessions found for the selected filter.</p>
-        <button class="btn btn-primary" (click)="startNewSession()">
-          <i class="fa fa-plus me-1"></i>Start Your First Chat
-        </button>
-      </div>
+        <div *ngIf="!loading && filteredSessions.length === 0" class="text-center py-4">
+          <i class="fa fa-comments fa-3x text-muted mb-3"></i>
+          <h5>No chat sessions</h5>
+          <p class="text-muted">No chat sessions found for the selected filter.</p>
+          <button class="btn btn-primary" (click)="startNewSession()">
+            <i class="fa fa-plus me-1"></i>Start Your First Chat
+          </button>
+        </div>
 
-      <div class="list-group">
-        <button 
-          *ngFor="let session of filteredSessions"
-          type="button" 
-          class="list-group-item list-group-item-action position-relative"
-          [class.active]="selectedSession?.id === session.id"
-          (click)="selectSession(session)">
+        <div class="list-group">
+          <button 
+            *ngFor="let session of filteredSessions"
+            type="button" 
+            class="list-group-item list-group-item-action position-relative"
+            [class.active]="selectedSession?.id === session.id"
+            (click)="selectSession(session)">
           
           <!-- Unread badge -->
           <span *ngIf="session.unreadMessagesCount > 0" 
@@ -79,19 +80,20 @@
               </div>
             </div>
           </div>
-        </button>
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- Chat Interface -->
-    <div class="col-md-8">
+    <div class="col-md-8" #chatPane *ngIf="!isMobileView()">
       <div *ngIf="!selectedSession" class="text-center py-5">
         <i class="fa fa-comments fa-3x text-muted mb-3"></i>
         <h5>Select a chat session</h5>
         <p class="text-muted">Choose a chat session from the list to start messaging with customers.</p>
       </div>
 
-      <div *ngIf="selectedSession" class="card h-100">
+      <div *ngIf="selectedSession" class="card h-100 chat-interface-card">
         <!-- Chat Header -->
         <div class="card-header d-flex justify-content-between align-items-center">
           <div class="d-flex align-items-center">
@@ -126,8 +128,8 @@
         </div>
         
         <!-- Chat Messages -->
-        <div class="card-body d-flex flex-column p-0" style="height: 500px;">
-          <div class="flex-grow-1 overflow-auto p-3" #messagesContainer>
+        <div class="card-body d-flex flex-column p-0 chat-body">
+          <div class="flex-grow-1 overflow-auto p-3 messages-scroll" #messagesContainer>
             <div *ngIf="loadingMessages" class="text-center py-4">
               <div class="spinner-border spinner-border-sm" role="status">
                 <span class="sr-only">Loading messages...</span>
@@ -170,7 +172,7 @@
           </div>
           
           <!-- Message Input -->
-          <div class="border-top p-3">
+          <div class="border-top p-3 message-composer">
             <form (ngSubmit)="sendMessage()" #messageForm="ngForm">
               <div class="input-group">
                 <input 
@@ -202,6 +204,112 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile Chat Session Modal -->
+<div class="modal fade chat-session-modal" [class.show]="showChatSessionModal" [style.display]="showChatSessionModal ? 'block' : 'none'" tabindex="-1" *ngIf="showChatSessionModal && selectedSession">
+  <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="d-flex align-items-center w-100 justify-content-between">
+          <div class="d-flex align-items-center">
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3"
+                 style="width: 40px; height: 40px;">
+              <i class="fa fa-whatsapp text-white"></i>
+            </div>
+            <div>
+              <h6 class="mb-0">{{selectedSession.customerName || selectedSession.customerMobileNumber}}</h6>
+              <small class="text-white-50">{{selectedSession.customerMobileNumber}} • {{selectedSession.storeName}}</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="badge me-2"
+                  [class.bg-success]="selectedSession.status === 'ACTIVE'"
+                  [class.bg-warning]="selectedSession.status === 'INACTIVE'"
+                  [class.bg-secondary]="selectedSession.status === 'CLOSED'">
+              {{selectedSession.status}}
+            </span>
+            <button type="button" class="btn-close" (click)="closeChatSessionModal()"></button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-body p-0">
+        <div class="card border-0">
+          <div class="card-body d-flex flex-column p-0 chat-body">
+            <div class="flex-grow-1 overflow-auto p-3 messages-scroll" #messagesContainer>
+              <div *ngIf="loadingMessages" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" role="status">
+                  <span class="sr-only">Loading messages...</span>
+                </div>
+              </div>
+
+              <div *ngFor="let message of messages" class="mb-3">
+                <div class="d-flex" [class.justify-content-end]="message.senderType === 'STORE'">
+                  <div class="d-flex flex-column" style="max-width: 80%;">
+                    <div class="p-2 rounded"
+                         [class.bg-primary]="message.senderType === 'STORE'"
+                         [class.text-white]="message.senderType === 'STORE'"
+                         [class.bg-light]="message.senderType === 'CUSTOMER'">
+                      <p class="mb-1">{{message.message}}</p>
+                      <img *ngIf="message.messageType === 'IMAGE' && message.metadata?.imageUrl"
+                           [src]="message.metadata?.imageUrl"
+                           class="img-fluid rounded mt-2"
+                           style="max-width: 200px;">
+                      <div *ngIf="message.messageType === 'DOCUMENT' && message.metadata?.documentUrl"
+                           class="d-flex align-items-center mt-2">
+                        <i class="fa fa-file me-2"></i>
+                        <a [href]="message.metadata?.documentUrl" target="_blank">
+                          {{message.metadata?.fileName}}
+                        </a>
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-center"
+                         [class.justify-content-end]="message.senderType === 'STORE'">
+                      <small class="text-muted">
+                        {{message.timestamp | date:'short'}}
+                        <i *ngIf="message.senderType === 'STORE' && message.isRead" class="fa fa-check-double text-primary ms-1"></i>
+                        <i *ngIf="message.senderType === 'STORE' && !message.isRead" class="fa fa-check text-muted ms-1"></i>
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-top p-3 message-composer">
+              <form (ngSubmit)="sendMessage()" #mobileMessageForm="ngForm">
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Type your message..."
+                    [(ngModel)]="newMessage"
+                    name="mobileNewMessage"
+                    #messageInput
+                    [disabled]="sendingMessage || selectedSession.status === 'CLOSED'">
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    [disabled]="sendingMessage || selectedSession.status === 'CLOSED'">
+                    <i class="fa fa-paperclip"></i>
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn btn-primary"
+                    [disabled]="!newMessage || !newMessage.trim() || sendingMessage || selectedSession.status === 'CLOSED'">
+                    <i class="fa fa-paper-plane" *ngIf="!sendingMessage"></i>
+                    <span class="spinner-border spinner-border-sm" *ngIf="sendingMessage"></span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop fade" [class.show]="showChatSessionModal" *ngIf="showChatSessionModal"></div>
 
 <!-- New Session Modal -->
 <div class="modal fade" [class.show]="showNewSessionModal" [style.display]="showNewSessionModal ? 'block' : 'none'" tabindex="-1" *ngIf="showNewSessionModal">

@@ -142,7 +142,9 @@ export class MessangerOrderComponent implements OnInit {
   }
 
   isApproved(): boolean {
-    return !this.order?.tags['orderAcceptedBy'] && this.order?.stage === 'STAGE_0_CUSTOMER_NOT_PAID';
+    var approved = this.order?.tag != null && this.order?.tag['quoteAcceptedBy'] != null;
+    console.log("Quote approved: ", approved)
+    return approved;
   }
 
   startPickup(): void {

@@ -13,6 +13,8 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 })
 export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestroy {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
+  @ViewChild('chatPane') chatPane?: ElementRef<HTMLElement>;
+  @ViewChild('messageInput') messageInput?: ElementRef<HTMLInputElement>;
 
   allSessions: ChatSession[] = [];
   activeSessions: ChatSession[] = [];
@@ -25,6 +27,7 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   loadingMessages: boolean = false;
   sendingMessage: boolean = false;
   showNewSessionModal: boolean = false;
+  showChatSessionModal: boolean = false;
   newSessionStoreId: string = '';
   availableStores: any[] = [];
   
@@ -120,6 +123,10 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   selectSession(session: ChatSession): void {
     this.selectedSession = session;
     this.loadMessages(session.id);
+    if (this.isMobileView()) {
+      this.showChatSessionModal = true;
+    }
+    this.scrollSelectedSessionIntoView();
     
     // Mark session as read
     if (session.unreadMessagesCount > 0) {
@@ -275,6 +282,32 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
       const element = this.messagesContainer.nativeElement;
       element.scrollTop = element.scrollHeight;
     }
+  }
+
+  private scrollSelectedSessionIntoView(): void {
+    setTimeout(() => {
+      this.chatPane?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          this.messageInput?.nativeElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }, 200);
+      }
+    }, 0);
+  }
+
+  isMobileView(): boolean {
+    return window.innerWidth <= 768;
+  }
+
+  closeChatSessionModal(): void {
+    this.showChatSessionModal = false;
   }
 
   startNewSession(): void {
