@@ -102,11 +102,6 @@
     padding: 1rem;
   }
   
-  .btn-lg {
-    font-size: 1rem;
-    padding: 12px 16px;
-  }
-  
   .input-group-text i {
     font-size: 1rem !important;
   }
@@ -172,9 +167,6 @@
 }
 
 .btn-lg {
-  padding: 12px 24px;
-  font-size: 1.1rem;
-  border-radius: 8px;
   font-weight: 600;
   transition: all 0.3s ease;
 }
@@ -220,7 +212,6 @@
 
 .btn-link i {
   color: var(--btn-pill-color) !important;
-  font-size: 1rem !important;
 }
 
 /* Loading State */
@@ -256,7 +247,6 @@
 .form-label {
   font-weight: 600;
   margin-bottom: 0.25rem;
-  font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -298,11 +288,6 @@
 
   .address-marker i {
     font-size: 1.25rem !important;
-  }
-
-  .btn-lg {
-    font-size: 1rem;
-    padding: 10px 20px;
   }
 
   .quote-total {

@@ -8,6 +8,7 @@ import { from, Observable, of, throwError } from 'rxjs';
 import { StoreProfile } from '../model/storeProfile';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { BankConfig } from '../model/bank-config';
 
 @Component({
   selector: 'app-user-update',
@@ -23,6 +24,8 @@ export class UserUpdateComponent {
   _newAddressLongitude?: number
   roleDescription?: string
   city?: string
+  bankConfigs: BankConfig[] = [];
+  selectedBankConfig?: BankConfig;
   ewallet?: string
   paymentType = "EWALLET"
   hasTipCard = false
@@ -79,6 +82,7 @@ export class UserUpdateComponent {
       this.loadExistingDynamicFields(user);
     })
     this.loadUserConfig()
+    this.loadBankConfigs()
   }
 
   isStoreAdmin(): boolean {
@@ -224,6 +228,12 @@ export class UserUpdateComponent {
     this.userProfile.bank.branchCode = '250655'
   }
 
+  onBankSelected(bankConfig: BankConfig): void {
+    this.userProfile.bank.name = bankConfig.bankName;
+    this.userProfile.bank.branchCode = bankConfig.branchCode;
+    this.userProfile.bank.accountId = this.userProfile.bank.accountId || '';
+  }
+
   linkCode() {
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
@@ -311,6 +321,21 @@ export class UserUpdateComponent {
       this.userProfile.tag = {};
     }
     // Data is already stored directly in tags, so no copying needed
+  }
+
+  private loadBankConfigs(): void {
+    this.izingaOrderManager.getBankConfigs().subscribe({
+      next: (banks) => {
+        this.bankConfigs = banks;
+        if (this.userProfile.bank?.name) {
+          this.selectedBankConfig = banks.find(b =>
+            b.bankName === this.userProfile.bank.name ||
+            b.branchCode === this.userProfile.bank.branchCode
+          );
+        }
+      },
+      error: () => { /* non-critical: user can still type bank name */ }
+    });
   }
 
   /**

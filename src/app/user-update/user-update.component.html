@@ -235,9 +235,14 @@
                 </div>
                 <div id="bank-account--data" *ngIf="paymentType == 'BANK_ACC'">
                     <div class="mb-3">
-                        <label for="cellphone">Bank Name</label>
+                        <label for="bankSelect">Bank Name</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" [(ngModel)]="bankName" name="bankName">
+                            <select id="bankSelect" class="form-control" name="bankSelect"
+                                [(ngModel)]="selectedBankConfig"
+                                (ngModelChange)="onBankSelected($event)">
+                                <option [ngValue]="undefined" disabled>Select your bank</option>
+                                <option *ngFor="let bank of bankConfigs" [ngValue]="bank">{{ bank.bankName }}</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -258,10 +263,13 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="cellphone">Branch Code</label>
+                        <label for="branch">Branch Code</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" [(ngModel)]="userProfile.bank.branchCode" name="branch">
+                            <input type="text" class="form-control" [(ngModel)]="userProfile.bank.branchCode" name="branch"
+                                [readonly]="!!selectedBankConfig"
+                                [class.bg-light]="!!selectedBankConfig">
                         </div>
+                        <small *ngIf="selectedBankConfig" class="text-muted">Auto-filled from selected bank</small>
                     </div>
                 </div>
 

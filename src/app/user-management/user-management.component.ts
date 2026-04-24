@@ -4,6 +4,8 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 import { StorageService } from '../service/storage-service.service';
 import { UserProfile } from '../model/userProfile';
 import { AnalyticsService } from '../service/analytics.service';
+import { DataType, UserConfig } from '../model/user-config';
+import { BankConfig } from '../model/bank-config';
 
 @Component({
   selector: 'app-user-management',
@@ -18,6 +20,25 @@ export class UserManagementComponent {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  showCreateUserForm = false;
+  isCreatingUser = false;
+  createPaymentType = 'EWALLET';
+  userConfig: Array<UserConfig> = [];
+  roleDescription?: string;
+  bankConfigs: BankConfig[] = [];
+  selectedBankConfigForNewUser?: BankConfig;
+
+  newUser: UserProfile = {
+    imageUrl: 'https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg',
+    role: UserProfile.RoleEnum.MESSENGER,
+    bank: {
+      type: 'EWALLET',
+      name: 'FNB',
+      accountId: '',
+      branchCode: '250655'
+    },
+    tag: {}
+  };
 
   constructor(
     private router: Router,
@@ -28,6 +49,119 @@ export class UserManagementComponent {
 
   ngOnInit(): void {
     this.analytics.logScreenView('user_management');
+    this.loadUserConfig();
+    this.loadBankConfigsForCreate();
+  }
+
+  toggleCreateUserForm(): void {
+    this.showCreateUserForm = !this.showCreateUserForm;
+    this.errorMessage = '';
+    this.successMessage = '';
+  }
+
+  createUserOnBehalf(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    if (!this.newUser.name || !this.newUser.mobileNumber || !this.roleDescription) {
+      this.errorMessage = 'Name, mobile number, and service type are required';
+      return;
+    }
+
+    this.newUser.mobileNumber = this.formatPhoneNumber(this.newUser.mobileNumber);
+    this.newUser.description = this.roleDescription;
+    this.newUser.role = UserProfile.RoleEnum.MESSENGER;
+    this.newUser.termsAccepted = false;
+    this.newUser.profileApproved = false;
+
+    if (!this.newUser.tag) {
+      this.newUser.tag = {};
+    }
+
+    if (this.createPaymentType === 'EWALLET') {
+      this.newUser.bank.type = 'EWALLET';
+      this.newUser.bank.name = 'FNB';
+      this.newUser.bank.branchCode = '250655';
+      this.newUser.bank.accountId = this.newUser.mobileNumber;
+    }
+
+    if (this.createPaymentType === 'BANK_ACC' && (!this.newUser.bank.name || !this.newUser.bank.accountId || !this.newUser.bank.branchCode)) {
+      this.errorMessage = 'Bank name, account number, and branch code are required for bank payouts';
+      return;
+    }
+
+    this.isCreatingUser = true;
+
+    this.izingaOrderService.registerCustomer(this.newUser).subscribe({
+      next: (createdUser) => {
+        this.isCreatingUser = false;
+        this.successMessage = `User ${createdUser.name || createdUser.mobileNumber} created successfully`;
+        this.searchResults = [createdUser, ...this.searchResults.filter(user => user.id !== createdUser.id)];
+        this.selectedUser = createdUser;
+        this.analytics.logEvent('user_created_on_behalf', { userId: createdUser.id, role: createdUser.role });
+        this.resetNewUserForm();
+        this.showCreateUserForm = false;
+      },
+      error: () => {
+        this.isCreatingUser = false;
+        this.errorMessage = 'Failed to create user. Please check the details and try again.';
+      }
+    });
+  }
+
+  ewalletSelectedForNewUser(): void {
+    this.createPaymentType = 'EWALLET';
+    this.newUser.bank.type = 'EWALLET';
+    this.newUser.bank.accountId = this.newUser.mobileNumber ? this.formatPhoneNumber(this.newUser.mobileNumber) : '';
+    this.newUser.bank.name = 'FNB';
+    this.newUser.bank.branchCode = '250655';
+  }
+
+  onBankSelectedForNewUser(bankConfig: BankConfig): void {
+    this.newUser.bank.name = bankConfig.bankName;
+    this.newUser.bank.branchCode = bankConfig.branchCode;
+  }
+
+  getInputType(dataType: DataType): string {
+    switch (dataType) {
+      case DataType.STRING:
+        return 'text';
+      case DataType.NUMBER:
+        return 'number';
+      case DataType.DATE:
+        return 'date';
+      case DataType.BOOLEAN:
+        return 'checkbox';
+      case DataType.DOCUMENT_URL:
+        return 'text';
+      default:
+        return 'text';
+    }
+  }
+
+  getUserConfigFields(roleDescriptionLabel: string): Array<{name: string, label: string, dataType: DataType}> {
+    const config = this.userConfig.find(item => item.label === roleDescriptionLabel);
+    if (!config) {
+      return [];
+    }
+
+    return [...config.mandatoryFields, ...config.optionalFields]
+      .sort((a, b) => b.label.localeCompare(a.label))
+      .sort((a, b) => a.dataType === DataType.DOCUMENT_URL ? -1 : 1);
+  }
+
+  onCreatePaymentTypeChange(): void {
+    if (this.createPaymentType === 'EWALLET') {
+      this.ewalletSelectedForNewUser();
+      return;
+    }
+
+    if (this.newUser.bank.type === 'EWALLET') {
+      this.newUser.bank.type = 'CHEQUE';
+    }
+    this.newUser.bank.accountId = this.newUser.bank.accountId || '';
+    this.newUser.bank.name = this.newUser.bank.name || '';
+    this.newUser.bank.branchCode = this.newUser.bank.branchCode || '';
   }
 
   searchUser(): void {
@@ -133,6 +267,40 @@ export class UserManagementComponent {
       this.selectedUser = null;
       this.errorMessage = '';
       this.successMessage = '';
+    }
+
+    private loadUserConfig(): void {
+      this.izingaOrderService.getUserConfig().subscribe({
+        next: (config) => {
+          this.userConfig = config;
+        },
+        error: () => {
+          this.userConfig = [];
+        }
+      });
+    }
+
+    private loadBankConfigsForCreate(): void {
+      this.izingaOrderService.getBankConfigs().subscribe({
+        next: (banks) => { this.bankConfigs = banks; },
+        error: () => { /* non-critical */ }
+      });
+    }
+
+    private resetNewUserForm(): void {
+      this.createPaymentType = 'EWALLET';
+      this.roleDescription = undefined;
+      this.newUser = {
+        imageUrl: 'https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg',
+        role: UserProfile.RoleEnum.MESSENGER,
+        bank: {
+          type: 'EWALLET',
+          name: 'FNB',
+          accountId: '',
+          branchCode: '250655'
+        },
+        tag: {}
+      };
     }
 
     getObjectKeys(obj: any): string[] {

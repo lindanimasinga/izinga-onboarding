@@ -112,6 +112,21 @@
           <textarea class="form-control" [value]="order?.shippingData?.additionalInstructions" rows="3" disabled></textarea>
         </div>
 
+        <div *ngIf="order?.basket?.items?.length" class="mb-4">
+          <div class="justify-content-sm-center justify-content-md-start mb-3">
+            <div class="page-header h5">Items</div>
+          </div>
+
+          <ul class="list-group">
+            <li *ngFor="let orderItem of order?.basket?.items" class="list-group-item">
+              <div class="fw-semibold">{{orderItem?.quantity}} x {{orderItem?.name}}</div>
+              <div *ngFor="let option of orderItem?.options" class="small text-muted">
+                {{option.name}}: {{option.selected}}
+              </div>
+            </li>
+          </ul>
+        </div>
+
                 <!-- Google Maps Directions Section -->
         <div class="directions-section mb-4">
           <div class="justify-content-sm-center justify-content-md-start mb-3">

@@ -1,8 +1,8 @@
 <a (click)="selectedPayout()" routerLink="../payout-details" class="payout-card-link">
-  <div class="card shadow-sm payout-card my-1 p-4" style="border-radius: 4px;">
+  <div class="card shadow-sm payout-card my-1 p-2" style="border-radius: 4px;">
     <div class="d-flex align-items-center">
       <div class="mr-3">
-        <img [src]="store?.imageUrl" alt="{{store?.name}}" class="rounded-circle border" style="width: 84px; height: 84px; object-fit: cover; background: #f3f2f2;">
+        <img [src]="store?.imageUrl" class="rounded-circle border" style="width: 84px; height: 84px; object-fit: cover; background: #f3f2f2;">
       </div>
       <div class="flex-grow-1">
         <div class="fw-bold mb-1" style="font-size: 1.1rem;">{{store?.name}}</div>

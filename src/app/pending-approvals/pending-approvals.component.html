@@ -99,11 +99,9 @@
                 <small class="">{{user.mobileNumber}}</small>
               </div>
             </div>
-            <small class="text-warning">
-              <i class="fa fa-clock"></i>
-            </small>
           </div>
           <p class="mb-1 small">{{user.description || 'No service description'}}</p>
+              <i *ngIf="!hasMissingFields(user)" class="fa fa-check-circle">Ready For App</i>
         </button>
       </div>
     </div>

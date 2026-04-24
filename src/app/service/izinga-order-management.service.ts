@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import {Device, UserProfile, UserConfig, DocType} from '../model/models'
+import { BankConfig } from '../model/bank-config';
 import { environment } from 'src/environments/environment';
 import { catchError } from 'rxjs/operators';
 import { UserCardLink } from '../model/user-card-link';
@@ -207,6 +208,15 @@ export class IzingaOrderManagementService {
   getUserConfig(): Observable<Array<UserConfig>> {
     return this.http
         .get<Array<UserConfig>>(`${environment.izingaUrl}/user-config`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
+  getBankConfigs(): Observable<Array<BankConfig>> {
+    return this.http
+        .get<Array<BankConfig>>(`${environment.izingaUrl}/bank/config/all`, {headers: this.headers})
         .pipe(
           catchError((error: HttpErrorResponse) => {
             return throwError(error)

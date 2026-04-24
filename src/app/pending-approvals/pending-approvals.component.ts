@@ -114,7 +114,7 @@ export class PendingApprovalsComponent implements OnInit {
       .map(field => field.label || field.name);
   }
 
-  hasMissingFields(user: UserProfile): boolean {
+hasMissingFields(user: UserProfile): boolean {
     return this.getMissingFields(user).length > 0;
   }
 
@@ -179,29 +179,8 @@ export class PendingApprovalsComponent implements OnInit {
 
   approveUser(): void {
     if (!this.selectedUser) return;
-    
-    this.approving = true;
-    
-    // Update user profile to approved
-    this.selectedUser.profileApproved = true;
-    this.selectedUser.profileApprovedDate = new Date();
-    
-    this.izingaOrderManager.updateCustomer(this.selectedUser)
-      .subscribe(updatedUser => {
-        console.log('User approved successfully:', updatedUser);
-        
-        // Remove from pending list
-        this.pendingUsers = this.pendingUsers.filter(u => u.id !== this.selectedUser!.id);
-        this.selectedUser = undefined;
-        this.approving = false;
-        
-        // Show success message
-        alert('User profile approved successfully!');
-      }, error => {
-        console.error('Error approving user:', error);
-        this.approving = false;
-        alert('Failed to approve user profile. Please try again.');
-      });
+
+    this.approvePendingUser(this.selectedUser);
   }
 
   rejectUser(): void {
@@ -469,6 +448,9 @@ export class PendingApprovalsComponent implements OnInit {
 
         this.mapInfoWindow.setContent(this.buildMarkerPopup(user));
         this.mapInfoWindow.open(this.pendingUsersMap, marker);
+        google.maps.event.addListenerOnce(this.mapInfoWindow, 'domready', () => {
+          this.attachMarkerPopupActions(user);
+        });
       });
 
       this.mapMarkers.push(marker);
@@ -558,15 +540,95 @@ export class PendingApprovalsComponent implements OnInit {
     const customerType = this.escapeHtml(this.getCustomerType(user));
     const vehicleMake = this.escapeHtml(this.getVehicleMake(user));
     const vehicleModel = this.escapeHtml(this.getVehicleModel(user));
+    const isReady = !this.hasMissingFields(user);
+    const readyLabel = isReady ? 'Ready' : 'Missing Required Fields';
+    const readyColor = isReady ? '#198754' : '#fd7e14';
+    const missingCount = this.getMissingFields(user).length;
+    const approveButtonId = user.id ? `approve-user-${this.escapeHtml(user.id)}` : '';
+    const buttonMarkup = user.id
+      ? `<button
+          id="${approveButtonId}"
+          type="button"
+          ${isReady ? '' : 'disabled'}
+          style="margin-top: 10px; width: 100%; border: 0; border-radius: 6px; padding: 10px 12px; background: ${isReady ? '#212529' : '#adb5bd'}; color: #fff; font-weight: 600; cursor: ${isReady ? 'pointer' : 'not-allowed'};"
+        >
+          Approve Profile
+        </button>`
+      : '';
 
     return `
-      <div style="min-width: 220px; color: #333; font-family: Arial, sans-serif;">
+      <div style="min-width: 240px; color: #333; font-family: Arial, sans-serif;">
         <h6 style="margin: 0 0 8px 0;">${name}</h6>
+        <p style="margin: 0 0 8px 0;">
+          <span style="display: inline-block; padding: 4px 8px; border-radius: 999px; background: rgba(25, 135, 84, 0.12); color: ${readyColor}; font-size: 12px; font-weight: 700;">
+            ${this.escapeHtml(readyLabel)}
+          </span>
+        </p>
         <p style="margin: 0 0 4px 0;"><strong>Customer Type:</strong> ${customerType}</p>
         <p style="margin: 0 0 4px 0;"><strong>Vehicle Make:</strong> ${vehicleMake}</p>
-        <p style="margin: 0;"><strong>Vehicle Model:</strong> ${vehicleModel}</p>
+        <p style="margin: 0 0 4px 0;"><strong>Vehicle Model:</strong> ${vehicleModel}</p>
+        <p style="margin: 0; color: ${readyColor}; font-size: 12px;">
+          ${isReady ? 'All required fields and documents are present.' : `${missingCount} required field${missingCount === 1 ? '' : 's'} still missing.`}
+        </p>
+        ${buttonMarkup}
       </div>
     `;
+  }
+
+  private attachMarkerPopupActions(user: UserProfile): void {
+    if (!user.id || !this.mapInfoWindow) {
+      return;
+    }
+
+    const approveButton = document.getElementById(`approve-user-${user.id}`);
+    if (!approveButton) {
+      return;
+    }
+
+    approveButton.addEventListener('click', () => {
+      if (this.hasMissingFields(user)) {
+        return;
+      }
+
+      this.selectUser(user);
+      this.mapInfoWindow?.close();
+      this.approvePendingUser(user);
+    });
+  }
+
+  private approvePendingUser(user: UserProfile): void {
+    if (!user.id || this.approving) {
+      return;
+    }
+
+    this.selectedUser = user;
+    this.approving = true;
+
+    const updatedUser: UserProfile = {
+      ...user,
+      profileApproved: true,
+      profileApprovedDate: new Date()
+    };
+
+    this.izingaOrderManager.updateCustomer(updatedUser)
+      .subscribe(updatedProfile => {
+        console.log('User approved successfully:', updatedProfile);
+
+        this.pendingUsers = this.pendingUsers.filter(pendingUser => pendingUser.id !== user.id);
+        this.selectedUser = this.selectedUser?.id === user.id ? undefined : this.selectedUser;
+        this.showUserReviewModal = false;
+        this.approving = false;
+
+        if (this.activeTab === 'map') {
+          this.loadMapView();
+        }
+
+        alert('User profile approved successfully!');
+      }, error => {
+        console.error('Error approving user:', error);
+        this.approving = false;
+        alert('Failed to approve user profile. Please try again.');
+      });
   }
 
   private getMarkerIcon(user: UserProfile): any {

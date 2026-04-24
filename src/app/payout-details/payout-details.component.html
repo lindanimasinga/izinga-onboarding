@@ -1,10 +1,10 @@
 <div class="py-3">
-  <div class="text-center mb-">
-    <h3 class="fw-bold" style="font-family: Catamaran, Calibri, sans-serif;">{{store.name}} Payouts</h3>
-    <img class="business-logo mb-3" [src]="store.imageUrl" alt="{{store.name}}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #eee;">
-    <p class="text-muted mb-1">Manage your payouts and track your earnings.</p>
+  <div class="row mb-2">
+    <h3 class="col-6 fw-bold store-name">{{store.name}} Payouts</h3>
+    <img class="col-6 business-logo mb-3" [src]="store.imageUrl" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%; border: 2px solid #eee;">
   </div>
 
+  <p class="text-muted mb-1">Manage your payouts and track your earnings.</p>
   <ul class="list-group steps mb-4 mx-auto" style="max-width: 600px;">
     <li class="list-group-item step py-3" style="font-size: 1.05rem;">💸 <strong>Daily Payouts:</strong> Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</li>
     <li class="list-group-item step py-3" style="font-size: 1.05rem;">📋 <strong>Withdrawal Limits:</strong> Payments to a cellphone number have a daily withdrawal limit of R3000. Any amount exceeding R3000 will be carried over and paid out on the next payout day.</li>

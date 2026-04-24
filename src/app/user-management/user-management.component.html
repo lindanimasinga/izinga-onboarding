@@ -26,6 +26,121 @@
         </button>
       </div>
 
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Create User On Behalf</h6>
+          <button class="btn btn-sm btn-outline-dark" type="button" (click)="toggleCreateUserForm()">
+            {{ showCreateUserForm ? 'Close' : 'New User' }}
+          </button>
+        </div>
+        <div class="card-body" *ngIf="showCreateUserForm">
+          <form (ngSubmit)="createUserOnBehalf()" #createUserForm="ngForm">
+            <div class="mb-2">
+              <label class="form-label">First Name</label>
+              <input type="text" class="form-control" [(ngModel)]="newUser.name" name="createName" required>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">Cellphone Number</label>
+              <input type="tel" class="form-control" [(ngModel)]="newUser.mobileNumber" name="createMobileNumber" placeholder="0XXXXXXXXX" required>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" [(ngModel)]="newUser.dateOfBirth" name="createDateOfBirth">
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" [(ngModel)]="newUser.emailAddress" name="createEmailAddress" placeholder="Optional email">
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">Town, township or village</label>
+              <input type="text" class="form-control" [(ngModel)]="newUser.address" name="createAddress" placeholder="Enter area">
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label">Service Type</label>
+              <select class="form-control" [(ngModel)]="roleDescription" name="createRoleDescription" required>
+                <option [ngValue]="undefined" disabled>Select service type</option>
+                <option *ngFor="let config of userConfig" [ngValue]="config.label">{{ config.label }}</option>
+              </select>
+            </div>
+
+            <div *ngIf="roleDescription" class="mb-2">
+              <div *ngFor="let field of getUserConfigFields(roleDescription)" class="mb-2">
+                <label class="form-label">{{ field.label }}</label>
+                <input
+                  *ngIf="getInputType(field.dataType) !== 'checkbox'"
+                  [type]="getInputType(field.dataType)"
+                  class="form-control"
+                  [name]="'createTag_' + field.name"
+                  [(ngModel)]="newUser.tag[field.name]">
+                <input
+                  *ngIf="getInputType(field.dataType) === 'checkbox'"
+                  type="checkbox"
+                  class="form-check-input"
+                  [name]="'createTag_' + field.name"
+                  [(ngModel)]="newUser.tag[field.name]">
+              </div>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label d-block">Payout Method</label>
+              <div class="btn-group w-100" role="group">
+                <input type="radio" class="btn-check" id="create-ewallet" name="createPaymentType" value="EWALLET" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
+                <label class="btn btn-outline-secondary" for="create-ewallet">Cash (eWallet)</label>
+
+                <input type="radio" class="btn-check" id="create-bank" name="createPaymentType" value="BANK_ACC" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
+                <label class="btn btn-outline-secondary" for="create-bank">Bank Account</label>
+              </div>
+            </div>
+
+            <div *ngIf="createPaymentType === 'EWALLET'" class="border p-2 mb-2 bg-light small">
+              Funds will be paid to this number. Daily cellphone withdrawal limit is R3000.
+            </div>
+
+            <div *ngIf="createPaymentType === 'BANK_ACC'">
+              <div class="mb-2">
+                <label class="form-label">Bank Name</label>
+                <select class="form-control" name="createBankSelect"
+                    [(ngModel)]="selectedBankConfigForNewUser"
+                    (ngModelChange)="onBankSelectedForNewUser($event)">
+                  <option [ngValue]="undefined" disabled>Select your bank</option>
+                  <option *ngFor="let bank of bankConfigs" [ngValue]="bank">{{ bank.bankName }}</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Account Number</label>
+                <input type="text" class="form-control" [(ngModel)]="newUser.bank.accountId" name="createAccountNumber">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Account Type</label>
+                <select class="form-control" [(ngModel)]="newUser.bank.type" name="createAccountType">
+                  <option [ngValue]="'CHEQUE'">Cheque</option>
+                  <option [ngValue]="'SAVINGS'">Savings</option>
+                  <option [ngValue]="'TRANSMISSION'">Transmission</option>
+                  <option [ngValue]="'EWALLET'">eWallet</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Branch Code</label>
+                <input type="text" class="form-control" [(ngModel)]="newUser.bank.branchCode" name="createBranchCode"
+                    [readonly]="!!selectedBankConfigForNewUser"
+                    [class.bg-light]="!!selectedBankConfigForNewUser">
+                <small *ngIf="selectedBankConfigForNewUser" class="text-muted">Auto-filled from selected bank</small>
+              </div>
+            </div>
+
+            <button class="btn btn-dark w-100 mt-2" type="submit" [disabled]="isCreatingUser || !createUserForm.form.valid">
+              <span *ngIf="isCreatingUser" class="spinner-border spinner-border-sm me-2"></span>
+              {{ isCreatingUser ? 'Creating...' : 'Create User' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
       <!-- Alerts -->
       <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
         {{ errorMessage }}
