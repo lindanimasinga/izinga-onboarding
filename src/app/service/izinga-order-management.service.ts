@@ -68,6 +68,22 @@ export class IzingaOrderManagementService {
       }));
   }
 
+    getAllMessengerAdminOrders(messengerAdminId: string): Observable<Array<Order>> {
+      return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerAdminId=${messengerAdminId}&allStages=true`, {headers: this.headers})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        }));
+    }
+
+    getAllMessengersForAdmin(messengerAdminId: string): Observable<Array<UserProfile>> {
+      return this.http.get<Array<UserProfile>>(`${environment.izingaUrl}/user?role=MESSENGER&messengerAdminId=${messengerAdminId}&includePendingUsers=true`, {headers: this.headers})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        }));
+    }
+
   getOrderById(orderId: string): Observable<Order> {
     return this.http
         .get<Order>(`${environment.izingaUrl}/order/${orderId}`, {headers: this.headers})
@@ -105,6 +121,14 @@ export class IzingaOrderManagementService {
 
   getPayouts(userId: string, fromDate: Date, toDate: Date, payoutType: PayoutType): Observable<Payout[]> {
     return this.http.get<Payout[]>(`${environment.izingaUrl}/recon/payout?fromDate=${fromDate.toISOString()}&toDate=${toDate.toISOString()}&toId=${userId}&payoutType=${payoutType}`, {headers: this.headers})
+    .pipe(
+      catchError((error: HttpErrorResponse) => {
+        return throwError(error)
+      }));
+  }
+
+  getTeamPayouts(messengerAdminId: string, fromDate: Date, toDate: Date): Observable<Payout[]> {
+    return this.http.get<Payout[]>(`${environment.izingaUrl}/recon/payout?fromDate=${fromDate.toISOString()}&toDate=${toDate.toISOString()}&messengerAdminId=${messengerAdminId}&payoutType=${PayoutType.MESSENGER}`, {headers: this.headers})
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)
@@ -163,6 +187,15 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  deleteUser(userId: string): Observable<any> {
+    return this.http
+        .delete<any>(`${environment.izingaUrl}/user/${userId}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
   getPendingApprovals(): Observable<UserProfile[]> {
     return this.http
         .get<UserProfile[]>(`${environment.izingaUrl}/user/pending-approvals`, {headers: this.headers})
@@ -208,6 +241,33 @@ export class IzingaOrderManagementService {
   getUserConfig(): Observable<Array<UserConfig>> {
     return this.http
         .get<Array<UserConfig>>(`${environment.izingaUrl}/user-config`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
+  createUserConfig(userConfig: UserConfig): Observable<UserConfig> {
+    return this.http
+        .post<UserConfig>(`${environment.izingaUrl}/user-config`, userConfig, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
+  updateUserConfig(name: string, userConfig: UserConfig): Observable<UserConfig> {
+    return this.http
+        .patch<UserConfig>(`${environment.izingaUrl}/user-config/${name}`, userConfig, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
+  deleteUserConfig(name: string): Observable<any> {
+    return this.http
+        .delete<any>(`${environment.izingaUrl}/user-config/${name}`, {headers: this.headers})
         .pipe(
           catchError((error: HttpErrorResponse) => {
             return throwError(error)

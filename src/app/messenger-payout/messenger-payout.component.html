@@ -1,7 +1,7 @@
 <div class="py-3">
   <div class="text-center mb-3">
-        <h2 class="fw-bold">My Payouts</h2>
-        <p class="text-muted">Manage your payouts and track your earnings.</p>
+      <h2 class="fw-bold">{{ storageService.userProfile?.role === 'MESSENGER_ADMIN' ? 'Team Payouts' : 'My Payouts' }}</h2>
+      <p class="text-muted">{{ storageService.userProfile?.role === 'MESSENGER_ADMIN' ? 'Manage team payouts and track team earnings.' : 'Manage your payouts and track your earnings.' }}</p>
         <p class="text-muted">Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</p>
   </div>
 

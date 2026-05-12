@@ -3,6 +3,8 @@
  * Models for user configuration and service type definitions
  */
 
+import { UserProfile } from "./models";
+
 export enum DataType {
   STRING = 'STRING',
   NUMBER = 'NUMBER',
@@ -22,6 +24,7 @@ export interface FieldDefinition {
 export interface UserConfig {
     name: string;
     label: string;
+    userRole: UserProfile.RoleEnum;
     mandatoryFields: FieldDefinition[];
     optionalFields: FieldDefinition[];
 }

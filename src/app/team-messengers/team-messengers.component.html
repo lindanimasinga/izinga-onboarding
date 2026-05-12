@@ -1,0 +1,273 @@
+<div class="container-fluid py-4">
+  <!-- Page Header -->
+  <div class="mb-5">
+    <div class="text-center mb-4">
+    <h2 class="fw-bold">My Drivers</h2>
+    <p class="text-muted">Manage your driver team and view their status.</p>
+</div>
+  </div>
+
+  <!-- Add Driver Form -->
+  <div *ngIf="showAddForm" class="card shadow-sm mb-4 p-4" role="region" aria-label="Add new driver form">
+    <h5 class="fw-bold mb-4">Add New Driver to Team</h5>
+    
+    <!-- Phase 1: Check Existing or Create -->
+    <div *ngIf="!showCreateForm">
+      <div *ngIf="duplicateFoundMessage" class="alert alert-success d-flex gap-2 mb-3" role="alert">
+        <i class="bi bi-check-circle flex-shrink-0 mt-0.5"></i>
+        <div>{{ duplicateFoundMessage }}</div>
+      </div>
+      
+      <div *ngIf="addErrorMessage" class="alert alert-danger d-flex gap-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-circle flex-shrink-0 mt-0.5"></i>
+        <div>{{ addErrorMessage }}</div>
+      </div>
+
+      <div class="mb-4">
+        <label for="driverPhone" class="form-label">Mobile Number</label>
+        <input 
+          type="tel" 
+          id="driverPhone"
+          class="form-control" 
+          placeholder="+27 XX XXX XXXX" 
+          [(ngModel)]="newDriverMobileNumber" 
+          [disabled]="isCheckingDriver"
+          aria-describedby="phoneHelp">
+        <small id="phoneHelp" class="form-text text-muted d-block mt-2">Enter the driver's mobile number to look them up or create a new profile.</small>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button 
+          class="btn btn-primary fw-500" 
+          (click)="checkAndAddDriver()" 
+          [disabled]="isCheckingDriver"
+          type="button"
+          [attr.aria-busy]="isCheckingDriver">
+          <span *ngIf="!isCheckingDriver">
+            <i class="bi bi-search me-1"></i>Check & Add
+          </span>
+          <span *ngIf="isCheckingDriver" class="d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm"></span>Checking...
+          </span>
+        </button>
+        <button 
+          class="btn btn-outline-secondary fw-500" 
+          (click)="cancelAddDriver()" 
+          [disabled]="isCheckingDriver"
+          type="button">
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <!-- Phase 2: Create New Driver -->
+    <div *ngIf="showCreateForm">
+      <div class="alert alert-info d-flex gap-2 mb-3" role="status">
+        <i class="bi bi-info-circle flex-shrink-0 mt-0.5"></i>
+        <div>No profile found. Create a new driver with this mobile number.</div>
+      </div>
+
+      <div *ngIf="createErrorMessage" class="alert alert-danger d-flex gap-2 mb-3" role="alert">
+        <i class="bi bi-exclamation-circle flex-shrink-0 mt-0.5"></i>
+        <div>{{ createErrorMessage }}</div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <label for="driverFirstName" class="form-label">First Name</label>
+          <input 
+            type="text" 
+            id="driverFirstName"
+            class="form-control" 
+            placeholder="Enter first name" 
+            [(ngModel)]="newDriverName" 
+            [disabled]="isCreatingDriver"
+            required>
+        </div>
+        <div class="col-md-6">
+          <label for="driverLastName" class="form-label">Last Name</label>
+          <input 
+            type="text" 
+            id="driverLastName"
+            class="form-control" 
+            placeholder="Enter last name" 
+            [(ngModel)]="newDriverSurname" 
+            [disabled]="isCreatingDriver"
+            required>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="driverPhoneConfirm" class="form-label">Mobile Number</label>
+        <input 
+          type="tel" 
+          id="driverPhoneConfirm"
+          class="form-control" 
+          [value]="newDriverMobileNumber" 
+          disabled>
+        <small class="form-text text-muted d-block mt-2">This driver will be added to your team once created.</small>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button 
+          class="btn btn-primary fw-500" 
+          (click)="createNewDriver()" 
+          [disabled]="isCreatingDriver"
+          type="button"
+          [attr.aria-busy]="isCreatingDriver">
+          <span *ngIf="!isCreatingDriver">
+            <i class="bi bi-plus-circle me-1"></i>Create Driver
+          </span>
+          <span *ngIf="isCreatingDriver" class="d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm"></span>Creating...
+          </span>
+        </button>
+        <button 
+          class="btn btn-outline-secondary fw-500" 
+          (click)="backToPhaseOne()" 
+          [disabled]="isCreatingDriver"
+          type="button">
+          Back
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5" role="status" aria-live="polite">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <div class="text-muted">Loading drivers...</div>
+  </div>
+
+  <!-- Error Messages -->
+  <div *ngIf="!isLoading && errorMessage" class="alert alert-danger d-flex gap-2 mb-4" role="alert">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-0.5"></i>
+    <div>{{ errorMessage }}</div>
+  </div>
+
+  <!-- Success Messages -->
+  <div *ngIf="successMessage" class="alert alert-success d-flex gap-2 mb-4" role="status">
+    <i class="bi bi-check-circle-fill flex-shrink-0 mt-0.5"></i>
+    <div>{{ successMessage }}</div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && !errorMessage && drivers.length === 0" class="alert alert-info d-flex gap-2 mb-4" role="status">
+    <i class="bi bi-info-circle flex-shrink-0 mt-0.5"></i>
+    <div>No drivers are currently assigned to your team. Click "Add Driver" to get started.</div>
+  </div>
+
+  <!-- Drivers Grid -->
+  <div class="row g-4" *ngIf="!isLoading && drivers.length > 0">
+    <div class="col-12 col-md-6 col-lg-4 mb-3" *ngFor="let driver of drivers">
+      <div class="card shadow-sm h-100 p-4 position-relative">
+        <!-- Driver Header -->
+        <div class="mb-4">
+          <h6 class="fw-bold mb-2">{{ driver.name || 'Unnamed' }} {{ driver.surname || '' }}</h6>
+          <div class="small text-muted d-flex align-items-center gap-1">
+            <i class="bi bi-telephone"></i>{{ driver.mobileNumber || '-' }}
+          </div>
+        </div>
+
+        <!-- Status Grid -->
+        <div class="row g-3">
+          <!-- Availability -->
+          <div class="col-6">
+            <div class="small text-muted d-block mb-2">Availability</div>
+            <span [ngClass]="getAvailabilityBadge(driver.availabilityStatus)" role="status">
+              {{ driver.availabilityStatus || 'OFFLINE' }}
+            </span>
+          </div>
+
+          <!-- Approval -->
+          <div class="col-6">
+            <div class="small text-muted d-block mb-2">Approval</div>
+            <span [ngClass]="getApprovalStatusBadge(driver.profileApproved)" role="status">
+              {{ getApprovalStatusText(driver.profileApproved) }}
+            </span>
+          </div>
+
+          <!-- Terms Consent -->
+          <div class="col-6">
+            <div class="small text-muted d-block mb-2">Terms</div>
+            <span [ngClass]="getConsentStatusBadge(driver.termsAccepted)" role="status">
+              {{ getConsentStatusText(driver.termsAccepted) }}
+            </span>
+          </div>
+
+          <!-- Background Check -->
+          <div class="col-6">
+            <div class="small text-muted d-block mb-2">Background Check</div>
+            <span [ngClass]="getBackgroundCheckBadge(driver.crminalCheckData)" role="status">
+              {{ getBackgroundCheckText(driver.crminalCheckData) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Vehicle Information Section -->
+        <div class="border-top mt-4 pt-3" *ngIf="hasVehicleInfo(driver)">
+          <h6 class="small fw-bold mb-2 d-flex align-items-center gap-1">
+            <i class="bi bi-car-front"></i>Vehicle
+          </h6>
+          <div class="row g-2">
+            <!-- Vehicle Make/Model -->
+            <div class="col-12">
+              <small class="text-muted d-block mb-1">Make & Model</small>
+              <div class="small">{{ getVehicleDisplayText(driver) }}</div>
+            </div>
+            <!-- Load Capacity -->
+            <div class="col-12">
+              <small class="text-muted d-block mb-1">Load Capacity</small>
+              <div class="small">{{ getLoadCapacityText(driver) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Vehicle Info -->
+        <div class="border-top mt-4 pt-3 text-center" *ngIf="!hasVehicleInfo(driver)">
+          <small class="text-muted">
+            <i class="bi bi-exclamation-circle"></i> Vehicle information not provided
+          </small>
+        </div>
+        <!-- Remove Driver Button Section -->
+        <div class="border-top mt-4 pt-3">
+          <div *ngIf="!removeConfirmation[driver.id!]">
+            <button 
+              class="btn btn-sm btn-outline-danger w-100" 
+              (click)="toggleRemoveConfirmation(driver.id)"
+              type="button"
+              title="Remove this driver from your team">
+              <i class="bi bi-trash me-1"></i>Remove Driver
+            </button>
+          </div>
+          <div *ngIf="removeConfirmation[driver.id!]" class="text-center">
+            <p class="small text-danger mb-2">Remove <strong>{{ driver.name }} {{ driver.surname }}</strong>?</p>
+            <div class="d-flex gap-2">
+              <button 
+                class="btn btn-sm btn-danger flex-grow-1" 
+                (click)="removeDriver(driver)"
+                [disabled]="isRemovingDriver[driver.id!]"
+                type="button"
+                [attr.aria-busy]="isRemovingDriver[driver.id!]">
+                <span *ngIf="!isRemovingDriver[driver.id!]">
+                  <i class="bi bi-check me-1"></i>Yes, Remove
+                </span>
+                <span *ngIf="isRemovingDriver[driver.id!]" class="d-flex align-items-center justify-content-center gap-2">
+                  <span class="spinner-border spinner-border-sm"></span>
+                </span>
+              </button>
+              <button 
+                class="btn btn-sm btn-outline-secondary flex-grow-1" 
+                (click)="toggleRemoveConfirmation(driver.id)"
+                [disabled]="isRemovingDriver[driver.id!]"
+                type="button">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>      </div>
+    </div>
+  </div>
+</div>

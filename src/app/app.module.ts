@@ -43,6 +43,9 @@ import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.componen
 import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
 import { LegalInfoComponent } from './legal-info/legal-info.component';
 import { UserManagementComponent } from './user-management/user-management.component';
+import { TeamMessengersComponent } from './team-messengers/team-messengers.component';
+import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.component';
+import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
 
 @NgModule({
   declarations: [
@@ -78,7 +81,10 @@ import { UserManagementComponent } from './user-management/user-management.compo
     SignupWelcomeComponent,
     PrivacyPolicyComponent,
     LegalInfoComponent,
-    UserManagementComponent
+    UserManagementComponent,
+    TeamMessengersComponent,
+    TeamDeliveriesComponent,
+    UserConfigManagementComponent
   ],
   imports: [
     BrowserModule,

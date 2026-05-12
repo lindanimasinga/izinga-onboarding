@@ -1,0 +1,67 @@
+.card {
+  background-color: var(--bkg-card-color);
+  color: var(--text-color);
+  border: 0;
+}
+
+.order-card {
+  background: var(--bkg-card-color);
+  height: 110px;
+  width: 100%;
+  transition: all 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.status {
+  width: 120px;
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+.btn {
+  font-weight: 500;
+}
+
+.text-primary {
+  color: var(--btn-bg-color) !important;
+}
+
+.btn-primary {
+  background-color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-bg-hover-color);
+  border-color: var(--btn-bg-hover-color);
+}
+
+.btn-outline-primary {
+  color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--btn-bg-color);
+  border-color: var(--btn-bg-color);
+}
+
+.form-select {
+  background-color: var(--bkg-card-color);
+  color: var(--text-color);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.form-select:focus {
+  border-color: var(--btn-bg-color);
+  box-shadow: 0 0 0 0.2rem rgba(190, 131, 61, 0.25);
+}

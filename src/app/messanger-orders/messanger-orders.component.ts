@@ -43,7 +43,11 @@ export class MessangerOrdersComponent implements OnInit {
     this.errorMessage = '';
     
     if (this.user?.mobileNumber) {
-      this.izingaOrderService.getAllMessengerOrders(this.user?.id!)
+      const loadRequest = this.user?.role === UserProfile.RoleEnum.MESSENGERADMIN
+        ? this.izingaOrderService.getAllMessengerAdminOrders(this.user?.id!)
+        : this.izingaOrderService.getAllMessengerOrders(this.user?.id!);
+
+      loadRequest
         .subscribe(
           (orders: Order[]) => {
             this.orders = (orders || []).sort((a, b) => {

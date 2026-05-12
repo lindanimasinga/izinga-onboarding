@@ -16,7 +16,7 @@ export class MessengerPayoutComponent {
 
   constructor(
     private izingaService: IzingaOrderManagementService,
-    private storageService: StorageService,
+    public storageService: StorageService,
     private analytics: AnalyticsService
   ) {}
 
@@ -49,13 +49,14 @@ export class MessengerPayoutComponent {
     const toDate = new Date();
     const fromDate = new Date(toDate.getTime() - 60 * 24 * 60 * 30 * 1000); // 60 days
 
-    this.izingaService.getPayouts(userId!, fromDate, toDate, PayoutType.MESSENGER)
+    const payoutRequest = userProfile?.role === 'MESSENGER_ADMIN'
+      ? this.izingaService.getTeamPayouts(userId!, fromDate, toDate)
+      : this.izingaService.getPayouts(userId!, fromDate, toDate, PayoutType.MESSENGER);
+
+    payoutRequest
       .subscribe(payouts => {
-        payouts.forEach(payout => {
-          payout.orders.forEach(order => {
-            this.payouts = payouts;
-          });
-        });
+        this.payouts = payouts || [];
+        this.storageService.payouts = this.payouts;
       });
   }
 

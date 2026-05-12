@@ -68,6 +68,20 @@
                         <div class="small ">Review and manage your deliveries.</div>
                     </div>
                 </div>
+                <div *ngIf="isMessengerAdmin" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #00a9a1;" routerLink="../team-messengers">
+                        <div style="font-size:48px;">👷</div>
+                        <div class="fw-bold mt-2 ">My Messengers</div>
+                        <div class="small ">View your managed messenger team.</div>
+                    </div>
+                </div>
+                <div *ngIf="isMessengerAdmin" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #f39c12;" routerLink="../team-deliveries">
+                        <div style="font-size:48px;">🚚</div>
+                        <div class="fw-bold mt-2 ">Team Deliveries</div>
+                        <div class="small ">Review deliveries assigned to your messenger team.</div>
+                    </div>
+                </div>
                 <div *ngIf="isAdmin" class="col-6 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color)" routerLink="../restricted-regions">
                         <div style="font-size:48px;">🚫</div>
@@ -75,11 +89,18 @@
                         <div class="small ">Manage delivery restricted areas and regions.</div>
                     </div>
                 </div>
+                <div *ngIf="isAdmin" class="col-6 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../user-config-management">
+                        <div style="font-size:48px;">⚙️</div>
+                        <div class="fw-bold mt-2 ">User Configurations</div>
+                        <div class="small ">Manage service types, roles, and onboarding field requirements.</div>
+                    </div>
+                </div>
                 <div class="col-6 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../payout">
                         <div style="font-size:48px;">💰</div>
-                        <div class="fw-bold mt-2 ">Payouts</div>
-                        <div class="small ">View and manage your payout settings.</div>
+                        <div class="fw-bold mt-2 ">{{ isMessengerAdmin ? 'Team Payouts' : 'Payouts' }}</div>
+                        <div class="small ">{{ isMessengerAdmin ? 'View payouts for your managed messenger team.' : 'View and manage your payout settings.' }}</div>
                     </div>
                 </div>
                 <div class="col-6 mb-3">

@@ -146,6 +146,22 @@ Understand the whole app flow first, then make changes that fit the existing Ang
    - Screen view and event logging.
    - Update it when adding or renaming major screens.
 
+## Canonical Order Stage Sequence
+
+When sorting or rendering order progress in onboarding flows, use the exact `Order.StageEnum` sequence from `src/app/model/order.ts`:
+
+1. `STAGE_0_CUSTOMER_NOT_PAID`
+2. `STAGE_1_WAITING_STORE_CONFIRM`
+3. `STAGE_2_STORE_PROCESSING`
+4. `STAGE_3_READY_FOR_COLLECTION`
+5. `STAGE_4_ON_THE_ROAD`
+6. `STAGE_5_ARRIVED`
+7. `STAGE_6_WITH_CUSTOMER`
+8. `STAGE_7_ALL_PAID`
+9. `CANCELLED`
+
+Use `Order.stageEnumText` and `Order.stageEnumColor` as the default UI label and color sources instead of ad hoc mappings.
+
 ## Component Groups
 
 ### Shared presentation components

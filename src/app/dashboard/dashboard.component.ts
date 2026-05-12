@@ -17,6 +17,7 @@ export class DashboardComponent {
   isStoreAdmin: boolean = false
   isAdmin: boolean = false
   isMessenger: boolean = false
+  isMessengerAdmin: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
   missingDocuments: string[] = []
@@ -34,6 +35,7 @@ export class DashboardComponent {
     .subscribe(user => {
       this.isStoreAdmin = user.role == UserProfile.RoleEnum.STOREADMIN || user.role == UserProfile.RoleEnum.ADMIN
       this.isMessenger = user.role == UserProfile.RoleEnum.MESSENGER || user.role == UserProfile.RoleEnum.CUSTOMER
+      this.isMessengerAdmin = user.role == UserProfile.RoleEnum.MESSENGERADMIN
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
       this.user = user
       this.storageService.userProfile = user

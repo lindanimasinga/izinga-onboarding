@@ -28,6 +28,9 @@ import { SignupWelcomeComponent } from './signup-welcome/signup-welcome.componen
 import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
 import { LegalInfoComponent } from './legal-info/legal-info.component';
 import { UserManagementComponent } from './user-management/user-management.component';
+import { TeamMessengersComponent } from './team-messengers/team-messengers.component';
+import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.component';
+import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -53,6 +56,9 @@ const routes: Routes = [
       { path: 'privacy-policy', component: PrivacyPolicyComponent},
       { path: 'legal-info', component: LegalInfoComponent},
       { path: 'user-management', component: UserManagementComponent},
+      { path: 'team-messengers', component: TeamMessengersComponent},
+      { path: 'team-deliveries', component: TeamDeliveriesComponent},
+      { path: 'user-config-management', component: UserConfigManagementComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
   { path: 'business',
@@ -76,6 +82,7 @@ const routes: Routes = [
       { path: 'privacy-policy', component: PrivacyPolicyComponent},
       { path: 'legal-info', component: LegalInfoComponent},
       { path: 'user-management', component: UserManagementComponent},
+      { path: 'user-config-management', component: UserConfigManagementComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},
       { path: 'list', component: BusinessesComponent},

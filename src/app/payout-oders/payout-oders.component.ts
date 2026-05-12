@@ -33,7 +33,7 @@ export class PayoutOdersComponent {
   }
 
   isDriver() : boolean {
-    return this.storageService.userProfile?.role == 'MESSENGER'
+    return this.storageService.userProfile?.role == 'MESSENGER' || this.storageService.userProfile?.role == 'MESSENGER_ADMIN'
   }
 
   getOrderAmount(order: Order) : number {

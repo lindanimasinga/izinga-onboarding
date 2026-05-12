@@ -65,7 +65,7 @@ export class WelcomeSelectionComponent {
     // Scroll to top on route change
     if (this.storageService.userProfile?.role == 'ADMIN' || this.storageService.userProfile?.role == 'STORE_ADMIN') {
       this.router.navigate(['/business/dashboard'])
-    } else if(this.storageService.userProfile?.role == 'MESSENGER' || this.storageService.userProfile?.role == 'CUSTOMER') {
+    } else if(this.storageService.userProfile?.role == 'MESSENGER' || this.storageService.userProfile?.role == 'MESSENGER_ADMIN' || this.storageService.userProfile?.role == 'CUSTOMER') {
       this.router.navigate(['/indivisuals/dashboard'])
     }
   }

@@ -93,7 +93,7 @@ export class UserUpdateComponent {
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
 
-    this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
+    this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
 
     // Ensure tags field is initialized
     this.addDynamicFieldsToProfile();
@@ -123,7 +123,7 @@ export class UserUpdateComponent {
   updateCustomer() {
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
-    this.userProfile.role = !this.isStoreAdmin() && this.wantsToAddBusiness ? UserProfile.RoleEnum.STOREADMIN : this.userProfile.role
+    this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
     
     // Ensure tags field is initialized
     this.addDynamicFieldsToProfile();
