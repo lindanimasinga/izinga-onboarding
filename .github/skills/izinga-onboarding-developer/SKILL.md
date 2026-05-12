@@ -198,6 +198,69 @@ Use `Order.stageEnumText` and `Order.stageEnumColor` as the default UI label and
 - If a page shows onboarding fields, check `UserConfig` and `user.tag` before changing the template.
 - If a page is payout-related, confirm whether it is messenger payout or store payout before wiring services or routes.
 - If a page is admin-facing, check approval state, document completeness, and role permissions.
+
+## Angular Form Conventions (App-Wide Standard)
+
+All pages in the app use template-driven forms. When building or editing any form page, follow these rules exactly:
+
+### Input and select elements
+- Use `class="form-control"` for **all** inputs AND selects. Never use `form-select` or `form-select-sm`.
+- Never use `form-control-sm` or `form-select-sm`. Always use full-size `form-control`.
+
+### Labels
+- Use `<label class="form-label">` or a plain `<label for="...">` — never add `fw-bold` to labels.
+- Exception: small helper labels inside inline field rows may use `class="form-label small mb-1"`.
+
+### Buttons
+- Primary action: `btn btn-dark`
+- Secondary/cancel action: `btn btn-outline-dark`
+- Destructive action: `btn btn-outline-danger` or `btn btn-danger`
+- Never override `.btn-primary` in component CSS — let global styles handle button theming.
+
+### Page title pattern
+```html
+<div class="text-center mb-4">
+  <h2 class="fw-bold">Page Title</h2>
+  <p class="text-muted">Supporting subtitle or description</p>
+</div>
+```
+
+### Layout wrapper
+- Use a plain `<div>` or `<div class="mt-3">` as the page wrapper — not `container-fluid` with offset columns.
+- Other admin pages (user-management, add-restricted-region) confirm this pattern.
+
+### Form section grouping
+- Do not wrap form sub-sections in `card bg-light` or `card-body`. Use a flat `div` with `border-top` or `mt-3 pt-3` spacing.
+- For editable repeating field rows, use a `field-row` CSS class (see `user-config-management.component.css`) with `border-left` accent.
+- For add-new-field panels under a repeating list, use `add-field-section` class (top-border separator, no card nesting).
+
+### Alert styling
+- Never hardcode alert text colors (`#721c24`, `#155724`). Use `color: var(--text-color)` with a `border-left` accent instead.
+- This keeps alerts compatible with the dark theme.
+
+### Dashboard card colors
+- Only use CSS variables from `styles.css` for dashboard card background colors:
+  - `var(--btn-bg-color)` — role-based primary color (gold/teal/coral)
+  - `var(--btn-pill-color)` — utility/admin blue (#1083A5)
+  - `var(--btn-red-color)` — destructive red
+  - `var(--btn-green-color)` — success green
+- Never hardcode hex values like `#6f42c1` or raw rgba on dashboard cards.
+
+### Component CSS rules
+- Do not add `.btn-primary`, `.btn-primary:hover`, `.btn-outline-primary`, or `.btn-outline-primary:hover` overrides in component CSS.
+- Do not reference `--btn-bg-hover-color` — this token does not exist in `styles.css`. Use `filter: brightness(0.9)` or `opacity` for hover effects if needed.
+- Keep component CSS minimal. Most styling should come from global Bootstrap classes and `styles.css` tokens.
+
+## UserConfig Management
+
+Admin route: `/[role]/user-config-management`
+- Component: `UserConfigManagementComponent`
+- Gated by: `isAdmin` check in `DashboardComponent`
+- Purpose: CRUD for `UserConfig` service type definitions (mandatory/optional onboarding fields)
+- Service methods: `getUserConfig()`, `createUserConfig()`, `updateUserConfig()`, `deleteUserConfig()` in `IzingaOrderManagementService`
+- Key models: `UserConfig`, `FieldDefinition`, `DataType` (from `src/app/model/`)
+- Field arrays (`mandatoryFields`, `optionalFields`) are inline-editable using `ngFor` with `[(ngModel)]` bound directly to each field object.
+- This page is the canonical reference implementation for the form conventions listed above.
 - If a page depends on location, keep Google Places and South African restrictions intact.
 
 ## Completion Checks

@@ -82,3 +82,39 @@ When asked to define or apply a UI system, produce:
 - Dark theme: deep neutral backgrounds, lifted card surfaces, and high-contrast text that still matches the same iZinga hierarchy
 - Button style: bold, flat, full-width on small screens, role-colored where applicable
 - Logo usage: reuse the current iZinga logo assets and keep the mark visually prominent in app chrome
+
+## Angular Bootstrap Form Rules (Verified Against All Admin Pages)
+
+These rules were extracted from `user-update`, `business-update`, `user-management`, `add-restricted-region`, and `user-config-management`. Treat them as the verified standard:
+
+| Element | Correct class | Never use |
+|---|---|---|
+| Text input | `form-control` | `form-control-sm` |
+| Select | `form-control` | `form-select`, `form-select-sm` |
+| Label | `form-label` or plain `<label>` | `form-label fw-bold` |
+| Primary button | `btn btn-dark` | `btn btn-primary` (local override) |
+| Cancel button | `btn btn-outline-dark` | `btn btn-outline-secondary` |
+| Destructive button | `btn btn-outline-danger` | — |
+| Page wrapper | plain `<div>` or `<div class="mt-3">` | `container-fluid` with offset columns |
+| Form sub-section | flat `div` with spacing | `card bg-light` / `card-body` nesting |
+| Repeating field row | `.field-row` (see user-config-management.css) | `border p-2 rounded bg-light` |
+| Add-field panel | `.add-field-section` (top-border separator) | `card bg-light` + `card-body` |
+
+## CSS Token Rules
+
+Only these tokens are available in `styles.css`. Do not reference tokens that do not exist:
+
+| Token | Value / meaning |
+|---|---|
+| `--btn-bg-color` | Role-based primary (gold/teal/coral) |
+| `--btn-pill-color` | Admin/utility blue #1083A5 |
+| `--btn-red-color` | Destructive red |
+| `--btn-green-color` | Success green |
+| `--bkg-card-color` | Card/surface background |
+| `--text-color` | Body text color |
+
+**`--btn-bg-hover-color` does not exist.** Use `filter: brightness(0.9)` for hover darkening instead.
+
+**Alert text colors** must use `color: var(--text-color)` with a `border-left` accent. Never hardcode `#721c24` or `#155724` — they break the dark theme.
+
+**Dashboard card colors** must use the token list above. Never hardcode hex like `#6f42c1`.
