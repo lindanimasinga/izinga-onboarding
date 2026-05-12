@@ -38,6 +38,8 @@ export class StockUpdateComponent {
 
   stockItem: Stock = {};
   selectedFile: File | null = null;
+  tagEntries: Array<string> = [];
+  newTag = '';
 
 
   constructor(
@@ -58,6 +60,7 @@ export class StockUpdateComponent {
           console.log('store details loaded successfully');
           this.storeProfile = store!
           this.stockItem = stockId ? this.storeProfile.stockList?.filter(stk => stk.id == stockId)[0]! : this.addStockItem()!
+          this.initTagEntries();
           console.log('stock details loaded successfully');
         })
       })
@@ -109,6 +112,7 @@ export class StockUpdateComponent {
   }
 
   removeStockItem(stockItem: Stock) {
+    console.log('Removing stock item:', stockItem);
     const index = this.storeProfile?.stockList?.indexOf(stockItem)!;
     if (index > -1) {
       this.storeProfile?.stockList?.splice(index, 1);
@@ -117,6 +121,7 @@ export class StockUpdateComponent {
 
   // Register the business and stock items
   registerBusinessAndStock() {
+    this.syncTagObject();
 
     var call = this.selectedFile ? this.uploadImage() : of("")
     call.pipe(
@@ -148,6 +153,30 @@ export class StockUpdateComponent {
         })
       );
     
+  }
+
+  private initTagEntries(): void {
+    const tags = this.stockItem?.tags || [];
+    this.tagEntries = [...tags];
+    if (this.tagEntries.length === 0) {
+      this.tagEntries.push('');
+    }
+  }
+
+  addTagRow(): void {
+    this.tagEntries.push(this.newTag);
+    this.newTag = '';
+  }
+
+  removeTagRow(index: number): void {
+    this.tagEntries.splice(index, 1);
+    if (this.tagEntries.length === 0) {
+      this.tagEntries.push('');
+    }
+  }
+
+  private syncTagObject(): void {
+    this.stockItem.tags = this.tagEntries.filter(tag => tag.trim() !== '');
   }
 
 }

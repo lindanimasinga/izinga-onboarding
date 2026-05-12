@@ -53,8 +53,7 @@ export class PayoutComponent {
     var toDate = new Date()
     var fromDate = new Date(toDate.getTime() - 60 * 24 * 60 * 30 * 1000);  //60 days
 
-    if((userProfile?.role == 'ADMIN' || userProfile?.role == 'STORE_ADMIN')) {
-      this.izingaService.getAllStoresSummary(userId!)
+    this.izingaService.getAllStoresSummary(userId!)
       .pipe(
           mergeMap(stores => from(stores)),
           mergeMap(store => {
@@ -66,21 +65,6 @@ export class PayoutComponent {
         var storeId = payouts[0].toId
         this.payouts[storeId] = payouts
       })
-    } else {
-      this.izingaService.getPayouts(userId!, fromDate, toDate, PayoutType.MESSENGER)
-      .subscribe(payouts => {
-        payouts.forEach(payout => {
-          payout.orders.forEach(order => {
-            this.payouts[order.shopId!] = payouts
-            this.stores[order.shopId!] = {
-              id: order.shopId,
-              name: order.shippingData?.fromAddress,
-              rates: {}
-            }
-          })
-        })
-      })
-    }
   }
 }
 

@@ -32,4 +32,18 @@ export class PayoutOdersComponent {
     })
   }
 
+  isDriver() : boolean {
+    return this.storageService.userProfile?.role == 'MESSENGER'
+  }
+
+  getOrderAmount(order: Order) : number {
+    if(this.isDriver() && order.shippingData?.fee) {
+      return order.shippingData?.fee || 0
+    } else if(!this.isDriver() && order.tip) {
+      return order.tip || 0
+    } else {
+      return order.basketAmount || 0
+    }
+  }
+
 }

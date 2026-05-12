@@ -90,7 +90,7 @@ export class PendingApprovalsComponent implements OnInit {
 
     this.deliveryDistance = this.order.shippingData.distance || 0;
     this.estimatedTime = this.calculateEstimatedTime(this.deliveryDistance);
-    this.totalQuote = this.order.shippingData.fee || 0;
+    this.totalQuote = this.order.shippingData.deliveryFee || 0;
   }
 
   calculateEstimatedTime(distance: number): string {
@@ -142,7 +142,7 @@ export class PendingApprovalsComponent implements OnInit {
   }
 
   isApproved(): boolean {
-    return !this.order?.tags['orderAcceptedBy'] && this.order?.stage === 'STAGE_0_CUSTOMER_NOT_PAID';
+    return !this.order?.tag['orderAcceptedBy'] && this.order?.stage === 'STAGE_0_CUSTOMER_NOT_PAID';
   }
 
   startPickup(): void {

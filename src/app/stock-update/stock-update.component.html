@@ -43,7 +43,34 @@
                         <div class="mb-3">
                             <label for="stockImages">Upload Product Images</label>
                             <input type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
-                        </div>               
+                        </div>
+
+                        <div class="mb-3">
+                            <label>Tags</label>
+                            <div class="row g-2 mb-2" *ngFor="let t of tagEntries; let i = index">
+                                <div class="col-5">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Enter tag"
+                                        [(ngModel)]="tagEntries[i]"
+                                        name="tag{{ i }}"
+                                    >
+                                </div>
+                                <div class="col-2 d-grid">
+                                    <button type="button" class="btn btn-outline-danger" (click)="removeTagRow(i)">Remove</button>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="Enter tag"
+                                        [(ngModel)]="newTag"
+                                    >
+                            </div>
+                            <button type="button" class="btn btn-outline-primary" (click)="addTagRow()">Add tag</button>
+                        </div>
                 </div>
             </div>
 

@@ -18,6 +18,7 @@ export interface ShippingData {
     buildingName?: string;
     buildingType?: ShippingData.BuildingTypeEnum;
     fee?: number;
+    deliveryFee?: number;
     fromAddress: string;
     fromBuildingType?: ShippingData.BuildingTypeEnum
     fromUnitNumber?: String

@@ -27,6 +27,7 @@ import { OrdersComponent } from './orders/orders.component';
 import { OrderItemHistoryComponent } from './order-item-history/order-item-history.component';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { PayoutComponent } from './payout/payout.component';
+import { MessengerPayoutComponent } from './messenger-payout/messenger-payout.component';
 import { PayoutCardComponent } from './payout-card/payout-card.component';
 import { PayoutDetailsComponent } from './payout-details/payout-details.component';
 import { PayoutOdersComponent } from './payout-oders/payout-oders.component';
@@ -62,6 +63,7 @@ import { UserManagementComponent } from './user-management/user-management.compo
     OrdersComponent,
     OrderItemHistoryComponent,
     PayoutComponent,
+    MessengerPayoutComponent,
     PayoutCardComponent,
     PayoutDetailsComponent,
     PayoutOdersComponent,

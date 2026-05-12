@@ -212,7 +212,7 @@
               <div class="col-6">
                 <div class="input-group">
                   <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end" [value]="(totalQuote) | number:'1.2-2'" disabled>
+                  <input type="text" class="form-control text-end" [value]="(order?.shippingData?.deliveryFee) | number:'1.2-2'" disabled>
                 </div>
               </div>
             </div>
@@ -227,6 +227,20 @@
                 <div class="input-group">
                   <span class="input-group-text">R</span>
                   <input type="text" class="form-control text-end" [value]="order?.weightFee | number:'1.2-2'" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="(order?.labourFee || 0) > 0" class="quote-item mb-3">
+            <div class="row">
+              <div class="col-6">
+                <label>Labour charge</label>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end" [value]="order?.labourFee" disabled>
                 </div>
               </div>
             </div>
@@ -256,7 +270,7 @@
               <div class="col-6">
                 <div class="input-group">
                   <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end h5 text-success fw-bold" [value]="order?.totalAmount | number:'1.2-2'" disabled>
+                  <input type="text" class="form-control text-end h5 text-success fw-bold" [value]="order?.shippingData?.fee| number:'1.2-2'" disabled>
                 </div>
               </div>
             </div>

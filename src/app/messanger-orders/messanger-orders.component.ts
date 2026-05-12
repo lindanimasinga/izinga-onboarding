@@ -125,9 +125,14 @@ export class MessangerOrdersComponent implements OnInit {
     return address;
   }
 
-  statusText(stage?: string): string {
+  statusText(order: Order): string {
+    var stage = order.stage;
     if (!stage) return 'Unknown';
-    return Order.stageEnumText[stage as keyof typeof Order.stageEnumText] || 'Unknown';
+    var text = Order.stageEnumDriverText[stage as keyof typeof Order.stageEnumText] || 'Unknown';
+    if (stage === 'STAGE_0_CUSTOMER_NOT_PAID' && order?.tag?.['quoteAcceptedBy'] === undefined) {
+      text = 'Waiting customer payment';
+    }
+    return text;
   }
 
   statusColor(stage?: string): string {

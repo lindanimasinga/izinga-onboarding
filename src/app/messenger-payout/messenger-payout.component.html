@@ -1,16 +1,37 @@
 <div class="py-3">
-  <div class="text-center mb-4">
-        <h2 class="fw-bold">{{store.name}} Payouts</h2>
+  <div class="text-center mb-3">
+        <h2 class="fw-bold">My Payouts</h2>
         <p class="text-muted">Manage your payouts and track your earnings.</p>
+        <p class="text-muted">Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</p>
   </div>
 
-  <ul class="list-group steps mb-4 mx-auto" style="max-width: 600px;">
-    <li class="list-group-item step py-3" style="font-size: 1.05rem;">💸 <strong>Daily Payouts:</strong> Get daily payouts directly to your bank account or e-wallet, ensuring you have quick access to your earnings.</li>
-    <li class="list-group-item step py-3" style="font-size: 1.05rem;">📋 <strong>Withdrawal Limits:</strong> Payments to a cellphone number have a daily withdrawal limit of R3000. Any amount exceeding R3000 will be carried over and paid out on the next payout day.</li>
-  </ul>   
+  <h4 class="mb-3">Next Payout {{ totalPending | currency: 'R' }}</h4>
 
-  <div class="row">
-    <div class="col-12 col-lg-4 mb-4">
+  <div class="card shadow-sm mb-4 mx-auto" style="max-width: 600px;">
+    <div class="card-body">
+      <h5 class="fw-bold mb-3 text-center">Bank</h5>
+      <div class="row g-2">
+        <div class="col-6">
+          <div class="small text-muted">Bank name</div>
+          <div class="fw-semibold">{{ nominatedBank?.name || 'Not set' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="small text-muted">Account type</div>
+          <div class="fw-semibold">{{ nominatedBank?.type || 'Not set' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="small text-muted">{{ bankAccountLabel }}</div>
+          <div class="fw-semibold">{{ nominatedBank?.accountId || 'Not set' }}</div>
+        </div>
+        <div class="col-6">
+          <div class="small text-muted">Branch code</div>
+          <div class="fw-semibold">{{ nominatedBank?.branchCode || 'Not set' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <div *ngIf="payoutsByStage('PENDING').length > 0" class="mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <h5 class="fw-bold mb-3 text-center" style="color: #be833d;">Next Payout</h5>
@@ -27,7 +48,7 @@
                 <tr *ngFor="let payout of payoutsByStage('PENDING')">
                   <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
                   <td class="fw-bold" style="color: #1083A5;">{{ payout.total | currency: 'R' }}</td>
-                  <td><span class="badge bg-warning text-dark">{{ payout.payoutStage }}</span></td>
+                  <td><span class="badge bg-warning text-dark">Click to View</span></td>
                 </tr>
               </tbody>
             </table>
@@ -36,7 +57,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-lg-4 mb-4">
+    <div *ngIf="payoutsByStage('PROCESSING').length > 0" class="mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <h5 class="fw-bold mb-3 text-center" style="color: #1083A5;">Processing</h5>
@@ -62,7 +83,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-lg-4 mb-4">
+    <div *ngIf="payoutsByStage('COMPLETED').length > 0" class="mb-3">
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <h5 class="fw-bold mb-3 text-center" style="color: #198754;">Completed</h5>
@@ -87,5 +108,9 @@
         </div>
       </div>
     </div>
-  </div>
+
+    <ul class="list-group steps mb-4 mx-auto" style="max-width: 600px;">
+    <li class="list-group-item step py-3" style="font-size: 1.05rem;">📋 <strong>Withdrawal Limits:</strong> Payments to a cellphone number have a daily withdrawal limit of R3000. Any amount exceeding R3000 will be carried over and paid out on the next payout day.</li>
+  </ul>   
+
 </div>

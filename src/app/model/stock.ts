@@ -25,4 +25,5 @@ export class Stock {
     price?: number;
     storePrice?: number
     quantity?: number;
+    tags?: Array<string>;
 }

@@ -13,7 +13,8 @@ import { Basket } from './basket';
 import { ShippingData } from './shippingData';
 
 
-export interface Order { 
+export interface Order {
+    tip?: number; 
     basket?: Basket;
     basketAmount?: number;
     customerId?: string;
@@ -36,6 +37,7 @@ export interface Order {
     volumeFee?: number;
     totalWeight?: number;
     totalVolume?: number;
+    labourFee?: number;
     tag: { [key: string]: string }; 
 }
 
@@ -73,6 +75,18 @@ export namespace Order {
         STAGE_2_STORE_PROCESSING: "Processing",
         STAGE_3_READY_FOR_COLLECTION: "Driver is collecting",
         STAGE_4_ON_THE_ROAD: "Arriving",
+        STAGE_5_ARRIVED: "Arrived",
+        STAGE_6_WITH_CUSTOMER: "Delivered",
+        STAGE_7_ALL_PAID: "Completed",
+        CANCELLED: "Cancelled"
+    };
+
+    export const stageEnumDriverText = {
+        STAGE_0_CUSTOMER_NOT_PAID : "Waiting Payment",
+        STAGE_1_WAITING_STORE_CONFIRM: "Waiting Confirmation",
+        STAGE_2_STORE_PROCESSING: "Start Pick Up",
+        STAGE_3_READY_FOR_COLLECTION: "Driver Packing",
+        STAGE_4_ON_THE_ROAD: "Start Drop Off",
         STAGE_5_ARRIVED: "Arrived",
         STAGE_6_WITH_CUSTOMER: "Delivered",
         STAGE_7_ALL_PAID: "Completed",

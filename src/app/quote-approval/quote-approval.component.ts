@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {CurrencyPipe} from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -54,7 +55,7 @@ export class MessangerOrderComponent implements OnInit {
 
       this.orderService.getOrderById(orderId).subscribe({
         next: (order: Order) => {
-          if (this.order === null) {
+          if (this.order == null) {
             this.order = order;
             this.calculateQuote();
             this.loadMessengerProfile();
@@ -126,7 +127,7 @@ export class MessangerOrderComponent implements OnInit {
         if (this.isWaitingForConfirmation()) {
           setTimeout(() => {
             this.successMessage = '';
-          }, 2000);
+          }, 20000);
         }
       },
       error: (error: any) => {
