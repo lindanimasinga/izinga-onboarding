@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { Order } from '../model/order';
-import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { ActivatedRoute } from '@angular/router';
-import { mergeMap } from 'rxjs';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 
@@ -24,12 +22,45 @@ export class PayoutOdersComponent {
 
   ngOnInit(): void {
     this.analytics.logScreenView('payout_orders');
-    // Get the store ID from the route parameters
     this.activeRoute.queryParams.subscribe(params => {
       this.stage = params['stage']
-      console.log(`stage is ${this.stage}`)
-      this.orders = this.storageService.payouts?.filter(it => it.payoutStage == this.stage)?.flatMap(py => py.orders)
+      const stageOrders = this.storageService.payouts
+        ?.filter(it => it.payoutStage == this.stage)
+        ?.flatMap(py => py.orders) || []
+
+      // Newest first for a better payout reconciliation flow.
+      this.orders = stageOrders.sort((a, b) => this.getOrderTimestamp(b) - this.getOrderTimestamp(a))
     })
+  }
+
+  getStageLabel(): string {
+    return this.stage ? this.stage.replace('_', ' ') : 'Payout Deliveries'
+  }
+
+  getStageClass(): string {
+    if (this.stage === 'PENDING') {
+      return 'payout-stage-pending'
+    }
+
+    if (this.stage === 'PROCESSING') {
+      return 'payout-stage-processing'
+    }
+
+    if (this.stage === 'COMPLETED') {
+      return 'payout-stage-completed'
+    }
+
+    return 'payout-stage-default'
+  }
+
+  trackByOrderId(index: number, order: Order): string {
+    return order.id || `${index}`
+  }
+
+  private getOrderTimestamp(order: Order): number {
+    const primaryDate = order.date ? new Date(order.date).getTime() : 0
+    const fallbackDate = order.modifiedDate ? new Date(order.modifiedDate).getTime() : 0
+    return Number.isNaN(primaryDate) ? fallbackDate : primaryDate
   }
 
   isDriver() : boolean {

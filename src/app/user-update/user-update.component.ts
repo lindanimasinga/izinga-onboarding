@@ -60,13 +60,13 @@ export class UserUpdateComponent {
     private route: ActivatedRoute, 
     private storageService: StorageService,
     private analytics: AnalyticsService) {
-      console.log(`bank is ${JSON.stringify(this.userProfile.bank)}`)
-      this.userProfile.mobileNumber = this.storageService.phoneNumber
+      
   }
 
   ngOnInit() {
     this.analytics.logScreenView('profile_setup');
-
+    console.log(`bank is ${JSON.stringify(this.userProfile.bank)}`)
+    this.userProfile.mobileNumber = this.storageService.phoneNumber
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
       this.userProfile = user
@@ -77,7 +77,7 @@ export class UserUpdateComponent {
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
-      
+      console.log("Loaded user profile: ", user)
       // Load existing dynamic field data if present
       this.loadExistingDynamicFields(user);
     })
@@ -275,6 +275,7 @@ export class UserUpdateComponent {
   }
 
   loadUserConfig() {
+    console.log("Loading user config...")
     this.izingaOrderManager.getUserConfig()
     .subscribe(config => {
       console.log("Loaded user config: ", config)
@@ -324,6 +325,7 @@ export class UserUpdateComponent {
   }
 
   private loadBankConfigs(): void {
+    console.log("Loading bank configs...")
     this.izingaOrderManager.getBankConfigs().subscribe({
       next: (banks) => {
         this.bankConfigs = banks;
@@ -334,7 +336,9 @@ export class UserUpdateComponent {
           );
         }
       },
-      error: () => { /* non-critical: user can still type bank name */ }
+      error: () => { 
+        console.error("Error loading bank configs");
+      }
     });
   }
 

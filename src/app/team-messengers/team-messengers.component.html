@@ -2,9 +2,12 @@
   <!-- Page Header -->
   <div class="mb-5">
     <div class="text-center mb-4">
-    <h2 class="fw-bold">My Drivers</h2>
-    <p class="text-muted">Manage your driver team and view their status.</p>
-</div>
+      <h2 class="fw-bold">My Drivers</h2>
+      <p class="text-muted">Manage your driver team and view their status.</p>
+      <button class="btn btn-primary fw-500 mt-2" (click)="toggleAddForm()" type="button">
+        <i class="bi bi-plus-circle me-1"></i>{{ showAddForm ? 'Cancel' : 'Add Driver' }}
+      </button>
+    </div>
   </div>
 
   <!-- Add Driver Form -->

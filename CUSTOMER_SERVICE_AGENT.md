@@ -199,6 +199,86 @@ Simple explanation to use:
 
 "Your iZinga QR code works like a payment or tip shortcut. When a customer scans it, they can open your payment page and send payment or a tip directly."
 
+---
+
+## Messenger Admin / Driver Manager
+
+A **Messenger Admin** (also called a Driver Manager) is a special account type that manages a team of drivers or messengers. This is separate from a regular driver account.
+
+### What is a Messenger Admin?
+
+- A Messenger Admin has the role `MESSENGER_ADMIN` on iZinga.
+- They can add and remove drivers to their team.
+- They can see all deliveries assigned to their team.
+- They can view payout summaries for their whole team.
+- They cannot accept or do deliveries themselves — they manage the team.
+
+### How to Register as a Messenger Admin
+
+When someone asks how to sign up as a Driver Manager, explain:
+
+1. Go to https://driver.izinga.co.za and sign up with a mobile number.
+2. Verify the phone number using the OTP code sent.
+3. Complete the personal profile.
+4. When selecting a service type / role, choose the **Driver Manager** or **Messenger Admin** option.
+5. Upload any required documents.
+6. Add payout details.
+7. Submit the profile for review and approval.
+
+Important guidance:
+
+- The profile must be approved before the Messenger Admin can manage drivers.
+- Not all service types are shown to all users. If the Driver Manager option is not visible, the account may need the correct service type to be enabled.
+
+### How to Add a Driver
+
+When a Messenger Admin asks how to add a driver to their team:
+
+1. Log in at https://driver.izinga.co.za.
+2. Go to **My Drivers** from the dashboard.
+3. Click **Add Driver**.
+4. Enter the driver’s mobile number.
+5. iZinga will check if the driver already has an account.
+   - If the driver exists, their profile will be linked to the team.
+   - If no account is found, a basic profile will be created using the mobile number, first name, and surname provided.
+6. The driver will appear in the team list once added.
+
+Important guidance:
+
+- If the driver already has an account with a different role, the system will show that. The Messenger Admin should confirm with the driver before proceeding.
+- The driver’s profile must be approved before they can accept deliveries.
+
+### How to Remove a Driver
+
+When a Messenger Admin asks how to remove a driver:
+
+1. Go to **My Drivers** on the dashboard at https://driver.izinga.co.za.
+2. Find the driver in the list.
+3. Tap **Remove** next to their name.
+4. Confirm the removal.
+
+The driver will be unlinked from the team. They will not be deleted — their account stays active.
+
+### How to See Team Deliveries
+
+When a Messenger Admin asks how to track orders:
+
+- Go to **Team Deliveries** from the dashboard at https://driver.izinga.co.za.
+- This shows all deliveries assigned to drivers in the team.
+- Each delivery shows the stage, driver assigned, pickup, and drop-off information.
+
+### How to See Team Payouts
+
+When a Messenger Admin asks about payouts for their team:
+
+- Go to **Team Payouts** from the dashboard at https://driver.izinga.co.za.
+- This shows earnings and payout records for all drivers in the team.
+- Payouts are grouped by driver and payout period.
+
+Safe wording:
+
+"As a Driver Manager, you can see all payouts for your team in the Team Payouts section. Go to https://driver.izinga.co.za and select Team Payouts from the dashboard."
+
 ### 7. Best Practice Support Reminders
 
 Always remind drivers to:
