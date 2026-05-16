@@ -9,6 +9,85 @@
 .modal {
   background-color: #000000e3;
 }
+
+/* ── Location Permission Banner ───────────────────────────────────────────── */
+.location-permission-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--bkg-card-color, #fff);
+  border: 2px solid var(--primary-color, #10a59f);
+  border-radius: 8px;
+  padding: 1.25rem 1rem;
+}
+
+.location-permission-banner.location-permission-denied {
+  border-color: #d66247;
+}
+
+.location-permission-icon {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--primary-color, #10a59f);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.location-permission-denied .location-permission-icon {
+  background: #d66247;
+}
+
+.location-permission-icon .material-icons {
+  font-size: 1.25rem;
+  color: #fff !important;
+}
+
+.location-permission-body {
+  flex: 1;
+}
+
+.location-permission-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-color);
+}
+
+.location-permission-message {
+  font-size: 0.875rem;
+  color: var(--text-color);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+.location-permission-btn {
+  background: var(--primary-color, #10a59f);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.location-permission-denied .location-permission-btn {
+  background: #d66247;
+}
+
+.location-permission-btn .material-icons {
+  font-size: 1.1rem;
+  color: #fff !important;
+}
+
+.location-permission-btn:hover {
+  opacity: 0.9;
+}
+/* ─────────────────────────────────────────────────────────────────────────── */
 /* Button Loading States - matching shipping component */
 .btn-loading {
   position: relative;

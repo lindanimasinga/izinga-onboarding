@@ -7,6 +7,7 @@ import { StorageService } from '../service/storage-service.service';
 import { Order } from '../model/order';
 import { QuoteApproval } from '../model/quoteApproval';
 import { UserProfile } from '../model/userProfile';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-pending-approvals',
@@ -22,6 +23,11 @@ export class MessangerOrderComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   showTipModal: boolean = false;
+
+  // Location permission state
+  locationPermission: 'unknown' | 'granted' | 'denied' | 'unavailable' = 'unknown';
+  driverLatitude: number | null = null;
+  driverLongitude: number | null = null;
 
   // Quote details
   deliveryDistance: number = 0;
@@ -41,6 +47,7 @@ export class MessangerOrderComponent implements OnInit {
 
     const activeQuoteId = this.quoteId;
     if (activeQuoteId) {
+      this.checkLocationPermission();
       this.loadQuoteDetails(activeQuoteId);
       setInterval(() => this.loadQuoteDetails(activeQuoteId), 10000);
     } else {
@@ -48,6 +55,100 @@ export class MessangerOrderComponent implements OnInit {
       this.isLoading = false;
     }
   }
+
+  // ─── Location ─────────────────────────────────────────────────────────────
+
+  get locationGranted(): boolean {
+    return this.locationPermission === 'granted';
+  }
+
+  checkLocationPermission(): void {
+    if (!navigator.geolocation) {
+      this.locationPermission = 'unavailable';
+      return;
+    }
+    navigator.permissions?.query({ name: 'geolocation' }).then(result => {
+      if (result.state === 'granted') {
+        this.locationPermission = 'granted';
+        this.captureLocation();
+      } else if (result.state === 'denied') {
+        this.locationPermission = 'denied';
+      }
+      // 'prompt' stays as 'unknown' — driver must explicitly request
+    }).catch(() => {
+      // permissions API not available; will request on demand
+    });
+  }
+
+  requestLocationPermission(): void {
+    if (!navigator.geolocation) {
+      this.locationPermission = 'unavailable';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.locationPermission = 'granted';
+        this.driverLatitude = position.coords.latitude;
+        this.driverLongitude = position.coords.longitude;
+      },
+      (error) => {
+        this.locationPermission = error.code === GeolocationPositionError.PERMISSION_DENIED ? 'denied' : 'unavailable';
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
+  retryLocationPermission(): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+    this.requestLocationPermission();
+  }
+
+  captureLocation(): Promise<{ latitude: number; longitude: number } | null> {
+    return new Promise(resolve => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.driverLatitude = position.coords.latitude;
+          this.driverLongitude = position.coords.longitude;
+          resolve({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        },
+        () => resolve(null),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    });
+  }
+
+  private async ensureLocationAccessForOrderAction(): Promise<boolean> {
+    if (!navigator.geolocation) {
+      this.locationPermission = 'unavailable';
+      this.errorMessage = 'Location access is required to accept and process this delivery.';
+      return false;
+    }
+
+    if (!this.locationGranted) {
+      this.requestLocationPermission();
+    }
+
+    const location = await this.captureLocation();
+    if (!location) {
+      this.locationPermission = 'denied';
+      this.errorMessage = 'You must allow location access to accept or update this order stage.';
+      return false;
+    }
+
+    this.locationPermission = 'granted';
+    this.driverLatitude = location.latitude;
+    this.driverLongitude = location.longitude;
+    return true;
+  }
+
+  /** Updates stage with mandatory driver location. */
+  private progressStage(orderId: string): Observable<Order> {
+    return this.orderService.updateStageWithLocation(orderId, this.driverLatitude!, this.driverLongitude!);
+  }
+
+  // ─── Data loading ──────────────────────────────────────────────────────────
 
   async loadQuoteDetails(orderId: string): Promise<void> {
     try {
@@ -62,7 +163,6 @@ export class MessangerOrderComponent implements OnInit {
           } else {
             this.order.stage = order.stage;
           }
-          this.showTipModal = order.stage === 'STAGE_7_ALL_PAID';
         },
         error: (error: any) => {
           console.error('Error loading order:', error);
@@ -105,6 +205,8 @@ export class MessangerOrderComponent implements OnInit {
     return `${timeInMinutes}m`;
   }
 
+  // ─── Order actions ─────────────────────────────────────────────────────────
+
   approveQuote(): void {
     if (!this.order || !this.messenger || !this.quoteId) return;
 
@@ -118,23 +220,30 @@ export class MessangerOrderComponent implements OnInit {
       messengerId: this.messenger.id!
     };
 
-    this.orderService.acceptQuote(this.quoteId, quoteApproval).subscribe({
-      next: (updatedOrder: Order) => {
-        this.order = updatedOrder;
-        this.successMessage = 'Quote approved successfully!';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-
-        if (this.isWaitingForConfirmation()) {
-          setTimeout(() => {
-            this.successMessage = '';
-          }, 20000);
-        }
-      },
-      error: (error: any) => {
-        console.error('Error approving quote:', error);
-        this.errorMessage = 'Failed to approve quote. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.orderService.acceptQuote(this.quoteId!, quoteApproval).subscribe({
+        next: (updatedOrder: Order) => {
+          this.order = updatedOrder;
+          this.successMessage = 'Quote approved successfully!';
+          this.isProcessing = false;
+
+          if (this.isWaitingForConfirmation()) {
+            setTimeout(() => {
+              this.successMessage = '';
+            }, 20000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error approving quote:', error);
+          this.errorMessage = 'Failed to approve quote. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 
@@ -154,27 +263,34 @@ export class MessangerOrderComponent implements OnInit {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
-      next: (order: Order) => {
-        this.order = order;
-        this.successMessage = 'Pickup started! Opening navigation...';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-
-        const fromGeoPoint = this.order.shippingData?.shippingDataGeoData?.fromGeoPoint;
-        const latitude = fromGeoPoint?.latitude;
-        const longitude = fromGeoPoint?.longitude;
-
-        setTimeout(() => {
-          if (latitude != null && longitude != null) {
-            this.navigateToCoordinates(latitude, longitude);
-          }
-        }, 500);
-      },
-      error: (error: any) => {
-        console.error('Error starting pickup:', error);
-        this.errorMessage = 'Failed to start pickup. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.successMessage = 'Pickup started! Opening navigation...';
+          this.isProcessing = false;
+
+          const fromGeoPoint = this.order.shippingData?.shippingDataGeoData?.fromGeoPoint;
+          const latitude = fromGeoPoint?.latitude;
+          const longitude = fromGeoPoint?.longitude;
+
+          setTimeout(() => {
+            if (latitude != null && longitude != null) {
+              this.navigateToCoordinates(latitude, longitude);
+            }
+          }, 500);
+        },
+        error: (error: any) => {
+          console.error('Error starting pickup:', error);
+          this.errorMessage = 'Failed to start pickup. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 
@@ -228,17 +344,24 @@ export class MessangerOrderComponent implements OnInit {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
-      next: (order: Order) => {
-        this.order = order;
-        this.successMessage = 'Customer notified of arrival!';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-      },
-      error: (error: any) => {
-        console.error('Error notifying customer:', error);
-        this.errorMessage = 'Failed to notify customer. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.successMessage = 'Customer notified of arrival!';
+          this.isProcessing = false;
+        },
+        error: (error: any) => {
+          console.error('Error notifying customer:', error);
+          this.errorMessage = 'Failed to notify customer. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 
@@ -248,32 +371,39 @@ export class MessangerOrderComponent implements OnInit {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.order.id!).subscribe({
-      next: (order: Order) => {
-        this.order = order;
-        this.successMessage = 'Dropoff started! Opening navigation...';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-
-        const toGeoPoint = this.order.shippingData?.shippingDataGeoData?.toGeoPoint;
-        const latitude = toGeoPoint?.latitude;
-        const longitude = toGeoPoint?.longitude;
-
-        setTimeout(() => {
-          if (latitude != null && longitude != null) {
-            this.navigateToCoordinates(latitude, longitude);
-            return;
-          }
-
-          if (this.order?.shippingData?.toAddress) {
-            this.navigateToAddress(this.order.shippingData.toAddress);
-          }
-        }, 500);
-      },
-      error: (error: any) => {
-        console.error('Error starting dropoff:', error);
-        this.errorMessage = 'Failed to start dropoff. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.successMessage = 'Dropoff started! Opening navigation...';
+          this.isProcessing = false;
+
+          const toGeoPoint = this.order.shippingData?.shippingDataGeoData?.toGeoPoint;
+          const latitude = toGeoPoint?.latitude;
+          const longitude = toGeoPoint?.longitude;
+
+          setTimeout(() => {
+            if (latitude != null && longitude != null) {
+              this.navigateToCoordinates(latitude, longitude);
+              return;
+            }
+
+            if (this.order?.shippingData?.toAddress) {
+              this.navigateToAddress(this.order.shippingData.toAddress);
+            }
+          }, 500);
+        },
+        error: (error: any) => {
+          console.error('Error starting dropoff:', error);
+          this.errorMessage = 'Failed to start dropoff. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 
@@ -283,17 +413,24 @@ export class MessangerOrderComponent implements OnInit {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
-      next: (order: Order) => {
-        this.order = order;
-        this.successMessage = 'Customer notified: driver has arrived at destination.';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-      },
-      error: (error: any) => {
-        console.error('Error notifying customer at destination:', error);
-        this.errorMessage = 'Failed to notify customer. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.successMessage = 'Customer notified: driver has arrived at destination.';
+          this.isProcessing = false;
+        },
+        error: (error: any) => {
+          console.error('Error notifying customer at destination:', error);
+          this.errorMessage = 'Failed to notify customer. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 
@@ -306,6 +443,12 @@ export class MessangerOrderComponent implements OnInit {
 
   closeTipModal(): void {
     this.showTipModal = false;
+  }
+
+  goToTipCard(): void {
+    this.showTipModal = false;
+    const roleBasePath = this.router.url.startsWith('/business') ? '/business' : '/indivisuals';
+    this.router.navigate([`${roleBasePath}/card`]);
   }
 
   getDirectionsMapUrl(): SafeResourceUrl {
@@ -387,17 +530,24 @@ export class MessangerOrderComponent implements OnInit {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
-      next: (order: Order) => {
-        this.order = order;
-        this.successMessage = 'Order stage updated!';
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
         this.isProcessing = false;
-      },
-      error: (error: any) => {
-        console.error('Error updating order stage:', error);
-        this.errorMessage = 'Failed to update order stage. Please try again.';
-        this.isProcessing = false;
+        return;
       }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.successMessage = 'Order stage updated!';
+          this.isProcessing = false;
+        },
+        error: (error: any) => {
+          console.error('Error updating order stage:', error);
+          this.errorMessage = 'Failed to update order stage. Please try again.';
+          this.isProcessing = false;
+        }
+      });
     });
   }
 }

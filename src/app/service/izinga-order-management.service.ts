@@ -102,6 +102,16 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  updateStageWithLocation(orderId: string, latitude: number, longitude: number): Observable<Order> {
+    const params = { latitude: latitude.toString(), longitude: longitude.toString() };
+    return this.http
+        .get<Order>(`${environment.izingaUrl}/order/${orderId}/nextstage`, {headers: this.headers, params})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
   cancelOrder(orderId: string): Observable<Order> {
     return this.http
         .delete<Order>(`${environment.izingaUrl}/order/${orderId}`, {headers: this.headers})

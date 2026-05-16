@@ -69,10 +69,10 @@ export class UserUpdateComponent {
     this.userProfile.mobileNumber = this.storageService.phoneNumber
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
-      this.userProfile = user
-      this.storageService.userProfile = user
       if(!user.bank) user.bank = this.userProfile.bank
       if(!user.tag) user.tag = {}; // Initialize tags if not present
+      this.userProfile = user
+      this.storageService.userProfile = user
       this.roleDescription = user.description
       this.city = user.address
       this.ewallet = user.mobileNumber
