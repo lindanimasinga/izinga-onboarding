@@ -20,6 +20,23 @@
     <p class="">Waiting for the customer needs to complete payment to proceed with the order.</p>
   </div>
 
+          <div *ngIf="shouldShowScheduledPickupCountdown" class="scheduled-pickup-panel mt-4 mb-3">
+          <div class="scheduled-pickup-icon">
+            <i class="material-icons">schedule</i>
+          </div>
+          <div class="scheduled-pickup-body">
+            <div class="scheduled-pickup-title">Scheduled Pickup</div>
+            <div class="scheduled-pickup-meta">Pickup starts at {{ formattedPickupTime }}</div>
+            <div *ngIf="!pickupTimeReached" class="scheduled-pickup-countdown">{{ pickupCountdown }}</div>
+            <div *ngIf="!pickupTimeReached" class="scheduled-pickup-message">
+              This is a scheduled order. Pickup only starts when the scheduled pickup time is reached.
+            </div>
+            <div *ngIf="pickupTimeReached" class="scheduled-pickup-ready">
+              Pickup time reached. You can start pickup now.
+            </div>
+          </div>
+        </div>
+
   <!-- Error Message -->
   <div *ngIf="errorMessage && !isLoading" class="alert alert-danger mt-3" role="alert">
     <i class="material-icons me-2">error</i>
@@ -293,7 +310,7 @@
           </button>
 
           <!-- Start Pickup Button (for STAGE_1_WAITING_STORE_CONFIRM) -->
-          <button *ngIf="order?.stage === 'STAGE_1_WAITING_STORE_CONFIRM'" 
+          <button *ngIf="order?.stage === 'STAGE_1_WAITING_STORE_CONFIRM' && canStartPickup" 
                     type="button action-button" 
                     class="btn btn-lg btn-block bg-dark" 
                     (click)="startPickup()"
@@ -378,7 +395,7 @@
           <div class="">
             <small>
               <i class="material-icons me-1" style="font-size: 1rem; vertical-align: middle;">person</i>
-              Signed in as {{messenger.name}} ({{messenger.mobileNumber}})
+              Signed in as {{messenger?.name}} ({{messenger?.mobileNumber}})
             </small>
           </div>
         </div>

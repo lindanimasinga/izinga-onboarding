@@ -316,6 +316,23 @@
           </div>
         </div>
 
+        <div *ngIf="shouldShowScheduledPickupCountdown" class="scheduled-pickup-panel mt-4 mb-3">
+          <div class="scheduled-pickup-icon">
+            <i class="material-icons">schedule</i>
+          </div>
+          <div class="scheduled-pickup-body">
+            <div class="scheduled-pickup-title">Scheduled Pickup</div>
+            <div class="scheduled-pickup-meta">Pickup starts at {{ formattedPickupTime }}</div>
+            <div *ngIf="!pickupTimeReached" class="scheduled-pickup-countdown">{{ pickupCountdown }}</div>
+            <div *ngIf="!pickupTimeReached" class="scheduled-pickup-message">
+              This is a scheduled order. You can accept the delivery now, but pickup only starts when the scheduled pickup time is reached.
+            </div>
+            <div *ngIf="pickupTimeReached" class="scheduled-pickup-ready">
+              Pickup time reached. You can start pickup now.
+            </div>
+          </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="row fixed-bottom">
           <!-- Accept Button (for initial quote approval) -->
@@ -332,7 +349,7 @@
           </button>
 
           <!-- Start Pickup Button (for STAGE_1_WAITING_STORE_CONFIRM) -->
-          <button *ngIf="order?.stage === 'STAGE_1_WAITING_STORE_CONFIRM'" 
+          <button *ngIf="canStartPickup" 
                     type="button action-button" 
                     class="btn btn-lg btn-block bg-dark" 
                     (click)="startPickup()"

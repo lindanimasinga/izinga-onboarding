@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {CurrencyPipe} from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -14,7 +14,7 @@ import { Observable } from 'rxjs';
   templateUrl: './pending-approvals.component.html',
   styleUrls: ['./pending-approvals.component.css']
 })
-export class MessangerOrderComponent implements OnInit {
+export class MessangerOrderComponent implements OnInit, OnDestroy {
   order: Order | null = null;
   messenger: UserProfile | null = null;
   quoteId: string | null = null;
@@ -23,6 +23,10 @@ export class MessangerOrderComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   showTipModal: boolean = false;
+  pickupCountdown: string = '';
+  pickupTimeReached: boolean = false;
+  private orderRefreshIntervalId?: number;
+  private pickupCountdownIntervalId?: number;
 
   // Location permission state
   locationPermission: 'unknown' | 'granted' | 'denied' | 'unavailable' = 'unknown';
@@ -49,11 +53,18 @@ export class MessangerOrderComponent implements OnInit {
     if (activeQuoteId) {
       this.checkLocationPermission();
       this.loadQuoteDetails(activeQuoteId);
-      setInterval(() => this.loadQuoteDetails(activeQuoteId), 10000);
+      this.orderRefreshIntervalId = window.setInterval(() => this.loadQuoteDetails(activeQuoteId), 10000);
     } else {
       this.errorMessage = 'Invalid order ID';
       this.isLoading = false;
     }
+  }
+
+  ngOnDestroy(): void {
+    if (this.orderRefreshIntervalId) {
+      window.clearInterval(this.orderRefreshIntervalId);
+    }
+    this.clearPickupCountdownInterval();
   }
 
   // ─── Location ─────────────────────────────────────────────────────────────
@@ -150,6 +161,106 @@ export class MessangerOrderComponent implements OnInit {
 
   // ─── Data loading ──────────────────────────────────────────────────────────
 
+  get isScheduledOrder(): boolean {
+    return this.order?.shippingData?.type === 'SCHEDULED_DELIVERY';
+  }
+
+  get shouldShowScheduledPickupCountdown(): boolean {
+    const orderStage = this.order?.stage;
+    const shouldShowForStage = orderStage === 'STAGE_0_CUSTOMER_NOT_PAID' || orderStage === 'STAGE_1_WAITING_STORE_CONFIRM';
+    return shouldShowForStage && this.isScheduledOrder && !!this.getScheduledPickupTime();
+  }
+
+  get canStartPickup(): boolean {
+    // Pickup action only belongs to STAGE_1.
+    if (this.order?.stage !== 'STAGE_1_WAITING_STORE_CONFIRM') {
+      return false;
+    }
+
+    if (!this.isScheduledOrder) {
+      return true;
+    }
+
+    return this.pickupTimeReached;
+  }
+
+  get formattedPickupTime(): string {
+    const pickupTime = this.getScheduledPickupTime();
+    if (!pickupTime) {
+      return 'Pickup time not available';
+    }
+
+    return pickupTime.toLocaleString([], {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  private getScheduledPickupTime(): Date | null {
+    const pickupTime = this.order?.shippingData?.pickUpTime;
+    if (!pickupTime) {
+      return null;
+    }
+
+    // Backend sends values like: 2026-04-20T15:01:44.663+00:00
+    // Date can parse this ISO format and convert it to the user's local timezone.
+    const parsedPickupTime = pickupTime instanceof Date
+      ? pickupTime
+      : new Date(String(pickupTime));
+    return Number.isNaN(parsedPickupTime.getTime()) ? null : parsedPickupTime;
+  }
+
+  private syncScheduledPickupCountdown(): void {
+    if (!this.shouldShowScheduledPickupCountdown) {
+      this.pickupCountdown = '';
+      this.pickupTimeReached = false;
+      this.clearPickupCountdownInterval();
+      return;
+    }
+
+    this.updatePickupCountdown();
+
+    if (!this.pickupCountdownIntervalId) {
+      this.pickupCountdownIntervalId = window.setInterval(() => this.updatePickupCountdown(), 1000);
+    }
+  }
+
+  private updatePickupCountdown(): void {
+    const pickupTime = this.getScheduledPickupTime();
+    if (!pickupTime) {
+      this.pickupCountdown = '';
+      this.pickupTimeReached = false;
+      this.clearPickupCountdownInterval();
+      return;
+    }
+
+    const remainingMilliseconds = pickupTime.getTime() - Date.now();
+    if (remainingMilliseconds <= 0) {
+      this.pickupTimeReached = true;
+      this.pickupCountdown = 'Pickup time reached. You can start pickup now.';
+      this.clearPickupCountdownInterval();
+      return;
+    }
+
+    this.pickupTimeReached = false;
+    const totalSeconds = Math.floor(remainingMilliseconds / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    this.pickupCountdown = `${days} day${days === 1 ? '' : 's'} ${hours} hour${hours === 1 ? '' : 's'} ${minutes} minute${minutes === 1 ? '' : 's'} ${seconds} second${seconds === 1 ? '' : 's'}`;
+  }
+
+  private clearPickupCountdownInterval(): void {
+    if (this.pickupCountdownIntervalId) {
+      window.clearInterval(this.pickupCountdownIntervalId);
+      this.pickupCountdownIntervalId = undefined;
+    }
+  }
+
   async loadQuoteDetails(orderId: string): Promise<void> {
     try {
       this.isLoading = this.order == null;
@@ -161,8 +272,9 @@ export class MessangerOrderComponent implements OnInit {
             this.calculateQuote();
             this.loadMessengerProfile();
           } else {
-            this.order.stage = order.stage;
+            this.order = { ...this.order, ...order };
           }
+          this.syncScheduledPickupCountdown();
         },
         error: (error: any) => {
           console.error('Error loading order:', error);

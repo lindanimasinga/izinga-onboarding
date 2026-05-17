@@ -118,3 +118,34 @@ Only these tokens are available in `styles.css`. Do not reference tokens that do
 **Alert text colors** must use `color: var(--text-color)` with a `border-left` accent. Never hardcode `#721c24` or `#155724` — they break the dark theme.
 
 **Dashboard card colors** must use the token list above. Never hardcode hex like `#6f42c1`.
+
+## Quote Screen UI Patterns
+
+For the messenger quote approval screen and related delivery-stage actions:
+
+- Location permission gating should use an in-page banner, not a hidden failure state.
+- The permission banner must:
+   - explain why location is required
+   - make it clear the driver cannot accept or process the order without location access
+   - provide a visible retry action when permission is denied or unavailable
+- Use existing tokens for banners and actions:
+   - teal/utility blue for informational scheduled-state panels
+   - role primary button styles for the main CTA
+   - card surface background via `--bkg-card-color`
+   - body text via `--text-color`
+
+For scheduled orders:
+- Show the pickup countdown in a dedicated panel above the action buttons.
+- The panel should include:
+   - title
+   - scheduled pickup timestamp
+   - countdown value
+   - short explanatory message
+- The pickup button should stay hidden until the scheduled time is reached; do not show a disabled pickup button as the primary pattern.
+- Countdown wording should be human-readable: days, hours, minutes, and seconds.
+
+For delivery completion:
+- Show a completion modal once the order is fully paid/completed.
+- Modal copy should thank the driver for a successful delivery.
+- Place the `Receive Tip` button in the bottom-right modal action area.
+- The modal should stay visually aligned with existing iZinga surfaces and button hierarchy; do not introduce a new modal style language.

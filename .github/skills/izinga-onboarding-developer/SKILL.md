@@ -184,6 +184,50 @@ Use `Order.stageEnumText` and `Order.stageEnumColor` as the default UI label and
 - `RestrictedRegionsComponent` and `AddRestrictedRegionComponent` for geofences
 - `ChatSessionsComponent` for Firestore chat
 
+## Quote Approval Flow Rules
+
+The messenger quote flow is owned by:
+- `src/app/quote-approval/quote-approval.component.ts`
+- `src/app/quote-approval/quote-approval.component.html`
+- `src/app/quote-approval/quote-approval.component.css`
+
+There is also a duplicate legacy file set under `src/app/quote-approval/pending-approvals.component.*` that may exist in the folder. Treat the routed component (`MessangerOrderComponent` from `quote-approval.component.ts`) as the canonical implementation unless the task explicitly targets the duplicate file.
+
+Route contract:
+- `/indivisuals/quote-approval/:orderId`
+
+Order action flow on the quote screen:
+- `STAGE_0_CUSTOMER_NOT_PAID`: driver accepts or rejects the quote
+- `STAGE_1_WAITING_STORE_CONFIRM`: pickup can start
+- `STAGE_2_STORE_PROCESSING`: notify customer driver has arrived
+- `STAGE_3_READY_FOR_COLLECTION`: start dropoff
+- `STAGE_4_ON_THE_ROAD`: notify customer arrived at destination
+- `STAGE_5_ARRIVED`: customer collected
+- `STAGE_6_WITH_CUSTOMER`: complete delivery
+- `STAGE_7_ALL_PAID`: show delivery-complete modal
+
+Mandatory location rules on quote screen:
+- Drivers must grant browser geolocation permission before they can accept a quote or change order stage.
+- If location permission is denied or unavailable, action buttons must stay disabled and the component must also hard-block the action in TypeScript.
+- Stage changes on this screen must use the additive backend endpoint with coordinates: `GET /order/{orderId}/nextstage?latitude=<double>&longitude=<double>`.
+- UI banner copy must clearly state that location is required to accept and process the order.
+- Provide a retry action for location access when permission is denied or unavailable.
+
+Scheduled order rules on quote screen:
+- Scheduled orders are identified by `shippingData.type === 'SCHEDULED_DELIVERY'`.
+- Pickup time comes from `shippingData.pickUpTime`.
+- Backend pickup time arrives as ISO-8601 with timezone offset, for example `2026-04-20T15:01:44.663+00:00`; parse with `new Date(String(value))`.
+- Show a visible pickup countdown on the quote screen for scheduled orders before pickup begins.
+- Countdown must read in natural language with days, hours, minutes, and seconds.
+- Hide the pickup button until the scheduled pickup time is reached.
+- The countdown should be visible while the driver is deciding to accept and while waiting for pickup to unlock.
+
+Completion modal rules:
+- When the order reaches `STAGE_7_ALL_PAID`, show a thank-you modal for the driver.
+- Modal message should thank the driver for a successful delivery.
+- Modal primary action is `Receive Tip`.
+- `Receive Tip` should route the user to the role card page: `/indivisuals/card` or `/business/card` depending on current route.
+
 ## Decision Rules
 
 - If the task affects onboarding, check whether it touches verification, profile setup, terms acceptance, or approval flows.
