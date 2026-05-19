@@ -4,6 +4,7 @@ h2 , h3 {
 
 .welcome-logo {
   width: 360px;
+  border-radius: 4px;
 }
 
 .badge {

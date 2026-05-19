@@ -170,7 +170,7 @@ body {
 }
 
 body {
-    --text-color: #212121;
+    --text-color: #4e4e4e;
     --bkg-color: #F8F7F7;
     --footer-bkg-color: #be833d;
     --footer-text-color: white;
@@ -199,8 +199,8 @@ body.shop {
 }
 
 body.driver {
-    --btn-bg-color: #00A9A1;
-    --btn-bg-selected-color: #00A9A1;
+    --btn-bg-color: #127672;
+    --btn-bg-selected-color: #127672;
     --bkg-logo: url('/assets/images/izinga-logo-green.png')
 }
 
