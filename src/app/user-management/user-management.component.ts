@@ -5,6 +5,7 @@ import { StorageService } from '../service/storage-service.service';
 import { UserProfile } from '../model/userProfile';
 import { AnalyticsService } from '../service/analytics.service';
 import { DataType, UserConfig } from '../model/user-config';
+import { DocType } from '../model/doc-types';
 import { BankConfig } from '../model/bank-config';
 
 @Component({
@@ -13,6 +14,58 @@ import { BankConfig } from '../model/bank-config';
   styleUrls: ['./user-management.component.css']
 })
 export class UserManagementComponent {
+    // Track upload progress for each field
+    uploadProgress: { [key: string]: number } = {};
+
+    // Handle profile picture upload for selectedUser
+    onProfilePictureSelect(event: any): void {
+      const file = event.target.files && event.target.files[0];
+      if (!file || !this.selectedUser) return;
+      this.uploadProgress['profilePicture'] = 1;
+      this.izingaOrderService.uploadFile(file, true, DocType.ID).subscribe({
+        next: (result) => {
+          if (result && result['url']) this.selectedUser!.imageUrl = result['url'];
+          this.uploadProgress['profilePicture'] = 100;
+          setTimeout(() => this.uploadProgress['profilePicture'] = 0, 1000);
+        },
+        error: () => {
+          this.uploadProgress['profilePicture'] = 0;
+          this.errorMessage = 'Failed to upload profile picture.';
+        }
+      });
+    }
+
+    // Handle file upload for dynamic fields (DOCUMENT_URL)
+    onFileSelect(event: any, fieldName: string, user: UserProfile): void {
+      const file = event.target.files && event.target.files[0];
+      if (!file || !user) return;
+      this.uploadProgress[fieldName] = 1;
+      // Use DocType.DPD as a generic doc type for uploads, or customize as needed
+      this.izingaOrderService.uploadFile(file, true, DocType.DPD).subscribe({
+        next: (result) => {
+          if (result && result['url']) user.tag[fieldName] = result['url'];
+          this.uploadProgress[fieldName] = 100;
+          setTimeout(() => this.uploadProgress[fieldName] = 0, 1000);
+        },
+        error: () => {
+          this.uploadProgress[fieldName] = 0;
+          this.errorMessage = 'Failed to upload file.';
+        }
+      });
+    }
+  updateUserTagsAndFields(): void {
+    if (!this.selectedUser || !this.selectedUser.id) return;
+    this.izingaOrderService.updateCustomer(this.selectedUser).subscribe({
+      next: (updatedUser) => {
+        this.successMessage = 'User tags and fields updated successfully.';
+        this.selectedUser = updatedUser;
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: () => {
+        this.errorMessage = 'Failed to update user tags and fields.';
+      }
+    });
+  }
 
   searchPhone: string = '';
   searchResults: UserProfile[] = [];

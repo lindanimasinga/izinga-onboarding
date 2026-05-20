@@ -3,3 +3,9 @@
     padding-top: 4px;
     padding-bottom: 4px;
 }
+
+img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+}

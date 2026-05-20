@@ -137,7 +137,7 @@ export class TeamMessengersComponent implements OnInit {
 
     this.izingaService.registerCustomer(newDriver).subscribe({
       next: (createdDriver) => {
-        this.successMessage = `Successfully created and added ${createdDriver.name} to your team!`;
+        this.successMessage = `Successfully created and added ${createdDriver.name} to your team!. They will receive a WhatsApp message with instructions to complete their profile and start accepting deliveries.`;
         this.isCreatingDriver = false;
         
         // Reset form

@@ -24,8 +24,9 @@ export class PayoutOdersComponent {
     this.analytics.logScreenView('payout_orders');
     this.activeRoute.queryParams.subscribe(params => {
       this.stage = params['stage']
+      const messengerId = params['messenger']
       const stageOrders = this.storageService.payouts
-        ?.filter(it => it.payoutStage == this.stage)
+        ?.filter(it => it.payoutStage == this.stage && (!messengerId || it.toId == messengerId))
         ?.flatMap(py => py.orders) || []
 
       // Newest first for a better payout reconciliation flow.

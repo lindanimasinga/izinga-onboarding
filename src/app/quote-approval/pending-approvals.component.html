@@ -129,7 +129,87 @@
           <textarea class="form-control" [value]="order?.shippingData?.additionalInstructions" rows="3" disabled></textarea>
         </div>
 
-        <div *ngIf="order?.basket?.items?.length" class="mb-4">
+                <!-- Quote Breakdown -->
+        <div class="justify-content-sm-center justify-content-md-start mb-3 mt-2">
+          <div class="page-header h5">Quote Breakdown</div>
+        </div>
+
+        <div class="quote-breakdown-section">
+
+          <div class="quote-item mb-3">
+            <div class="row">
+              <div class="col-6">
+                <label>Distance charge ({{deliveryDistance}}km)</label>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end" [value]="(order?.shippingData?.deliveryFee) | number:'1.2-2'" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="quote-item mb-3">
+            <div class="row">
+              <div class="col-6">
+                <label>Weight charge ({{order?.totalWeight}}Kg)</label>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end" [value]="order?.weightFee | number:'1.2-2'" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="(order?.labourFee || 0) > 0" class="quote-item mb-3">
+            <div class="row">
+              <div class="col-6">
+                <label>Labour charge</label>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end" [value]="order?.labourFee" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="(order?.shippingData?.floorLevel || 0) > 2" class="quote-item mb-3">
+            <div class="row">
+              <div class="col-8">
+                <label>Floor level charge (Floor {{ order?.shippingData?.floorLevel || 0 }})</label>
+              </div>
+              <div class="col-4">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end" [value]="(((order?.shippingData?.floorLevel || 0) - 2) * 10) | number:'1.2-2'" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="quote-item mb-4">
+            <div class="row">
+              <div class="col-6">
+                <label class="h5 mb-0">Total Delivery Quote</label>
+              </div>
+              <div class="col-6">
+                <div class="input-group">
+                  <span class="input-group-text">R</span>
+                  <input type="text" class="form-control text-end h5 text-success fw-bold" [value]="order?.shippingData?.fee| number:'1.2-2'" disabled>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="order?.basket?.items?.length" class="mb-4 mt-3">
           <div class="justify-content-sm-center justify-content-md-start mb-3">
             <div class="page-header h5">Items</div>
           </div>
@@ -208,86 +288,6 @@
                     <small class="text-muted">Est. Time</small>
                     <div class="fw-bold">{{getEstimatedTime()}} mins</div>
                   </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quote Breakdown -->
-        <div class="justify-content-sm-center justify-content-md-start mb-3 mt-5">
-          <div class="page-header h5">Quote Breakdown</div>
-        </div>
-
-        <div class="quote-breakdown-section">
-
-          <div class="quote-item mb-3">
-            <div class="row">
-              <div class="col-6">
-                <label>Distance charge ({{deliveryDistance}}km)</label>
-              </div>
-              <div class="col-6">
-                <div class="input-group">
-                  <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end" [value]="(order?.shippingData?.deliveryFee) | number:'1.2-2'" disabled>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="quote-item mb-3">
-            <div class="row">
-              <div class="col-6">
-                <label>Weight charge ({{order?.totalWeight}}Kg)</label>
-              </div>
-              <div class="col-6">
-                <div class="input-group">
-                  <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end" [value]="order?.weightFee | number:'1.2-2'" disabled>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="(order?.labourFee || 0) > 0" class="quote-item mb-3">
-            <div class="row">
-              <div class="col-6">
-                <label>Labour charge</label>
-              </div>
-              <div class="col-6">
-                <div class="input-group">
-                  <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end" [value]="order?.labourFee" disabled>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="(order?.shippingData?.floorLevel || 0) > 2" class="quote-item mb-3">
-            <div class="row">
-              <div class="col-8">
-                <label>Floor level charge (Floor {{ order?.shippingData?.floorLevel || 0 }})</label>
-              </div>
-              <div class="col-4">
-                <div class="input-group">
-                  <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end" [value]="(((order?.shippingData?.floorLevel || 0) - 2) * 10) | number:'1.2-2'" disabled>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <hr class="my-4">
-
-          <div class="quote-item mb-4">
-            <div class="row">
-              <div class="col-6">
-                <label class="h5 mb-0">Total Delivery Quote</label>
-              </div>
-              <div class="col-6">
-                <div class="input-group">
-                  <span class="input-group-text">R</span>
-                  <input type="text" class="form-control text-end h5 text-success fw-bold" [value]="order?.shippingData?.fee| number:'1.2-2'" disabled>
                 </div>
               </div>
             </div>

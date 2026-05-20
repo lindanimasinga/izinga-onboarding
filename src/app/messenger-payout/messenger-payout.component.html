@@ -7,29 +7,38 @@
 
   <h4 class="mb-3">Next Payout {{ totalPending | currency: 'R' }}</h4>
 
-  <div class="card shadow-sm mb-4 mx-auto" style="max-width: 600px;">
-    <div class="card-body">
-      <h5 class="fw-bold mb-3 text-center">Bank</h5>
-      <div class="row g-2">
-        <div class="col-6">
-          <div class="small text-muted">Bank name</div>
-          <div class="fw-semibold">{{ nominatedBank?.name || 'Not set' }}</div>
-        </div>
-        <div class="col-6">
-          <div class="small text-muted">Account type</div>
-          <div class="fw-semibold">{{ nominatedBank?.type || 'Not set' }}</div>
-        </div>
-        <div class="col-6">
-          <div class="small text-muted">{{ bankAccountLabel }}</div>
-          <div class="fw-semibold">{{ nominatedBank?.accountId || 'Not set' }}</div>
-        </div>
-        <div class="col-6">
-          <div class="small text-muted">Branch code</div>
-          <div class="fw-semibold">{{ nominatedBank?.branchCode || 'Not set' }}</div>
+  <ng-container *ngIf="storageService.userProfile?.role !== 'MESSENGER_ADMIN'; else adminBankInfo">
+    <div class="card shadow-sm mb-4 mx-auto" style="max-width: 600px;">
+      <div class="card-body">
+        <h5 class="fw-bold mb-3 text-center">Bank</h5>
+        <div class="row g-2">
+          <div class="col-6">
+            <div class="small text-muted">Bank name</div>
+            <div class="fw-semibold">{{ nominatedBank?.name || 'Not set' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted">Account type</div>
+            <div class="fw-semibold">{{ nominatedBank?.type || 'Not set' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted">{{ bankAccountLabel }}</div>
+            <div class="fw-semibold">{{ nominatedBank?.accountId || 'Not set' }}</div>
+          </div>
+          <div class="col-6">
+            <div class="small text-muted">Branch code</div>
+            <div class="fw-semibold">{{ nominatedBank?.branchCode || 'Not set' }}</div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </ng-container>
+  <ng-template #adminBankInfo>
+    <div class="card shadow-sm mb-4 mx-auto" style="max-width: 600px;">
+      <div class="card-body text-center">
+        <div class="text-muted">As a Driver Manager, payouts for each delivery are sent directly to the respective driver's bank account.</div>
+      </div>
+    </div>
+  </ng-template>
 
     <div *ngIf="payoutsByStage('PENDING').length > 0" class="mb-3">
       <div class="card shadow-sm h-100">
@@ -40,15 +49,17 @@
               <thead>
                 <tr style="background: #f8f7f7;">
                   <th>Date</th>
+                  <th>Driver</th>
                   <th>Amount</th>
                   <th>Stage</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let payout of payoutsByStage('PENDING')">
-                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td>{{ payout.modifiedDate | date: 'dd MMM yy' }}</td>
+                  <td>{{ payout.toName || '—' }}</td>
                   <td class="fw-bold" style="color: #1083A5;">{{ payout.total | currency: 'R' }}</td>
-                  <td><span class="badge bg-warning text-dark">Click to View</span></td>
+                  <td><span class="badge bg-warning text-dark"><a routerLink="../payout-orders" [queryParams]="{stage: 'PENDING', messenger: payout.toId}" class="text-decoration-none">Click to View</a></span></td>
                 </tr>
               </tbody>
             </table>
@@ -66,15 +77,17 @@
               <thead>
                 <tr style="background: #f8f7f7;">
                   <th>Date</th>
+                  <th>Driver</th>
                   <th>Amount</th>
                   <th>Stage</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let payout of payoutsByStage('PROCESSING')">
-                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td>{{ payout.modifiedDate | date: 'dd MMM yy' }}</td>
+                  <td>{{ payout.toName || '—' }}</td>
                   <td class="fw-bold" style="color: #be833d;">{{ payout.total | currency: 'R' }}</td>
-                  <td><span class="badge bg-info text-dark">{{ payout.payoutStage }}</span></td>
+                  <td><span class="badge bg-info text-dark"><a routerLink="../payout-orders" [queryParams]="{stage: 'PROCESSING', messenger: payout.toId}" class="text-decoration-none">Click to View</a></span></td>
                 </tr>
               </tbody>
             </table>
@@ -87,24 +100,29 @@
       <div class="card shadow-sm h-100">
         <div class="card-body">
           <h5 class="fw-bold mb-3 text-center" style="color: #198754;">Completed</h5>
-          <a routerLink="../payout-orders" [queryParams]="{stage: 'COMPLETED'}" class="text-decoration-none">
             <table class="table table-sm table-borderless mb-0 text-center align-middle">
               <thead>
                 <tr style="background: #f8f7f7;">
                   <th>Date</th>
+                  <th>Driver</th>
                   <th>Amount</th>
                   <th>Stage</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let payout of payoutsByStage('COMPLETED')">
-                  <td>{{ payout.modifiedDate | date: 'yyyy-MM-dd' }}</td>
+                  <td>{{ payout.modifiedDate | date: 'dd MMM yy' }}</td>
+                  <td>{{ payout.toName || '—' }}</td>
                   <td class="fw-bold" style="color: #198754;">{{ payout.total | currency: 'R' }}</td>
-                  <td><span class="badge bg-success">{{ payout.payoutStage }}</span></td>
+                  <td>
+                    <span class="badge bg-success text-dark">
+                        <a routerLink="../payout-orders" [queryParams]="{stage: 'COMPLETED', messenger: payout.toId}" 
+                        class="text-decoration-none">Click to View</a>
+                    </span>
+                </td>   
                 </tr>
               </tbody>
             </table>
-          </a>
         </div>
       </div>
     </div>

@@ -211,156 +211,129 @@
 
       <div *ngIf="selectedUser" class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">User Details</h5>
+          <h5 class="mb-0">Edit User Profile</h5>
           <button type="button" class="btn-close" (click)="selectedUser = null"></button>
         </div>
-        
         <div class="card-body">
-          <!-- Profile Header -->
-          <div class="row mb-4">
-            <div class="col-md-3 text-center">
-              <img 
-                [src]="selectedUser.imageUrl" 
-                alt="Profile Picture" 
-                class="rounded-circle mb-2"
-                style="width: 100px; height: 100px; object-fit: cover;"
-                *ngIf="selectedUser.imageUrl">
-              <div *ngIf="!selectedUser.imageUrl" 
-                   class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto"
-                   style="width: 100px; height: 100px;">
-                <i class="fa fa-user  fa-2x"></i>
+          <form (ngSubmit)="updateUserTagsAndFields()" #editUserForm="ngForm">
+            <div class="row mb-3">
+              <div class="col-md-3 text-center">
+                <img [src]="selectedUser.imageUrl" alt="Profile Picture" class="rounded-circle mb-2" style="width: 100px; height: 100px; object-fit: cover;" *ngIf="selectedUser.imageUrl">
+                <div *ngIf="!selectedUser.imageUrl" class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto" style="width: 100px; height: 100px;">
+                  <i class="fa fa-user fa-2x"></i>
+                </div>
+                <input type="file" class="form-control mt-2" (change)="onProfilePictureSelect($event)" accept="image/*">
               </div>
-            </div>
-            <div class="col-md-9">
-              <h4 class="d-flex align-items-center gap-2 flex-wrap">
-                <span>{{selectedUser.name || 'No Name'}}</span>
-                <span *ngIf="selectedUser.tag && selectedUser.tag['blocked']" class="badge bg-danger">
-                  <i class="fa fa-ban me-1"></i>BLOCKED
-                </span>
-              </h4>
-              <p class=" mb-1">
-                <i class="fa fa-phone me-1"></i>
-                {{selectedUser.mobileNumber}}
-              </p>
-              <p class=" mb-1" *ngIf="selectedUser.emailAddress">
-                <i class="fa fa-envelope me-1"></i>
-                {{selectedUser.emailAddress}}
-              </p>
-              <p class=" mb-2" *ngIf="selectedUser.address">
-                <i class="fa fa-map-marker me-1"></i>
-                {{selectedUser.address}}
-              </p>
-              <div>
-                <span *ngIf="!selectedUser.termsAccepted" class="badge bg-warning me-1">
-                  <i class="fa fa-exclamation-triangle me-1"></i>TERMS NOT ACCEPTED
-                </span>
-                <span class="badge" [ngClass]="selectedUser.profileApproved ? 'bg-success' : 'bg-secondary'">
-                  {{selectedUser.profileApproved ? '✓ Approved' : '⏳ Pending'}}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Basic Information -->
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <h6><strong>Basic Information</strong></h6>
-              <table class="table table-sm">
-                <tr *ngIf="selectedUser.name">
-                  <td><strong>Name:</strong></td>
-                  <td>{{selectedUser.name}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.role">
-                  <td><strong>Role:</strong></td>
-                  <td>{{selectedUser.role}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.description">
-                  <td><strong>Description:</strong></td>
-                  <td>{{selectedUser.description}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.dateOfBirth">
-                  <td><strong>DOB:</strong></td>
-                  <td>{{selectedUser.dateOfBirth}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.idNumber">
-                  <td><strong>ID Number:</strong></td>
-                  <td>{{selectedUser.idNumber}}</td>
-                </tr>
-              </table>
-            </div>
-            <div class="col-md-6">
-              <h6><strong>Bank Information</strong></h6>
-              <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr>
-                  <td><strong>Type:</strong></td>
-                  <td>{{selectedUser.bank.type}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.name">
-                  <td><strong>Bank:</strong></td>
-                  <td>{{selectedUser.bank.name}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.accountId">
-                  <td><strong>Account:</strong></td>
-                  <td>{{selectedUser.bank.accountId}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.branchCode">
-                  <td><strong>Branch:</strong></td>
-                  <td>{{selectedUser.bank.branchCode}}</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-
-          <!-- Additional Fields from tag -->
-          <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
-            <h6><strong>Additional Information</strong></h6>
-            <div class="row">
-              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
-                <div class="mb-3" *ngIf="i % 2 === 0">
-                  <strong>{{tag | titlecase}}:</strong>
-                  <div class="mt-1">
-                    <span class="" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
-                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
-                    </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
-                      style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
-                      <i class="fa fa-download me-1"></i>View
-                    </a>
+              <div class="col-md-9">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label>First Name</label>
+                    <input type="text" class="form-control" [(ngModel)]="selectedUser.name" name="editName" required>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label>Date of Birth</label>
+                    <input type="date" class="form-control" [(ngModel)]="selectedUser.dateOfBirth" name="editDateOfBirth">
                   </div>
                 </div>
-              </div>
-              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
-                <div class="mb-3" *ngIf="i % 2 === 1">
-                  <strong>{{tag | titlecase}}:</strong>
-                  <div class="mt-1">
-                    <span class="" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
-                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
-                    </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
-                      style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
-                      <i class="fa fa-download me-1"></i>View
-                    </a>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label>Email Address</label>
+                    <input type="email" class="form-control" [(ngModel)]="selectedUser.emailAddress" name="editEmailAddress">
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label>Town, township or village</label>
+                    <input type="text" class="form-control" [(ngModel)]="selectedUser.address" name="editAddress">
                   </div>
                 </div>
+                <div class="mb-3">
+                  <label>Service Type</label>
+                  <select class="form-control" [(ngModel)]="selectedUser.description" name="editRoleDescription" required>
+                    <option [ngValue]="undefined" disabled>Select service type</option>
+                    <option *ngFor="let config of userConfig" [ngValue]="config.label">{{ config.label }}</option>
+                  </select>
+                </div>
+                <div *ngIf="selectedUser.description">
+                  <div *ngFor="let field of getUserConfigFields(selectedUser.description)" class="mb-3">
+                    <label>{{ field.label }}</label>
+                    <ng-container *ngIf="field.dataType === 'DOCUMENT_URL'; else normalInput">
+                      <div class="input-group upload-box d-flex align-items-between justify-content-between">
+                        <img *ngIf="selectedUser.tag[field.name]" [src]="selectedUser.tag[field.name]" class="upload-icon mb-2" />
+                        <div class="input-container">
+                          <input 
+                            type="file" 
+                            class="form-control"
+                            [ngClass]="{'input-image': selectedUser.tag[field.name]}"
+                            (change)="onFileSelect($event, field.name, selectedUser)"
+                            [name]="'editTag_' + field.name"
+                            accept="image/*,.pdf,.doc,.docx">
+                          <div *ngIf="selectedUser.tag[field.name]" class="mt-2">
+                            <small class="text-success">
+                              <i class="fa fa-check"></i> File uploaded successfully
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                      <div *ngIf="uploadProgress && uploadProgress[field.name]" class="mt-2 uploadProgress">
+                        <div class="progress">
+                          <div class="progress-bar" 
+                               [style.width.%]="uploadProgress[field.name]" 
+                               role="progressbar">
+                            {{ uploadProgress[field.name] }}%
+                          </div>
+                        </div>
+                      </div>
+                    </ng-container>
+                    <ng-template #normalInput>
+                      <input 
+                        [type]="getInputType(field.dataType)" 
+                        class="form-control"
+                        [name]="'editTag_' + field.name"
+                        [(ngModel)]="selectedUser.tag[field.name]">
+                    </ng-template>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label d-block">Payout Method</label>
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check" id="edit-ewallet" name="editPaymentType" value="EWALLET" [(ngModel)]="selectedUser.bank.type">
+                    <label class="btn btn-outline-secondary" for="edit-ewallet">Cash (eWallet)</label>
+                    <input type="radio" class="btn-check" id="edit-bank" name="editPaymentType" value="CHEQUE" [(ngModel)]="selectedUser.bank.type">
+                    <label class="btn btn-outline-secondary" for="edit-bank">Bank Account</label>
+                  </div>
+                </div>
+                <div *ngIf="selectedUser.bank.type === 'CHEQUE' || selectedUser.bank.type === 'SAVINGS' || selectedUser.bank.type === 'TRANSMISSION'">
+                  <div class="mb-2">
+                    <label class="form-label">Bank Name</label>
+                    <select class="form-control" name="editBankSelect"
+                        [(ngModel)]="selectedUser.bank.name">
+                      <option [ngValue]="undefined" disabled>Select your bank</option>
+                      <option *ngFor="let bank of bankConfigs" [ngValue]="bank.bankName">{{ bank.bankName }}</option>
+                    </select>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.accountId" name="editAccountNumber">
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Account Type</label>
+                    <select class="form-control" [(ngModel)]="selectedUser.bank.type" name="editAccountType">
+                      <option [ngValue]="'CHEQUE'">Cheque</option>
+                      <option [ngValue]="'SAVINGS'">Savings</option>
+                      <option [ngValue]="'TRANSMISSION'">Transmission</option>
+                      <option [ngValue]="'EWALLET'">eWallet</option>
+                    </select>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Branch Code</label>
+                    <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.branchCode" name="editBranchCode">
+                  </div>
+                </div>
+                <button class="btn btn-dark w-100 mt-2" type="submit" [disabled]="!editUserForm.form.valid">
+                  Update User
+                </button>
               </div>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>
