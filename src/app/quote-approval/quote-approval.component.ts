@@ -14,7 +14,7 @@ import { Observable } from 'rxjs';
   templateUrl: './pending-approvals.component.html',
   styleUrls: ['./pending-approvals.component.css']
 })
-export class MessangerOrderComponent implements OnInit, OnDestroy {
+export class MessangerOrderComponent implements OnInit {
   order: Order | null = null;
   messenger: UserProfile | null = null;
   quoteId: string | null = null;
@@ -53,18 +53,11 @@ export class MessangerOrderComponent implements OnInit, OnDestroy {
     if (activeQuoteId) {
       this.checkLocationPermission();
       this.loadQuoteDetails(activeQuoteId);
-      this.orderRefreshIntervalId = window.setInterval(() => this.loadQuoteDetails(activeQuoteId), 10000);
+      setInterval(() => this.loadQuoteDetails(activeQuoteId), 30000);
     } else {
       this.errorMessage = 'Invalid order ID';
       this.isLoading = false;
     }
-  }
-
-  ngOnDestroy(): void {
-    if (this.orderRefreshIntervalId) {
-      window.clearInterval(this.orderRefreshIntervalId);
-    }
-    this.clearPickupCountdownInterval();
   }
 
   // ─── Location ─────────────────────────────────────────────────────────────

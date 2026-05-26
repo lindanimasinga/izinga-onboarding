@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Order } from '../model/order';
 import { UserProfile } from '../model/userProfile';
@@ -11,12 +11,14 @@ import { AnalyticsService } from '../service/analytics.service';
   templateUrl: './messanger-orders.component.html',
   styleUrls: ['./messanger-orders.component.css']
 })
-export class MessangerOrdersComponent implements OnInit {
+export class MessangerOrdersComponent implements OnInit, OnDestroy {
 
   user?: UserProfile;
   orders: Order[] = [];
   isLoading = true;
   errorMessage = '';
+  countdowns: { [key: string]: string } = {};
+  private countdownInterval: any;
 
   constructor(
     private router: Router,
@@ -39,7 +41,6 @@ export class MessangerOrdersComponent implements OnInit {
   }
 
   loadUserOrders(): void {
-    this.isLoading = true;
     this.errorMessage = '';
     
     if (this.user?.mobileNumber) {
@@ -56,6 +57,7 @@ export class MessangerOrdersComponent implements OnInit {
               return dateB - dateA; // Sort descending (newest first)
             });
             this.isLoading = false;
+            this.startCountdown();
           },
           (error: any) => {
             console.error('Error loading orders:', error);
@@ -142,5 +144,40 @@ export class MessangerOrdersComponent implements OnInit {
   statusColor(stage?: string): string {
     if (!stage) return '#6c757d';
     return Order.stageEnumColor[stage as keyof typeof Order.stageEnumColor] || '#6c757d';
+  }
+
+  isScheduledWaiting(order: Order): boolean {
+    return order.stage === 'STAGE_1_WAITING_STORE_CONFIRM' &&
+      order.shippingData?.type === 'SCHEDULED_DELIVERY' &&
+      !!order.shippingData?.pickUpTime;
+  }
+
+  private updateCountdowns(): void {
+    this.orders.forEach(order => {
+      if (!this.isScheduledWaiting(order) || !order.id) return;
+      const pickUp = new Date(order.shippingData!.pickUpTime!).getTime();
+      const diff = pickUp - Date.now();
+      if (diff <= 0) {
+        this.countdowns[order.id] = 'Due now';
+      } else {
+        const totalSecs = Math.floor(diff / 1000);
+        const d = Math.floor(totalSecs / 86400);
+        const h = Math.floor((totalSecs % 86400) / 3600);
+        const m = Math.floor((totalSecs % 3600) / 60);
+        const s = totalSecs % 60;
+        const dayPart = d > 0 ? `${d} day${d !== 1 ? 's' : ''} ` : '';
+        this.countdowns[order.id] = `${dayPart}${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`;
+      }
+    });
+  }
+
+  private startCountdown(): void {
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
+    this.updateCountdowns();
+    this.countdownInterval = setInterval(() => this.updateCountdowns(), 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.countdownInterval) clearInterval(this.countdownInterval);
   }
 }
