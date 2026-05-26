@@ -84,6 +84,17 @@ export class IzingaOrderManagementService {
         }));
     }
 
+    /**
+     * Fetch approved messengers within a bounding box centred on (latitude, longitude).
+     * range is in degrees — 1° ≈ 111 km, so 0.1 ≈ 11 km.
+     * Returns only profileApproved + termsAccepted users (includePendingUsers defaults to false).
+     */
+    getMessengersByArea(latitude: number, longitude: number, range: number): Observable<Array<UserProfile>> {
+      const params = `role=MESSENGER&latitude=${latitude}&longitude=${longitude}&range=${range}`;
+      return this.http.get<Array<UserProfile>>(`${environment.izingaUrl}/user?${params}`, {headers: this.headers})
+        .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+    }
+
   getOrderById(orderId: string): Observable<Order> {
     return this.http
         .get<Order>(`${environment.izingaUrl}/order/${orderId}`, {headers: this.headers})

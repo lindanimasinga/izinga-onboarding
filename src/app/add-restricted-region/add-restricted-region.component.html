@@ -41,22 +41,22 @@
             <small class="text-muted">Search and select a location to auto-fill coordinates</small>
         </div>
                       <!-- Radius -->
-              <div class="col-12 mb-3">
-                <label for="radius" class="form-label">
+              <div class="col-12 mb-3 row">
+                <label for="radius" class="form-label col-3">
                   Restriction Radius:  {{newRegion.radius}}m
                 </label>
                 <input 
                   type="range" 
                   id="radius"
-                  class="form-range" 
+                  class="form-range col-9" 
                   min="100"
-                  max="10000"
+                  max="500000"
                   step="100"
                   [(ngModel)]="newRegion.radius"
                   (ngModelChange)="onRadiusChange()">
                 <div class="d-flex justify-content-between small text-muted">
                   <span>100m</span>
-                  <span>10km</span>
+                  <span>500km</span>
                 </div>
               </div>
         <div class="col-12">

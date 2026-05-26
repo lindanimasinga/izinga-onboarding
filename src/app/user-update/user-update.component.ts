@@ -300,13 +300,15 @@ export class UserUpdateComponent {
     }
   }
 
-  getUserConfigFields(roleDescriptionLabel: string): Array<{name: string, label: string, dataType: DataType}> {
+  getUserConfigFields(roleDescriptionLabel: string | undefined): Array<{name: string, label: string, dataType: DataType}> {
     this.config = this.userConfig.find(config => config.label === roleDescriptionLabel)
-    console.log("Found config for role description ", roleDescriptionLabel, this.config)
-    if (this.config) {
+    if (!this.config) {
+      console.warn(`No user config found for role description: ${roleDescriptionLabel}`);
+    } else {
+      console.log(`Found user config for role description ${roleDescriptionLabel}:`, this.config);
       return [...this.config.mandatoryFields, ...this.config.optionalFields]
-      .sort((a, b) =>  b.label.localeCompare(a.label))
-      .sort((a, b) => a.dataType === 'DOCUMENT_URL' ? -1 : 1)
+        .sort((a, b) =>  b.label.localeCompare(a.label))
+        .sort((a, b) => a.dataType === 'DOCUMENT_URL' ? -1 : 1)
     }
 
     return [] 

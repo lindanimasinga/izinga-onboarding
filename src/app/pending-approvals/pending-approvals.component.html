@@ -57,13 +57,13 @@
     <div class="col-md-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Pending Approvals({{filteredPendingUsers.length}})</h4>
-        <button class="btn btn-outline-secondary btn-sm" (click)="loadPendingApprovals()" [disabled]="loading">
+        <button class="btn btn-outline-dark btn-sm" (click)="loadPendingApprovals()" [disabled]="loading">
           <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
         </button>
       </div>
 
       <div *ngIf="loading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -86,7 +86,7 @@
               <img 
                 [src]="user.imageUrl" 
                 alt="Profile" 
-                class="rounded-circle mr-2"
+                class="rounded-circle me-2"
                 style="width: 40px; height: 40px; object-fit: cover;"
                 *ngIf="user.imageUrl">
               <div *ngIf="!user.imageUrl" 
@@ -163,7 +163,7 @@
                 {{coordinateLookupError}}
               </p>
               <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning mr-2">
+                <span class="badge bg-warning me-2">
                   <i class="fa fa-clock me-1"></i>
                   Pending Approval
                 </span>
@@ -264,7 +264,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
                       [href]="selectedUser.tag[tag]" 
                       target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
+                      class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -287,7 +287,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
                       [href]="selectedUser.tag[tag]" 
                       target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
+                      class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -354,7 +354,7 @@
                 {{coordinateLookupError}}
               </p>
               <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning mr-2">
+                <span class="badge bg-warning me-2">
                   <i class="fa fa-clock me-1"></i>
                   Pending Approval
                 </span>
@@ -455,7 +455,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
                       [href]="selectedUser.tag[tag]" 
                       target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
+                      class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -478,7 +478,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
                       [href]="selectedUser.tag[tag]" 
                       target="_blank" 
-                      class="btn btn-sm btn-outline-primary">
+                      class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -491,7 +491,7 @@
       </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline-secondary" (click)="startChat()">
+          <button class="btn btn-outline-dark" (click)="startChat()">
             <i class="fa fa-comments me-1"></i>Chat
           </button>
           <button class="btn bg-dark" (click)="approveUser()" [disabled]="approving">
@@ -512,7 +512,7 @@
     </div>
     <div class="card-body p-0 position-relative">
       <div class="map-loading-overlay" *ngIf="mapLoading">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading map...</span>
         </div>
         <span>Loading map markers...</span>

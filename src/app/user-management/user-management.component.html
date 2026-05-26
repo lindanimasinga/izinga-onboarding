@@ -1,10 +1,26 @@
 <div>
-  <div class="row">
+  <!-- Tab Navigation -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab === 'list'" (click)="setActiveTab('list')">
+        <i class="fa fa-list me-1"></i> List
+      </button>
+    </li>
+    <li class="nav-item">
+      <button type="button" class="nav-link" [class.active]="activeTab === 'map'" (click)="setActiveTab('map')">
+        <i class="fa fa-map-marker me-1"></i> Map View
+      </button>
+    </li>
+  </ul>
+
+  <!-- List Tab -->
+  <div *ngIf="activeTab === 'list'">
+    <div class="row">
     <!-- Search and Users List -->
     <div class="col-md-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Search Users</h4>
-        <button class="btn btn-outline-secondary btn-sm" (click)="resetSearch()" [disabled]="isLoading">
+        <button class="btn btn-outline-dark btn-sm" (click)="resetSearch()" [disabled]="isLoading">
           <i class="fa fa-search"></i>
         </button>
       </div>
@@ -22,7 +38,7 @@
           type="button"
           (click)="searchUser()"
           [disabled]="isLoading">
-          <i class="fa fa-search">search</i>
+          <i class="fa fa-search"></i>
         </button>
       </div>
 
@@ -90,14 +106,14 @@
               <label class="form-label d-block">Payout Method</label>
               <div class="btn-group w-100" role="group">
                 <input type="radio" class="btn-check" id="create-ewallet" name="createPaymentType" value="EWALLET" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
-                <label class="btn btn-outline-secondary" for="create-ewallet">Cash (eWallet)</label>
+                <label class="btn btn-outline-dark" for="create-ewallet">Cash (eWallet)</label>
 
                 <input type="radio" class="btn-check" id="create-bank" name="createPaymentType" value="BANK_ACC" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
-                <label class="btn btn-outline-secondary" for="create-bank">Bank Account</label>
+                <label class="btn btn-outline-dark" for="create-bank">Bank Account</label>
               </div>
             </div>
 
-            <div *ngIf="createPaymentType === 'EWALLET'" class="border p-2 mb-2 bg-light small">
+            <div *ngIf="createPaymentType === 'EWALLET'" class="alert alert-info py-2 mb-2 small">
               Funds will be paid to this number. Daily cellphone withdrawal limit is R3000.
             </div>
 
@@ -154,7 +170,7 @@
 
       <!-- Loading -->
       <div *ngIf="isLoading" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -296,9 +312,9 @@
                   <label class="form-label d-block">Payout Method</label>
                   <div class="btn-group w-100" role="group">
                     <input type="radio" class="btn-check" id="edit-ewallet" name="editPaymentType" value="EWALLET" [(ngModel)]="selectedUser.bank.type">
-                    <label class="btn btn-outline-secondary" for="edit-ewallet">Cash (eWallet)</label>
+                    <label class="btn btn-outline-dark" for="edit-ewallet">Cash (eWallet)</label>
                     <input type="radio" class="btn-check" id="edit-bank" name="editPaymentType" value="CHEQUE" [(ngModel)]="selectedUser.bank.type">
-                    <label class="btn btn-outline-secondary" for="edit-bank">Bank Account</label>
+                    <label class="btn btn-outline-dark" for="edit-bank">Bank Account</label>
                   </div>
                 </div>
                 <div *ngIf="selectedUser.bank.type === 'CHEQUE' || selectedUser.bank.type === 'SAVINGS' || selectedUser.bank.type === 'TRANSMISSION'">
@@ -335,6 +351,83 @@
             </div>
           </form>
         </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Map Tab -->
+  <div *ngIf="activeTab === 'map'">
+    <!-- Filter row -->
+    <div class="row mb-3">
+      <div class="col-sm-6 col-lg-4">
+        <label class="form-label mb-1">Filter by Service Type</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa fa-filter"></i></span>
+          <select class="form-control" [(ngModel)]="mapServiceFilter" (ngModelChange)="onMapFilterChange()">
+            <option value="">All service types</option>
+            <option *ngFor="let config of userConfig" [value]="config.label">{{ config.label }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-sm-6 col-lg-3">
+        <label class="form-label mb-1">Availability</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="fa fa-circle"></i></span>
+          <select class="form-control" [(ngModel)]="mapAvailabilityFilter" (ngModelChange)="onMapFilterChange()">
+            <option value="">All statuses</option>
+            <option value="ONLINE">Online</option>
+            <option value="AWAY">Away</option>
+            <option value="OFFLINE">Offline</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center">
+          <i class="fa fa-map-marker me-2"></i>
+          <h5 class="mb-0">Drivers by Area</h5>
+        </div>
+        <span class="badge bg-dark" *ngIf="!mapLoading">
+          {{ driversInView.length }} in view
+        </span>
+      </div>
+      <div *ngIf="mapLoading" class="text-center py-4">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted small">Loading drivers&hellip;</p>
+      </div>
+      <div *ngIf="mapError" class="alert alert-danger m-3">{{ mapError }}</div>
+      <div class="card-body p-0" [style.display]="mapLoading ? 'none' : 'block'" style="height: 500px;">
+        <div id="drivers-map" style="width: 100%; height: 100%; min-height: 400px;"></div>
+      </div>
+      <!-- Drivers list for this area -->
+      <div class="card-footer" *ngIf="!mapLoading && driversInView.length > 0">
+        <small class="text-muted d-block mb-2">Pan or zoom the map to filter by area</small>
+        <div class="list-group list-group-flush" style="max-height: 220px; overflow-y: auto;">
+          <div class="list-group-item list-group-item-action py-2 px-3" *ngFor="let driver of driversInView">
+            <div class="d-flex align-items-center">
+              <img *ngIf="driver.imageUrl" [src]="driver.imageUrl" class="rounded-circle me-2" style="width:36px;height:36px;object-fit:cover;">
+              <div *ngIf="!driver.imageUrl" class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2" style="width:36px;height:36px;">
+                <i class="fa fa-user"></i>
+              </div>
+              <div class="flex-grow-1">
+                <strong>{{ driver.name || 'No Name' }}</strong>
+                <span class="text-muted small ms-2">{{ driver.mobileNumber }}</span>
+                <div class="small text-muted">{{ driver.description }} &bull; {{ driver.address }}</div>
+              </div>
+              <span class="badge ms-2" [ngClass]="driver.profileApproved ? 'bg-success' : 'bg-warning text-dark'">
+                {{ driver.profileApproved ? 'Approved' : 'Pending' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer text-center text-muted small" *ngIf="!mapLoading && driversInView.length === 0 && !mapError">
+        No drivers found in the current map area. Pan or zoom to search.
       </div>
     </div>
   </div>
