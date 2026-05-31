@@ -20,6 +20,30 @@
     <p class="">Waiting for the customer needs to complete payment to proceed with the order.</p>
   </div>
 
+  <!-- Delivery Completed Thank You Panel -->
+  <div *ngIf="order?.stage === 'STAGE_7_ALL_PAID'" class="delivery-complete-panel text-center py-4 px-3 mb-4">
+    <div class="mb-3">
+      <i class="material-icons" style="font-size: 4.5rem; color: var(--btn-bg-color);">check_circle</i>
+    </div>
+    <h4 class="fw-bold mb-1">Thank you, {{messenger?.name}}!</h4>
+    <p class="text-muted mb-4">Delivery successfully completed.</p>
+
+    <div class="payout-info-card p-3 rounded mb-2">
+      <div class="h5 fw-bold mb-2">R {{order?.shippingData?.fee}} earned</div>
+      <p class="text-muted mb-0" *ngIf="messenger?.bank?.type === 'EWALLET'">
+        Your earnings has been topped up to your eWallet
+        <strong>{{messenger?.bank?.phone || messenger?.bank?.accountId}}</strong>
+      </p>
+      <p class="text-muted mb-0" *ngIf="messenger?.bank?.type !== 'EWALLET' && messenger?.bank?.name">
+        Your earnings will be deposited into your <strong>{{messenger?.bank?.name}}</strong> account
+        ending in <strong>{{messenger?.bank?.accountId}}</strong>
+      </p>
+      <p class="text-muted mb-0" *ngIf="!messenger?.bank">
+        Your earnings will be processed and paid out via iZinga.
+      </p>
+    </div>
+  </div>
+
           <div *ngIf="shouldShowScheduledPickupCountdown" class="scheduled-pickup-panel mt-4 mb-3">
           <div class="scheduled-pickup-icon">
             <i class="material-icons">schedule</i>
@@ -75,7 +99,7 @@
           <label>From Address</label>
           <div class="input-group">
             <span class="input-group-text">
-              <i class="material-icons">radio_button_checked</i>
+              From Address
             </span>
             <input type="text" class="form-control" [value]="formatAddress(order?.shippingData?.fromAddress || 'N/A')" disabled>
             <button type="button" 
@@ -233,7 +257,7 @@
           <div class="map-container mb-3">
             <iframe 
               *ngIf="order?.shippingData?.fromAddress && order?.shippingData?.toAddress"
-              [src]="getDirectionsMapUrl()"
+              [src]="mapUrl"
               width="100%" 
               height="300" 
               style="border:0; border-radius: 8px;" 
@@ -270,7 +294,7 @@
           </div>
           
           <!-- Route Information -->
-          <div class="route-info mt-3 p-3 bg-light rounded">
+          <div class="route-info mt-3 p-3 rounded">
             <div class="row text-center">
               <div class="col-6">
                 <div class="route-stat">
@@ -386,6 +410,16 @@
               <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-label="Loading"></span>
               <span *ngIf="isProcessing">Completing...</span>
               <span *ngIf="!isProcessing">Complete Delivery</span>
+          </button>
+
+          <!-- Receive Tip Button (shown after delivery is completed) -->
+          <button *ngIf="order?.stage === 'STAGE_7_ALL_PAID'"
+                    type="button action-button"
+                    class="btn btn-lg btn-block bg-dark w-100"
+                    (click)="showTipModal = true"
+                    aria-label="Receive a tip from the customer">
+              <i class="material-icons me-2">qr_code</i>
+              Receive Tip
           </button>
 
         </div>

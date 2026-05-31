@@ -23,6 +23,7 @@ export class MessangerOrderComponent implements OnInit {
   errorMessage: string = '';
   successMessage: string = '';
   showTipModal: boolean = false;
+  isDeliveryCompleted: boolean = false;
   pickupCountdown: string = '';
   pickupTimeReached: boolean = false;
   private orderRefreshIntervalId?: number;
@@ -37,6 +38,7 @@ export class MessangerOrderComponent implements OnInit {
   deliveryDistance: number = 0;
   estimatedTime: string = '';
   totalQuote: number = 0;
+  mapUrl: SafeResourceUrl = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -297,6 +299,20 @@ export class MessangerOrderComponent implements OnInit {
     this.deliveryDistance = this.order.shippingData.distance || 0;
     this.estimatedTime = this.calculateEstimatedTime(this.deliveryDistance);
     this.totalQuote = this.order.shippingData.fee || 0;
+    this.updateMapUrl();
+  }
+
+  updateMapUrl(): void {
+    const from = this.order?.shippingData?.fromAddress;
+    const to = this.order?.shippingData?.toAddress;
+    if (!from || !to) {
+      this.mapUrl = '';
+      return;
+    }
+    const origin = encodeURIComponent(from);
+    const destination = encodeURIComponent(to);
+    const url = `https://maps.google.com/maps?f=d&source=s_d&saddr=${origin}&daddr=${destination}&output=embed`;
+    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   calculateEstimatedTime(distance: number): string {
@@ -543,7 +559,29 @@ export class MessangerOrderComponent implements OnInit {
     if (!this.order || !this.quoteId) return;
     this.isProcessing = true;
     this.errorMessage = '';
-    this.updateStage();
+
+    this.ensureLocationAccessForOrderAction().then((hasLocation) => {
+      if (!hasLocation) {
+        this.isProcessing = false;
+        return;
+      }
+
+      this.progressStage(this.quoteId!).subscribe({
+        next: (order: Order) => {
+          this.order = order;
+          this.isProcessing = false;
+          this.isDeliveryCompleted = true;
+          setTimeout(() => {
+            document.querySelector('[name="scrollTo"]')?.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        },
+        error: (error: any) => {
+          console.error('Error completing delivery:', error);
+          this.errorMessage = 'Failed to complete delivery. Please try again.';
+          this.isProcessing = false;
+        }
+      });
+    });
   }
 
   closeTipModal(): void {

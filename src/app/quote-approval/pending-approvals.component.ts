@@ -30,6 +30,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
   deliveryDistance: number = 0;
   estimatedTime: string = '';
   totalQuote: number = 0;
+  mapUrl: SafeResourceUrl = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -198,6 +199,20 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.deliveryDistance = this.order.shippingData.distance || 0;
     this.estimatedTime = this.calculateEstimatedTime(this.deliveryDistance);
     this.totalQuote = this.order.shippingData.deliveryFee || 0;
+    this.updateMapUrl();
+  }
+
+  updateMapUrl(): void {
+    const from = this.order?.shippingData?.fromAddress;
+    const to = this.order?.shippingData?.toAddress;
+    if (!from || !to) {
+      this.mapUrl = '';
+      return;
+    }
+    const origin = encodeURIComponent(from);
+    const destination = encodeURIComponent(to);
+    const url = `https://maps.google.com/maps?f=d&source=s_d&saddr=${origin}&daddr=${destination}&output=embed`;
+    this.mapUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
 
   calculateEstimatedTime(distance: number): string {

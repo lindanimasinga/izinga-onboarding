@@ -95,7 +95,6 @@ export class TeamDeliveriesComponent implements OnInit {
   }
 
   private loadOrders(adminId: string): void {
-    this.isLoading = true;
     this.errorMessage = '';
 
     this.izingaOrderService.getAllMessengerAdminOrders(adminId).subscribe({
