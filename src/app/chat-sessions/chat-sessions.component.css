@@ -15,7 +15,10 @@
 
 .messages-scroll {
     min-height: 0;
+    overflow-y: auto;
     scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .chat-list-panel {
@@ -44,7 +47,7 @@
     position: sticky;
     bottom: 0;
     z-index: 2;
-    background: #fff;
+    background: var(--bkg-card-color);
 }
 
 .messages-container::-webkit-scrollbar { width: 6px; }
@@ -52,8 +55,8 @@
 .messages-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
 .messages-container::-webkit-scrollbar-thumb:hover { background: #555; }
 
-.nav-pills .nav-link { border-radius: 50px; margin-right: 10px; border: 1px solid #dee2e6; color: #6c757d; background: white; transition: all .3s; }
-.nav-pills .nav-link.active { background: var(--btn-bg-color); color: white; }
+.nav-pills .nav-link { border-radius: 50px; margin-right: 8px; margin-bottom: 6px; border: 1px solid #dee2e6; color: #6c757d; background: white; transition: all .3s; }
+.nav-pills .nav-link.active { background: var(--btn-bg-color); color: white; border-color: var(--btn-bg-color); }
 .nav-pills .nav-link:hover { background: #e9ecef; color: #495057; }
 
 .list-group-item-action { transition: all .2s; border-left: 3px solid transparent; }
@@ -69,7 +72,7 @@
 .session-status-badge { font-size: .7rem; padding: 2px 8px; }
 
 .whatsapp-green { background: #25D366 !important; border-color: #25D366 !important; }
-.card-header { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-bottom: 1px solid #dee2e6; }
+.card-header { background: var(--bkg-card-color); border-bottom: 1px solid #dee2e6; }
 .message-input-area { background: #f8f9fa; border-top: 1px solid #dee2e6; }
 
 .typing-indicator { display: flex; align-items: center; padding: 10px; color: #6c757d; font-style: italic; }
@@ -100,15 +103,23 @@
 
 .chat-body {
     height: calc(100vh - 250px);
-    min-height: 55vh;
+    height: calc(100svh - 250px);
+    min-height: 55svh;
 }
 
 .chat-list-panel {
+    height: calc(100vh - 130px);
+    height: calc(100svh - 130px);
     max-height: none;
 }
 
 .chat-list-scroll {
-    max-height: 45vh;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    max-height: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 }
 
@@ -136,8 +147,8 @@
 
 .modal-content {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
@@ -162,7 +173,7 @@
 }
 
 .modal-body {
-    padding: 2rem;
+    padding: 1rem 1.25rem;
 }
 
 .modal-footer {
@@ -185,7 +196,8 @@
 
 .chat-session-modal .chat-body {
     height: calc(100vh - 170px);
-    min-height: 60vh;
+    height: calc(100svh - 170px);
+    min-height: 60svh;
 }
 
 /* Store selection styling */
@@ -196,32 +208,12 @@
 }
 
 .list-group-item-action.active {
-    background-color: #e7f3ff;
-    border-color: #0d6efd;
-    color: #0d6efd;
+    background-color: var(--bkg-card-color);
+    border-color: var(--btn-bg-color);
+    color: var(--btn-bg-color);
 }
 
-/* New chat button */
-.btn-primary {
-    background: linear-gradient(135deg, #0d6efd, #0056b3);
-    border: none;
-    border-radius: 6px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #0056b3, #004085);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
-}
-
-.btn-primary:disabled {
-    background: #6c757d;
-    opacity: 0.6;
-    transform: none;
-    box-shadow: none;
-}
+/* New chat button — use btn btn-dark in HTML; do not override btn-primary here */
 
 /* Empty state improvements */
 .empty-state {

@@ -79,7 +79,8 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
         sessions => {
           const previousSessionCount = this.allSessions.length;
           this.allSessions = sessions;
-          this.activeSessions = sessions.filter(session => session.status === 'ACTIVE');
+          this.allSessions.sort((a, b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
+          this.activeSessions = this.allSessions;
           
           // Log session updates
           if (previousSessionCount > 0 && sessions.length > previousSessionCount) {

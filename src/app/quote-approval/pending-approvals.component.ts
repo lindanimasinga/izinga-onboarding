@@ -158,7 +158,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     try {
       this.isLoading = this.order == null;
 
-      this.orderService.getOrderById(orderId).subscribe({
+      this.orderService.getOrderByIdForMessenger(orderId).subscribe({
         next: (order: Order) => {
           if (this.order === null) {
             this.order = order;
@@ -224,7 +224,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
       messengerId: this.messenger.id!
     };
 
-    this.orderService.acceptQuote(this.quoteId, quoteApproval).subscribe({
+    this.orderService.messengerAcceptQuote(this.quoteId, quoteApproval).subscribe({
       next: (updatedOrder: Order) => {
         this.order = updatedOrder;
         this.successMessage = 'Quote approved successfully!';
@@ -258,7 +258,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
+    this.orderService.messengerUpdateStage(this.quoteId).subscribe({
       next: (order: Order) => {
         this.order = order;
         this.successMessage = 'Pickup started! Opening navigation...';
@@ -295,7 +295,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
       messengerId: this.messenger.id!
     };
 
-    this.orderService.acceptQuote(this.quoteId, quoteApproval).subscribe({
+    this.orderService.messengerAcceptQuote(this.quoteId, quoteApproval).subscribe({
       next: (updatedOrder: Order) => {
         this.order = updatedOrder;
         this.successMessage = 'Quote declined successfully.';
@@ -332,7 +332,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
+    this.orderService.messengerUpdateStage(this.quoteId).subscribe({
       next: (order: Order) => {
         this.order = order;
         this.successMessage = 'Customer notified of arrival!';
@@ -352,7 +352,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.order.id!).subscribe({
+    this.orderService.messengerUpdateStage(this.order.id!).subscribe({
       next: (order: Order) => {
         this.order = order;
         this.successMessage = 'Dropoff started! Opening navigation...';
@@ -387,7 +387,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
+    this.orderService.messengerUpdateStage(this.quoteId).subscribe({
       next: (order: Order) => {
         this.order = order;
         this.successMessage = 'Customer notified: driver has arrived at destination.';
@@ -491,7 +491,7 @@ export class PendingApprovalsComponent implements OnInit, OnDestroy {
     this.isProcessing = true;
     this.errorMessage = '';
 
-    this.orderService.updateStage(this.quoteId).subscribe({
+    this.orderService.messengerUpdateStage(this.quoteId).subscribe({
       next: (order: Order) => {
         this.order = order;
         this.successMessage = 'Order stage updated!';

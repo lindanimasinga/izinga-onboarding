@@ -61,7 +61,7 @@ export class IzingaOrderManagementService {
   }
 
     getAllMessengerOrders(messengerId: string): Observable<Array<Order>> {
-    return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerId=${messengerId}&allStages=true`, {headers: this.headers})
+    return this.http.get<Array<Order>>(`${environment.izingaUrl}/messenger/order?messengerId=${messengerId}&allStages=true`, {headers: this.headers})
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)
@@ -69,7 +69,7 @@ export class IzingaOrderManagementService {
   }
 
     getAllMessengerAdminOrders(messengerAdminId: string): Observable<Array<Order>> {
-      return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?messengerAdminId=${messengerAdminId}&allStages=true`, {headers: this.headers})
+      return this.http.get<Array<Order>>(`${environment.izingaUrl}/messenger/order?messengerAdminId=${messengerAdminId}&allStages=true`, {headers: this.headers})
       .pipe(
         catchError((error: HttpErrorResponse) => {
           return throwError(error)
@@ -104,6 +104,33 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  getOrderByIdForMessenger(orderId: string): Observable<Order> {
+    return this.http
+        .get<Order>(`${environment.izingaUrl}/messenger/order/${orderId}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
+  messengerAcceptQuote(orderId: string, quoteApproval: QuoteApproval): Observable<Order> {
+    return this.http
+      .patch<Order>(`${environment.izingaUrl}/messenger/order/${orderId}/quote`, quoteApproval, {headers: this.headers})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        }))
+  }
+
+  messengerUpdateStage(orderId: string): Observable<Order> {
+    return this.http
+        .get<Order>(`${environment.izingaUrl}/messenger/order/${orderId}/nextstage`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error)
+          }))
+  }
+
   updateStage(orderId: string): Observable<Order> {
     return this.http
         .get<Order>(`${environment.izingaUrl}/order/${orderId}/nextstage`, {headers: this.headers})
@@ -116,7 +143,7 @@ export class IzingaOrderManagementService {
   updateStageWithLocation(orderId: string, latitude: number, longitude: number): Observable<Order> {
     const params = { latitude: latitude.toString(), longitude: longitude.toString() };
     return this.http
-        .get<Order>(`${environment.izingaUrl}/order/${orderId}/nextstage`, {headers: this.headers, params})
+        .get<Order>(`${environment.izingaUrl}/messenger/order/${orderId}/nextstage`, {headers: this.headers, params})
         .pipe(
           catchError((error: HttpErrorResponse) => {
             return throwError(error)

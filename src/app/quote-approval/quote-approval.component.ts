@@ -258,7 +258,7 @@ export class MessangerOrderComponent implements OnInit {
     try {
       this.isLoading = this.order == null;
 
-      this.orderService.getOrderById(orderId).subscribe({
+      this.orderService.getOrderByIdForMessenger(orderId).subscribe({
         next: (order: Order) => {
           if (this.order == null) {
             this.order = order;
@@ -331,7 +331,7 @@ export class MessangerOrderComponent implements OnInit {
         return;
       }
 
-      this.orderService.acceptQuote(this.quoteId!, quoteApproval).subscribe({
+      this.orderService.messengerAcceptQuote(this.quoteId!, quoteApproval).subscribe({
         next: (updatedOrder: Order) => {
           this.order = updatedOrder;
           this.successMessage = 'Quote approved successfully!';
