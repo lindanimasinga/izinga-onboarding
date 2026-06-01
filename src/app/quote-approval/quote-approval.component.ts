@@ -179,6 +179,29 @@ export class MessangerOrderComponent implements OnInit {
     return this.pickupTimeReached;
   }
 
+  get deliveryStatusText(): string {
+    const stage = this.order?.stage;
+    if (!stage) {
+      return 'Not available';
+    }
+    return Order.stageEnumText[stage] || 'Not available';
+  }
+
+  get processingDriverName(): string {
+    const messengerName = `${this.messenger?.name || ''} ${this.messenger?.surname || ''}`.trim();
+    if (messengerName) {
+      return messengerName;
+    }
+
+    const tag = this.order?.tag;
+    const tagDriverName = `${tag?.['messengerName'] || ''} ${tag?.['messengerSurname'] || ''}`.trim();
+    if (tagDriverName) {
+      return tagDriverName;
+    }
+
+    return this.order?.shippingData?.messengerId ? 'Assigned driver' : 'Unassigned';
+  }
+
   get formattedPickupTime(): string {
     const pickupTime = this.getScheduledPickupTime();
     if (!pickupTime) {

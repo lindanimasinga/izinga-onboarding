@@ -46,6 +46,7 @@ import { UserManagementComponent } from './user-management/user-management.compo
 import { TeamMessengersComponent } from './team-messengers/team-messengers.component';
 import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.component';
 import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
+import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 
 @NgModule({
   declarations: [
@@ -84,7 +85,8 @@ import { UserConfigManagementComponent } from './user-config-management/user-con
     UserManagementComponent,
     TeamMessengersComponent,
     TeamDeliveriesComponent,
-    UserConfigManagementComponent
+    UserConfigManagementComponent,
+    AdminOrdersComponent,
   ],
   imports: [
     BrowserModule,

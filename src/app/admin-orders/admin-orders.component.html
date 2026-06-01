@@ -1,0 +1,79 @@
+<div class="mt-3">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">All Orders</h2>
+    <p class="text-muted">Monitor all active and scheduled deliveries</p>
+  </div>
+
+  <!-- Tabs + Refresh -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <ul class="nav nav-tabs flex-grow-1">
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab === 'inProgress'" (click)="setTab('inProgress')">
+          In Progress
+          <span class="badge bg-secondary ms-1">{{inProgressOrders.length}}</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" [class.active]="activeTab === 'scheduled'" (click)="setTab('scheduled')">
+          Scheduled
+          <span class="badge bg-secondary ms-1">{{scheduledOrders.length}}</span>
+        </button>
+      </li>
+    </ul>
+    <button class="btn btn-sm btn-dark ms-2" (click)="loadOrders()">
+      <i class="material-icons" style="font-size:16px;vertical-align:middle;">refresh</i>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border" role="status" style="color:var(--btn-bg-color);">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Loading orders...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger" role="alert">
+    <i class="material-icons me-2" style="vertical-align:middle;">error_outline</i>
+    {{errorMessage}}
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!isLoading && !errorMessage && displayedOrders.length === 0" class="text-center py-5">
+    <div class="mb-3" style="font-size:64px;opacity:0.3;">📦</div>
+    <h5 class="text-muted">No orders found</h5>
+    <p class="text-muted small">There are no {{activeTab === 'scheduled' ? 'scheduled' : 'in-progress'}} orders right now.</p>
+  </div>
+
+  <!-- Order Cards -->
+  <div *ngIf="!isLoading && displayedOrders.length > 0">
+    <div class="row">
+      <div class="col-12 col-md-6 col-lg-4 mb-3" *ngFor="let order of displayedOrders; trackBy: trackById">
+        <a (click)="viewOrder(order)" style="text-decoration: none; cursor: pointer;">
+          <div class="order-card d-flex justify-content-between">
+            <div class="info p-3">
+              <div class="pb-1 text-muted">Order No. {{order.id?.substring(0, 8) || 'Unknown'}}</div>
+              <div class="pb-1 text-muted" *ngIf="order.shippingData?.type === 'SCHEDULED_DELIVERY' && order.shippingData?.pickUpTime">
+                Pickup. {{order.shippingData?.pickUpTime | date: 'd MMM y h:mma'}}
+              </div>
+              <div class="pb-1 text-muted" *ngIf="order.shippingData?.type !== 'SCHEDULED_DELIVERY'">
+                Date. {{order.date | date: 'd MMM y h:mma'}}
+              </div>
+              <div class="pb-1 text-muted">Total. {{order.totalAmount | currency:'R'}}</div>
+            </div>
+            <div class="status p-3 d-flex flex-column justify-content-center text-center" [ngStyle]="{'background-color': statusColor(order.stage)}">
+              <span>{{statusText(order.stage)}}</span>
+              <span *ngIf="order.shippingData?.type === 'SCHEDULED_DELIVERY' && order.shippingData?.pickUpTime" class="countdown-time mt-1">
+                {{order.shippingData?.pickUpTime | date: 'h:mm a'}}
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -9,6 +9,33 @@
 .modal {
   background-color: #000000e3;
 }
+
+.delivery-status-panel {
+  background: var(--bkg-card-color);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.delivery-status-item {
+  min-width: 220px;
+  flex: 1;
+}
+
+.delivery-status-label {
+  font-size: 0.85rem;
+  color: var(--text-color);
+  opacity: 0.75;
+  margin-bottom: 0.2rem;
+}
+
+.delivery-status-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
 /* Button Loading States - matching shipping component */
 .btn-loading {
   position: relative;

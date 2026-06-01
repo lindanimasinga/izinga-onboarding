@@ -26,105 +26,112 @@
                         </div>
             </div>
             <div class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
                        <div style="font-size:48px;">📈</div>
                         <div class="fw-bold mt-2 ">My Profile</div>
                         <div class="small ">Manage your contact information and bank account details</div>
                     </div>
                 </div>
-                <div *ngIf="isStoreAdmin" class="col-6 mb-3">
+                <div *ngIf="isStoreAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #10A59F;" routerLink="../list">
                         <div style="font-size:48px;">🏬</div>
                         <div class="fw-bold mt-2 ">My Shops</div>
                         <div class="small ">List your shops, manage inventory, and track sales.</div>
                     </div>
                 </div>
-                <div *ngIf="isAdmin" class="col-6 mb-3">
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #00a9a1;" routerLink="../pending-approvals">
                         <div style="font-size:48px;">👥</div>
                         <div class="fw-bold mt-2 ">Pending Approvals</div>
                         <div class="small ">Review and approve user profiles awaiting verification.</div>
                     </div>
                 </div>
-                <div *ngIf="isAdmin" class="col-6 mb-3">
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../user-management">
                         <div style="font-size:48px;">👥</div>
                         <div class="fw-bold mt-2 ">Manage Users</div>
                         <div class="small ">Search users, control access, and manage account status.</div>
                     </div>
                 </div>
-                <div *ngIf="isAdmin" class="col-6 mb-3">
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../chat-sessions">
                         <div style="font-size:48px;">💬</div>
                         <div class="fw-bold mt-2 ">Chat Sessions</div>
                         <div class="small ">Manage customer conversations and provide support via WhatsApp.</div>
                     </div>
                 </div>
-                <div  *ngIf="isMessenger" class="col-6 mb-3">
+                <div  *ngIf="isMessenger" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #f39c12;" routerLink="../orders">
                         <div style="font-size:48px;">📋</div>
                         <div class="fw-bold mt-2 ">My Deliveries</div>
                         <div class="small ">Review and manage your deliveries.</div>
                     </div>
                 </div>
-                <div *ngIf="isMessengerAdmin" class="col-6 mb-3">
+                <div *ngIf="isMessengerAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #00a9a1;" routerLink="../team-messengers">
                         <div style="font-size:48px;">👷</div>
                         <div class="fw-bold mt-2 ">My Drivers</div>
                         <div class="small ">View your managed messenger team.</div>
                     </div>
                 </div>
-                <div *ngIf="isMessengerAdmin" class="col-6 mb-3">
+                <div *ngIf="isMessengerAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #f39c12;" routerLink="../team-deliveries">
                         <div style="font-size:48px;">🚚</div>
                         <div class="fw-bold mt-2 ">Team Deliveries</div>
                         <div class="small ">Review deliveries assigned to your messenger team.</div>
                     </div>
                 </div>
-                <div *ngIf="isAdmin" class="col-6 mb-3">
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../admin-orders">
+                        <div style="font-size:48px;">🗂️</div>
+                        <div class="fw-bold mt-2 ">All Orders</div>
+                        <div class="small ">Monitor all in-progress and scheduled deliveries across the platform.</div>
+                    </div>
+                </div>
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color)" routerLink="../restricted-regions">
                         <div style="font-size:48px;">🚫</div>
                         <div class="fw-bold mt-2 ">Restricted Regions</div>
                         <div class="small ">Manage delivery restricted areas and regions.</div>
                     </div>
                 </div>
-                <div *ngIf="isAdmin" class="col-6 mb-3">
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../user-config-management">
                         <div style="font-size:48px;">⚙️</div>
                         <div class="fw-bold mt-2 ">User Configurations</div>
                         <div class="small ">Manage service types, roles, and onboarding field requirements.</div>
                     </div>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../payout">
                         <div style="font-size:48px;">💰</div>
                         <div class="fw-bold mt-2 ">{{ isMessengerAdmin ? 'Team Payouts' : 'Payouts' }}</div>
                         <div class="small ">{{ isMessengerAdmin ? 'View payouts for your managed messenger team.' : 'View and manage your payout settings.' }}</div>
                     </div>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../card">
                         <div style="font-size:48px;">💳</div>
                         <div class="fw-bold mt-2 ">iZinga Card</div>
                         <div class="small ">Share your iZinga Card with customers for easy payments.</div>
                     </div>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);" [routerLink]="'../terms/' + user?.id">
                         <div style="font-size:48px;">📝</div>
                         <div class="fw-bold mt-2 ">Terms And Conditions</div>
                         <div class="small ">Review the terms and conditions for using iZinga services.</div>
                     </div>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #6c757d;" routerLink="../privacy-policy">
                         <div style="font-size:48px;">🔐</div>
                         <div class="fw-bold mt-2 ">Privacy Policy</div>
                         <div class="small ">Learn how iZinga collects, stores, and protects your personal data (POPIA).</div>
                     </div>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #17a2b8;" routerLink="../legal-info">
                         <div style="font-size:48px;">⚖️</div>
                         <div class="fw-bold mt-2 ">Legal Information</div>

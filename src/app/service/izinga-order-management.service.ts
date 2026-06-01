@@ -104,6 +104,11 @@ export class IzingaOrderManagementService {
           }))
   }
 
+  getOrdersInProgress(): Observable<Array<Order>> {
+    return this.http.get<Array<Order>>(`${environment.izingaUrl}/order?inProgress=true`, {headers: this.headers})
+      .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+  }
+
   getOrderByIdForMessenger(orderId: string): Observable<Order> {
     return this.http
         .get<Order>(`${environment.izingaUrl}/messenger/order/${orderId}`, {headers: this.headers})

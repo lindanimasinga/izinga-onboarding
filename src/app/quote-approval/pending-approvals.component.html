@@ -4,6 +4,17 @@
     <div class="page-header h3">Delivery Quote</div>
   </div>
 
+  <div *ngIf="order && !isLoading" class="delivery-status-panel mt-3">
+    <div class="delivery-status-item">
+      <div class="delivery-status-label">Delivery Status</div>
+      <div class="delivery-status-value">{{ deliveryStatusText }}</div>
+    </div>
+    <div class="delivery-status-item">
+      <div class="delivery-status-label">Driver Processing Order</div>
+      <div class="delivery-status-value">{{ processingDriverName }}</div>
+    </div>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="isLoading" class="text-center py-5 mt-3">
     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">

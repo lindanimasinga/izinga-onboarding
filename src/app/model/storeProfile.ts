@@ -82,6 +82,10 @@ export namespace StoreProfile {
 
 export interface StoreRates {
     standardDeliveryPrice?: number;
+    standardDeliveryPriceBike?: number;
+    standardDeliveryPriceCar?: number;
+    standardDeliveryPriceBakkie?: number;
+    standardDeliveryPriceTruck?: number;
     standardDeliveryKm?: number;
     ratePerKm?: number;
     ratePerVolumeCM2?: number;

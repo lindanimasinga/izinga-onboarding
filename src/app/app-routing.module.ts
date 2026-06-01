@@ -31,6 +31,7 @@ import { UserManagementComponent } from './user-management/user-management.compo
 import { TeamMessengersComponent } from './team-messengers/team-messengers.component';
 import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.component';
 import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
+import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent}, 
@@ -59,6 +60,7 @@ const routes: Routes = [
       { path: 'team-messengers', component: TeamMessengersComponent},
       { path: 'team-deliveries', component: TeamDeliveriesComponent},
       { path: 'user-config-management', component: UserConfigManagementComponent},
+      { path: 'admin-orders', component: AdminOrdersComponent},
       { path: 'info', component: UserInfoComponent}
     ]},
   { path: 'business',
@@ -83,6 +85,7 @@ const routes: Routes = [
       { path: 'legal-info', component: LegalInfoComponent},
       { path: 'user-management', component: UserManagementComponent},
       { path: 'user-config-management', component: UserConfigManagementComponent},
+      { path: 'admin-orders', component: AdminOrdersComponent},
       { path: 'info/:id', component: BusinessUpdateComponent},
       { path: 'info', component: BusinessUpdateComponent},
       { path: 'list', component: BusinessesComponent},

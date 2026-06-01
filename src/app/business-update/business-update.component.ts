@@ -19,6 +19,7 @@ import { AnalyticsService } from '../service/analytics.service';
 })
 export class BusinessUpdateComponent {
 
+  previewVehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK' = 'CAR';
   shop: StoreProfile = {
     name: '',
     description: '',
@@ -34,6 +35,10 @@ export class BusinessUpdateComponent {
     rates: {
       standardDeliveryPrice: 0,
       standardDeliveryKm: 0,
+      standardDeliveryPriceBike: 0,
+      standardDeliveryPriceCar: 0,
+      standardDeliveryPriceBakkie: 0,
+      standardDeliveryPriceTruck: 0,
       ratePerKm: 0,
       ratePerVolumeCM2: 0,
       ratePerWeightKg: 0,
@@ -76,7 +81,11 @@ export class BusinessUpdateComponent {
             ratePerKm: 0,
             ratePerVolumeCM2: 0,
             ratePerWeightKg: 0,
-            labourRatePerFloor: 0
+            labourRatePerFloor: 0,
+            standardDeliveryPriceBike: 0,
+            standardDeliveryPriceCar: 0,
+            standardDeliveryPriceBakkie: 0,
+            standardDeliveryPriceTruck: 0,
           }
         }
       })
@@ -217,7 +226,13 @@ export class BusinessUpdateComponent {
   /**
    * Calculate delivery rate based on distance, volume, weight, and floors.
    */
-  calculateDeliveryRate(distance: number, volumeCM2: number, weightKg: number, floors: number = 0): number {
+  calculateDeliveryRate(
+    distance: number,
+    volumeCM2: number,
+    weightKg: number,
+    floors: number = 0,
+    vehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK' = 'CAR'
+  ): number {
     if (!this.shop?.rates) {
       return 0;
     }
@@ -225,8 +240,11 @@ export class BusinessUpdateComponent {
     const rates = this.shop.rates;
     let totalRate = 0;
 
-    // Base delivery price for standard distance
-    if (rates.standardDeliveryPrice) {
+    // Base delivery price for selected vehicle type with fallback
+    const baseVehicleRate = this.getVehicleStandardRate(vehicleType);
+    if (baseVehicleRate > 0) {
+      totalRate += baseVehicleRate;
+    } else if (rates.standardDeliveryPrice) {
       totalRate += rates.standardDeliveryPrice;
     }
 
@@ -252,6 +270,36 @@ export class BusinessUpdateComponent {
     }
 
     return Math.max(totalRate, 0); // Ensure rate is never negative
+  }
+
+  private getVehicleStandardRate(vehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK'): number {
+    if (!this.shop?.rates) {
+      return 0;
+    }
+
+    switch (vehicleType) {
+      case 'BIKE':
+        return this.shop.rates.standardDeliveryPriceBike || 0;
+      case 'CAR':
+        return this.shop.rates.standardDeliveryPriceCar || 0;
+      case 'BAKKIE':
+        return this.shop.rates.standardDeliveryPriceBakkie || 0;
+      case 'TRUCK':
+        return this.shop.rates.standardDeliveryPriceTruck || 0;
+      default:
+        return this.shop.rates.standardDeliveryPrice || 0;
+    }
+  }
+
+  getDistanceAdjustmentKm(distance: number): number {
+    const standardKm = this.shop?.rates?.standardDeliveryKm || 0;
+    return distance > standardKm ? distance - standardKm : 0;
+  }
+
+  getDistanceAdjustmentAmount(distance: number): number {
+    const extraDistance = this.getDistanceAdjustmentKm(distance);
+    const ratePerKm = this.shop?.rates?.ratePerKm || 0;
+    return extraDistance * ratePerKm;
   }
 
 }

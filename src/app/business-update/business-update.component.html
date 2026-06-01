@@ -95,8 +95,62 @@
     <p class="mb-4">Set your delivery rates and pricing structure. These rates will be used to calculate delivery costs for your customers.</p>
     
     <div class="row">
+        <div class="col-md-3 mb-3">
+            <label for="standardDeliveryPriceBike">Bike Standard Price (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryPriceBike"
+                [(ngModel)]="shop.rates.standardDeliveryPriceBike" 
+                name="standardDeliveryPriceBike" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="standardDeliveryPriceCar">Car Standard Price (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryPriceCar"
+                [(ngModel)]="shop.rates.standardDeliveryPriceCar" 
+                name="standardDeliveryPriceCar" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="standardDeliveryPriceBakkie">Bakkie Standard Price (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryPriceBakkie"
+                [(ngModel)]="shop.rates.standardDeliveryPriceBakkie" 
+                name="standardDeliveryPriceBakkie" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="standardDeliveryPriceTruck">Truck Standard Price (R)</label>
+            <input 
+                type="number" 
+                class="form-control" 
+                id="standardDeliveryPriceTruck"
+                [(ngModel)]="shop.rates.standardDeliveryPriceTruck" 
+                name="standardDeliveryPriceTruck" 
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6 mb-3">
-            <label for="standardDeliveryPrice">Standard Delivery Price (R)</label>
+            <label for="standardDeliveryPrice">Default/Fallback Standard Price (R)</label>
             <input 
                 type="number" 
                 class="form-control" 
@@ -106,9 +160,9 @@
                 placeholder="0.00"
                 min="0"
                 step="0.01">
-            <small class="form-text ">Base delivery price for standard distance</small>
+            <small class="form-text ">Used only when a vehicle-specific price is not set</small>
         </div>
-        
+
         <div class="col-md-6 mb-3">
             <label for="standardDeliveryKm">Standard Delivery Distance (km)</label>
             <input 
@@ -217,29 +271,46 @@
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>5km</strong><br>
-                    <span class="text-success">R{{ calculateDeliveryRate(5, 0.5, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
+                    <span class="text-success">R{{ calculateDeliveryRate(5, 0.5, previewWeightKg, previewFloors, previewVehicleType) | number:'1.2-2' }}</span>
+                    <div class="small text-muted mt-1">Distance adj: +R{{ getDistanceAdjustmentAmount(5) | number:'1.2-2' }} ({{ getDistanceAdjustmentKm(5) | number:'1.0-1' }}km extra)</div>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded">
                     <strong>10km</strong><br>
-                    <span class="text-warning">R{{ calculateDeliveryRate(10, 1, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
+                    <span class="text-warning">R{{ calculateDeliveryRate(10, 1, previewWeightKg, previewFloors, previewVehicleType) | number:'1.2-2' }}</span>
+                    <div class="small text-muted mt-1">Distance adj: +R{{ getDistanceAdjustmentAmount(10) | number:'1.2-2' }} ({{ getDistanceAdjustmentKm(10) | number:'1.0-1' }}km extra)</div>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>15km</strong><br>
-                    <span class="text-info">R{{ calculateDeliveryRate(15, 1.5, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
+                    <span class="text-info">R{{ calculateDeliveryRate(15, 1.5, previewWeightKg, previewFloors, previewVehicleType) | number:'1.2-2' }}</span>
+                    <div class="small text-muted mt-1">Distance adj: +R{{ getDistanceAdjustmentAmount(15) | number:'1.2-2' }} ({{ getDistanceAdjustmentKm(15) | number:'1.0-1' }}km extra)</div>
                 </div>
             </div>
             <div class="col-6 col-md-3 mb-2">
                 <div class="preview-card p-2 border rounded ">
                     <strong>20km</strong><br>
-                    <span class="text-danger">R{{ calculateDeliveryRate(20, 2, previewWeightKg, previewFloors) | number:'1.2-2' }}</span>
+                    <span class="text-danger">R{{ calculateDeliveryRate(20, 2, previewWeightKg, previewFloors, previewVehicleType) | number:'1.2-2' }}</span>
+                    <div class="small text-muted mt-1">Distance adj: +R{{ getDistanceAdjustmentAmount(20) | number:'1.2-2' }} ({{ getDistanceAdjustmentKm(20) | number:'1.0-1' }}km extra)</div>
                 </div>
             </div>
         </div>
-        <small class="">Preview calculations based on sample distances, volumes (cm²), and your selected weight/floors values</small>
+        <div class="row mb-3">
+            <label for="previewVehicleType" class="form-label col-6">Preview Vehicle Type</label>
+            <select
+                id="previewVehicleType"
+                class="form-control col-6"
+                [(ngModel)]="previewVehicleType"
+                name="previewVehicleType">
+                <option value="BIKE">Bike</option>
+                <option value="CAR">Car</option>
+                <option value="BAKKIE">Bakkie</option>
+                <option value="TRUCK">Truck</option>
+            </select>
+        </div>
+        <small class="">Preview calculations include selected vehicle base price plus distance adjustments (rate per km beyond standard distance), volume, weight, and floor labour.</small>
     </div>
 </div>
 
