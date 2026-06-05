@@ -202,6 +202,13 @@ export class MessangerOrderComponent implements OnInit {
     return this.order?.shippingData?.messengerId ? 'Assigned driver' : 'Unassigned';
   }
 
+  get canCancelDelivery(): boolean {
+    const stage = this.order?.stage;
+    const isAdmin = this.storageService.userProfile?.role === UserProfile.RoleEnum.ADMIN;
+
+    return isAdmin && (stage === 'STAGE_0_CUSTOMER_NOT_PAID' || stage === 'STAGE_1_WAITING_STORE_CONFIRM');
+  }
+
   get formattedPickupTime(): string {
     const pickupTime = this.getScheduledPickupTime();
     if (!pickupTime) {
@@ -464,6 +471,34 @@ export class MessangerOrderComponent implements OnInit {
       error: (error: any) => {
         console.error('Error declining quote:', error);
         this.errorMessage = 'Failed to decline quote. Please try again.';
+        this.isProcessing = false;
+      }
+    });
+  }
+
+  cancelDelivery(): void {
+    if (!this.order || !this.quoteId || !this.canCancelDelivery) return;
+
+    if (!window.confirm('Cancel this delivery? This action cannot be undone.')) {
+      return;
+    }
+
+    this.isProcessing = true;
+    this.errorMessage = '';
+
+    this.orderService.cancelOrder(this.quoteId).subscribe({
+      next: (updatedOrder: Order) => {
+        this.order = updatedOrder;
+        this.successMessage = 'Delivery cancelled successfully.';
+        this.isProcessing = false;
+
+        setTimeout(() => {
+          this.goBack();
+        }, 1000);
+      },
+      error: (error: any) => {
+        console.error('Error cancelling delivery:', error);
+        this.errorMessage = 'Failed to cancel delivery. Please try again.';
         this.isProcessing = false;
       }
     });

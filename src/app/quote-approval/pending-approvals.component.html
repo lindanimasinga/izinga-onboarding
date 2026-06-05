@@ -344,6 +344,20 @@
               <span *ngIf="!isProcessing">Accept</span>
           </button>
 
+              <!-- Cancel Button (admin only for early stages) -->
+              <button *ngIf="canCancelDelivery"
+                  type="button action-button"
+                  class="btn btn-lg btn-block bg-danger"
+                  (click)="cancelDelivery()"
+                  [disabled]="isProcessing"
+                  [class.btn-loading]="isProcessing"
+                  [attr.aria-label]="isProcessing ? 'Cancelling delivery, please wait' : 'Cancel delivery'">
+                <span *ngIf="isProcessing" class="spinner-border spinner-border-sm me-2" role="status" aria-label="Loading"></span>
+                <i *ngIf="!isProcessing" class="material-icons me-2">cancel</i>
+                <span *ngIf="isProcessing">Cancelling...</span>
+                <span *ngIf="!isProcessing">Cancel Delivery</span>
+              </button>
+
           <!-- Start Pickup Button (for STAGE_1_WAITING_STORE_CONFIRM) -->
           <button *ngIf="order?.stage === 'STAGE_1_WAITING_STORE_CONFIRM' && canStartPickup" 
                     type="button action-button" 
@@ -440,7 +454,7 @@
           <div class="">
             <small>
               <i class="material-icons me-1" style="font-size: 1rem; vertical-align: middle;">person</i>
-              Signed in as {{messenger?.name}} ({{messenger?.mobileNumber}})
+              Signed in as {{messenger.name}} ({{messenger.mobileNumber}})
             </small>
           </div>
         </div>

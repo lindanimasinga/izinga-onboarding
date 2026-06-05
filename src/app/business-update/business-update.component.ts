@@ -39,6 +39,10 @@ export class BusinessUpdateComponent {
       standardDeliveryPriceCar: 0,
       standardDeliveryPriceBakkie: 0,
       standardDeliveryPriceTruck: 0,
+      ratePerKmBike: 0,
+      ratePerKmCar: 0,
+      ratePerKmBakkie: 0,
+      ratePerKmTruck: 0,
       ratePerKm: 0,
       ratePerVolumeCM2: 0,
       ratePerWeightKg: 0,
@@ -78,6 +82,10 @@ export class BusinessUpdateComponent {
           this.shop.rates = {
             standardDeliveryPrice: 0,
             standardDeliveryKm: 0,
+            ratePerKmBike: 0,
+            ratePerKmCar: 0,
+            ratePerKmBakkie: 0,
+            ratePerKmTruck: 0,
             ratePerKm: 0,
             ratePerVolumeCM2: 0,
             ratePerWeightKg: 0,
@@ -249,9 +257,10 @@ export class BusinessUpdateComponent {
     }
 
     // Additional rate for distance beyond standard delivery km
-    if (rates.standardDeliveryKm && rates.ratePerKm && distance > rates.standardDeliveryKm) {
+    const selectedRatePerKm = this.getVehicleRatePerKm(vehicleType);
+    if (rates.standardDeliveryKm && selectedRatePerKm && distance > rates.standardDeliveryKm) {
       const extraDistance = distance - rates.standardDeliveryKm;
-      totalRate += extraDistance * rates.ratePerKm;
+      totalRate += extraDistance * selectedRatePerKm;
     }
 
     // Volume-based rate
@@ -291,6 +300,25 @@ export class BusinessUpdateComponent {
     }
   }
 
+  private getVehicleRatePerKm(vehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK'): number {
+    if (!this.shop?.rates) {
+      return 0;
+    }
+
+    switch (vehicleType) {
+      case 'BIKE':
+        return this.shop.rates.ratePerKmBike || this.shop.rates.ratePerKm || 0;
+      case 'CAR':
+        return this.shop.rates.ratePerKmCar || this.shop.rates.ratePerKm || 0;
+      case 'BAKKIE':
+        return this.shop.rates.ratePerKmBakkie || this.shop.rates.ratePerKm || 0;
+      case 'TRUCK':
+        return this.shop.rates.ratePerKmTruck || this.shop.rates.ratePerKm || 0;
+      default:
+        return this.shop.rates.ratePerKm || 0;
+    }
+  }
+
   getDistanceAdjustmentKm(distance: number): number {
     const standardKm = this.shop?.rates?.standardDeliveryKm || 0;
     return distance > standardKm ? distance - standardKm : 0;
@@ -298,7 +326,7 @@ export class BusinessUpdateComponent {
 
   getDistanceAdjustmentAmount(distance: number): number {
     const extraDistance = this.getDistanceAdjustmentKm(distance);
-    const ratePerKm = this.shop?.rates?.ratePerKm || 0;
+    const ratePerKm = this.getVehicleRatePerKm(this.previewVehicleType);
     return extraDistance * ratePerKm;
   }
 

@@ -8,10 +8,10 @@
 
     <div class="col-md-6 mb-3 d-flex justify-content-center">
             <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                <label class="btn btn-secondary active" [ngClass]="{'bg-selected': shop?.availabilityStatus === 'ONLINE', 'bg-not-selected': shop?.availabilityStatus !== 'ONLINE'}">
+                <label class="btn btn-secondary active" [ngClass]="{'bg-selected': shop.availabilityStatus === 'ONLINE', 'bg-not-selected': shop.availabilityStatus !== 'ONLINE'}">
                     <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> ONLINE
                 </label>
-                <label class="btn btn-secondary" [ngClass]="{'bg-selected': shop?.availabilityStatus === 'OFFLINE', 'bg-not-selected': shop?.availabilityStatus !== 'OFFLINE'}">
+                <label class="btn btn-secondary" [ngClass]="{'bg-selected': shop.availabilityStatus === 'OFFLINE', 'bg-not-selected': shop.availabilityStatus !== 'OFFLINE'}">
                     <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('OFFLINE')"> OFFLINE
                 </label>
             </div>
@@ -179,8 +179,62 @@
     </div>
     
     <div class="row">
+        <div class="col-md-3 mb-3">
+            <label for="ratePerKmBike">Bike Rate per km (R)</label>
+            <input
+                type="number"
+                class="form-control"
+                id="ratePerKmBike"
+                [(ngModel)]="shop.rates.ratePerKmBike"
+                name="ratePerKmBike"
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="ratePerKmCar">Car Rate per km (R)</label>
+            <input
+                type="number"
+                class="form-control"
+                id="ratePerKmCar"
+                [(ngModel)]="shop.rates.ratePerKmCar"
+                name="ratePerKmCar"
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="ratePerKmBakkie">Bakkie Rate per km (R)</label>
+            <input
+                type="number"
+                class="form-control"
+                id="ratePerKmBakkie"
+                [(ngModel)]="shop.rates.ratePerKmBakkie"
+                name="ratePerKmBakkie"
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <label for="ratePerKmTruck">Truck Rate per km (R)</label>
+            <input
+                type="number"
+                class="form-control"
+                id="ratePerKmTruck"
+                [(ngModel)]="shop.rates.ratePerKmTruck"
+                name="ratePerKmTruck"
+                placeholder="0.00"
+                min="0"
+                step="0.01">
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-4 mb-3">
-            <label for="ratePerKm">Rate per Kilometer (R)</label>
+            <label for="ratePerKm">Default/Fallback Rate per Kilometer (R)</label>
             <input 
                 type="number" 
                 class="form-control" 
@@ -190,7 +244,7 @@
                 placeholder="0.00"
                 min="0"
                 step="0.01">
-            <small class="form-text ">Additional charge per km beyond standard distance</small>
+            <small class="form-text ">Used only when a vehicle-specific rate per km is not set</small>
         </div>
         
         <div class="col-md-4 mb-3">

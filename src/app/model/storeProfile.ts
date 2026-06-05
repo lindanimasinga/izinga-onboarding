@@ -87,6 +87,10 @@ export interface StoreRates {
     standardDeliveryPriceBakkie?: number;
     standardDeliveryPriceTruck?: number;
     standardDeliveryKm?: number;
+    ratePerKmBike?: number;
+    ratePerKmCar?: number;
+    ratePerKmBakkie?: number;
+    ratePerKmTruck?: number;
     ratePerKm?: number;
     ratePerVolumeCM2?: number;
     ratePerWeightKg?: number;

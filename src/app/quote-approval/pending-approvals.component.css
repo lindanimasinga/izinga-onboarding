@@ -589,4 +589,9 @@ body.dark-theme .instructions-box {
   .route-stat .fw-bold {
     font-size: 0.8rem;
   }
+
+  .btn {
+    margin-top: 0px;
+    color: white !important;
+  }
 }
