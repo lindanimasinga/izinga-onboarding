@@ -32,7 +32,10 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   availableStores: any[] = [];
   
   newMessage: string = '';
-  
+  errorMessage: string = '';
+  private errorDismissTimer: any = null;
+  loadingStores: boolean = false;
+
   private shouldScrollToBottom = false;
   private subscriptions: Subscription[] = [];
   private currentCustomerId: string = '';
@@ -233,8 +236,7 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
         this.newMessage = messageText;
         this.sendingMessage = false;
         
-        // Show error to user
-        alert('Failed to send message. Please try again.');
+        this.showError('Failed to send message. Please try again.');
       }
     );
   }
@@ -251,7 +253,7 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
       },
       error => {
         console.error('Error updating session status:', error);
-        alert('Failed to update session status. Please try again.');
+        this.showError('Failed to update session status. Please try again.');
       }
     );
   }
@@ -317,14 +319,20 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   }
 
   loadAvailableStores(): void {
-    // Mock available stores - in real implementation, fetch from API
-    this.availableStores = [
-      { id: '8f3323bf-ca94-4b4a-bad7-c861ca68a823', name: 'The Coffee Shop', description: 'Fresh coffee and pastries' },
-      { id: 'fce9ad67-cc9e-4f43-915d-06d7c4a7127c', name: 'Burger Palace', description: 'Gourmet burgers and fries' },
-      { id: 'a15ba35f-4f11-4d75-97de-b3ae6aeda52e', name: 'Pizza Corner', description: 'Wood-fired pizza' },
-      { id: 'store_4', name: 'Healthy Bites', description: 'Fresh salads and smoothies' },
-      { id: 'store_5', name: 'Sweet Treats', description: 'Desserts and ice cream' }
-    ];
+    this.loadingStores = true;
+    this.availableStores = [];
+    const userId = this.storageService.userProfile?.id || '';
+    this.izingaOrderService.getAllStoresSummary(userId).subscribe(
+      stores => {
+        this.availableStores = stores;
+        this.loadingStores = false;
+      },
+      error => {
+        console.error('Error loading stores:', error);
+        this.loadingStores = false;
+        this.showError('Failed to load stores. Please try again.');
+      }
+    );
   }
 
   createNewSession(storeId: string): void {
@@ -367,7 +375,7 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
       },
       error => {
         console.error('Error creating session:', error);
-        alert('Failed to create new session. Please try again.');
+        this.showError('Failed to create new session. Please try again.');
       }
     );
   }
@@ -375,5 +383,56 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   closeNewSessionModal(): void {
     this.showNewSessionModal = false;
     this.newSessionStoreId = '';
+  }
+
+  showError(message: string): void {
+    this.errorMessage = message;
+    if (this.errorDismissTimer) {
+      clearTimeout(this.errorDismissTimer);
+    }
+    this.errorDismissTimer = setTimeout(() => {
+      this.errorMessage = '';
+      this.errorDismissTimer = null;
+    }, 5000);
+  }
+
+  dismissError(): void {
+    this.errorMessage = '';
+    if (this.errorDismissTimer) {
+      clearTimeout(this.errorDismissTimer);
+      this.errorDismissTimer = null;
+    }
+  }
+
+  /** CS-01: Compute initials (up to 2 chars) from a contact name */
+  getInitials(name: string | undefined): string {
+    if (!name || !name.trim()) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  }
+
+  /** CS-01: Deterministic background colour from name hash */
+  getAvatarColor(name: string | undefined): string {
+    const colours = ['#be833d', '#00a9a1', '#D66247', '#1083A5', '#127672', '#8e6bbf', '#c45b8a'];
+    if (!name || !name.trim()) return '#6c757d';
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return colours[Math.abs(hash) % colours.length];
+  }
+
+  /** CS-03: Format phone number as +27 XX XXX XXXX */
+  formatPhoneNumber(phone: string | undefined): string {
+    if (!phone) return '';
+    let digits = phone.replace(/\D/g, '');
+    if (digits.startsWith('0') && digits.length === 10) {
+      digits = '27' + digits.slice(1);
+    }
+    if (digits.startsWith('27') && digits.length === 11) {
+      return `+27 ${digits.slice(2, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+    }
+    return phone;
   }
 }

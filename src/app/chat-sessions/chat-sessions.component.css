@@ -60,18 +60,45 @@
 .nav-pills .nav-link:hover { background: #e9ecef; color: #495057; }
 
 .list-group-item-action { transition: all .2s; border-left: 3px solid transparent; }
-.list-group-item-action:hover { background: #f8f9fa; transform: translateX(2px); }
-.list-group-item-action.active { background: #e7f3ff; color: var(--btn-bg-color); }
+.list-group-item-action:hover { background: var(--bkg-card-color); transform: translateX(2px); }
+/* CS-02: Selected session uses brand token, no hardcoded blue */
+.list-group-item-action.active { border-left: 3px solid var(--btn-bg-color); background: var(--bkg-card-color); color: var(--text-color); outline: none; box-shadow: none; }
 
 .chat-bubble { max-width: 70%; word-wrap: break-word; position: relative; }
 
-.chat-bubble.store-message { background: linear-gradient(135deg, #fdd50d, #b38000); color: white; border-radius: 18px 4px 18px 18px; margin-left: auto; }
-.chat-bubble.customer-message { background: linear-gradient(135deg, #f8f9fa, #e9ecef); color: #333; border-radius: 4px 18px 18px 18px; margin-right: auto; }
+/* CS-07: Message bubbles use design tokens, no hardcoded gradients */
+.chat-bubble.store-message { background: var(--btn-bg-color); color: #fff; border-radius: 18px 4px 18px 18px; margin-left: auto; }
+.chat-bubble.customer-message { background: var(--bkg-card-color); color: var(--text-color); border-radius: 4px 18px 18px 18px; margin-right: auto; }
 .message-time { font-size: .75rem; opacity: .7; margin-top: 4px; }
 .unread-badge { top: -5px; right: -10px; font-size: .7rem; }
 .session-status-badge { font-size: .7rem; padding: 2px 8px; }
 
-.whatsapp-green { background: #25D366 !important; border-color: #25D366 !important; }
+/* CS-01: Initials-based avatar — replaces .whatsapp-green solid circle */
+.contact-avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* Store icon avatar uses brand token */
+.store-avatar {
+  background: var(--btn-bg-color);
+}
+
+/* CS-05: Inline error banner */
+.error-banner {
+  border-left: 3px solid var(--btn-red-color);
+  background: var(--bkg-card-color);
+  color: var(--text-color);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
 .card-header { background: var(--bkg-card-color); border-bottom: 1px solid #dee2e6; }
 .message-input-area { background: #f8f9fa; border-top: 1px solid #dee2e6; }
 
@@ -202,15 +229,9 @@
 
 /* Store selection styling */
 .list-group-item-action:hover {
-    background-color: #f8f9fa;
+    background-color: var(--bkg-card-color);
     transform: translateX(4px);
     transition: all 0.2s ease;
-}
-
-.list-group-item-action.active {
-    background-color: var(--bkg-card-color);
-    border-color: var(--btn-bg-color);
-    color: var(--btn-bg-color);
 }
 
 /* New chat button — use btn btn-dark in HTML; do not override btn-primary here */
