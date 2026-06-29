@@ -6,7 +6,7 @@ import { ActivatedRoute, Route, Router } from '@angular/router';
 
 import { map, mergeMap, catchError, flatMap } from 'rxjs/operators';
 import { from, Observable, of, throwError } from 'rxjs';
-import { StoreProfile } from '../model/storeProfile';
+import { Category, StoreProfile } from '../model/storeProfile';
 import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
@@ -58,6 +58,17 @@ export class BusinessUpdateComponent {
   previewWeightKg = 2;
   previewFloors = 0;
 
+  // --- Issue #11/#12: Delivery category management ---
+  /** Working copy of the store's delivery categories. */
+  deliveryCategories: Category[] = [];
+  /** Tracks which category row is in add-field editing mode. */
+  newCategoryName = '';
+  categoryValidationError = '';
+  /** Per-category upload state: maps category id to upload-in-progress flag. */
+  categoryUploading: { [id: string]: boolean } = {};
+  /** Per-category image load error flag for placeholder fallback. */
+  categoryImageError: { [id: string]: boolean } = {};
+
 
   constructor(
     private route: ActivatedRoute,
@@ -77,6 +88,8 @@ export class BusinessUpdateComponent {
         this.shop = store
         this.categories = new Set(this.shop?.stockList?.sort((a, b) => this.isPromotion(a) ? -1 : 1).map(stk => stk.group))
         this.stockList = this.shop.stockList!
+        // Issue #11: initialise delivery categories — treat missing as empty
+        this.deliveryCategories = this.shop.categories ? [...this.shop.categories] : [];
         console.log('Store details fetched successfully:', this.shop);
         if (this.shop.rates == undefined) {
           this.shop.rates = {
@@ -163,6 +176,9 @@ export class BusinessUpdateComponent {
       this.shop.ownerId = this.storageService.userProfile?.id
       this.shop.shortName = this.replaceSpecialChars(this.shop.name)
     }
+
+    // Issue #11: always send the full categories array to the backend
+    this.syncCategoriesToShop();
 
     var call = this.selectedFile ? this.uploadImage() : of("")
       call.pipe(
@@ -328,6 +344,110 @@ export class BusinessUpdateComponent {
     const extraDistance = this.getDistanceAdjustmentKm(distance);
     const ratePerKm = this.getVehicleRatePerKm(this.previewVehicleType);
     return extraDistance * ratePerKm;
+  }
+
+  // -----------------------------------------------------------------------
+  // Issue #11: Delivery category management
+  // -----------------------------------------------------------------------
+
+  /** Validate and add a new category to the working list. */
+  addDeliveryCategory(): void {
+    this.categoryValidationError = '';
+    const name = this.newCategoryName.trim();
+    if (!name) {
+      this.categoryValidationError = 'Category name must not be empty.';
+      return;
+    }
+    const duplicate = this.deliveryCategories.some(
+      c => c.name.trim().toLowerCase() === name.toLowerCase()
+    );
+    if (duplicate) {
+      this.categoryValidationError = `A category named "${name}" already exists.`;
+      return;
+    }
+    const newCategory: Category = {
+      id: this.generateTempId(),
+      name,
+      image: '',
+      active: true
+    };
+    this.deliveryCategories = [...this.deliveryCategories, newCategory];
+    this.newCategoryName = '';
+  }
+
+  /** Remove a category from the working list by id. */
+  removeDeliveryCategory(category: Category): void {
+    this.deliveryCategories = this.deliveryCategories.filter(c => c.id !== category.id);
+  }
+
+  /** Toggle active flag on a category. */
+  toggleCategoryActive(category: Category): void {
+    category.active = !category.active;
+  }
+
+  /**
+   * Validate an edited category name inline.
+   * Returns an error string, or empty string if valid.
+   */
+  validateCategoryName(category: Category): string {
+    const name = category.name.trim();
+    if (!name) {
+      return 'Category name must not be empty.';
+    }
+    const duplicate = this.deliveryCategories.some(
+      c => c.id !== category.id && c.name.trim().toLowerCase() === name.toLowerCase()
+    );
+    return duplicate ? `Another category named "${name}" already exists.` : '';
+  }
+
+  /** Returns true when any category has a validation error — blocks save. */
+  hasCategoryErrors(): boolean {
+    return this.deliveryCategories.some(c => !!this.validateCategoryName(c));
+  }
+
+  // -----------------------------------------------------------------------
+  // Issue #12: Category image upload via existing S3 endpoint
+  // -----------------------------------------------------------------------
+
+  onCategoryImageSelected(event: Event, category: Category): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+    const file = input.files[0];
+    this.categoryUploading[category.id] = true;
+    this.izingaOrderManagementService.uploadFile(file, false)
+      .pipe(
+        map((response: any) => response.url as string)
+      )
+      .subscribe({
+        next: (url: string) => {
+          category.image = url;
+          this.categoryImageError[category.id] = false;
+          this.categoryUploading[category.id] = false;
+        },
+        error: (_err: any) => {
+          this.categoryUploading[category.id] = false;
+          this.storageService.errorMessage = 'Image upload failed. Please try again.';
+        }
+      });
+  }
+
+  onCategoryImageError(category: Category): void {
+    this.categoryImageError[category.id] = true;
+  }
+
+  /** Generate a temporary client-side id for newly created categories. */
+  private generateTempId(): string {
+    return 'tmp-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  /**
+   * Sync deliveryCategories back to shop.categories before saving.
+   * Called inside registerBusinessAndStock so the full array is always sent.
+   */
+  private syncCategoriesToShop(): void {
+    this.shop.categories = [...this.deliveryCategories];
   }
 
 }

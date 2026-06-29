@@ -381,6 +381,114 @@
         </div>
 </div>
 
+<!-- ================================================================
+     Issue #11/#12: Delivery Categories Management
+     ================================================================ -->
+<div class="mb-5 mt-4" *ngIf="shop.id">
+    <h4 class="mb-1 d-flex align-items-center">
+        <i class="material-icons me-2">category</i>
+        Delivery Categories
+    </h4>
+    <p class="text-muted mb-3">Define what types of items your store delivers. Customers will use these categories when placing an order.</p>
+
+    <!-- Existing categories -->
+    <div *ngFor="let cat of deliveryCategories; let i = index" class="field-row mb-3 border-top pt-3">
+        <div class="row align-items-start">
+            <!-- Category image preview (Issue #12) -->
+            <div class="col-auto">
+                <img
+                    *ngIf="cat.image && !categoryImageError[cat.id]"
+                    [src]="cat.image"
+                    (error)="onCategoryImageError(cat)"
+                    alt="{{ cat.name }} image"
+                    style="width: 56px; height: 56px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                <div
+                    *ngIf="!cat.image || categoryImageError[cat.id]"
+                    style="width: 56px; height: 56px; border-radius: 4px; border: 1px solid #dee2e6; background: var(--bkg-card-color); display: flex; align-items: center; justify-content: center;">
+                    <i class="material-icons" style="color: #aaa; font-size: 28px;">image</i>
+                </div>
+            </div>
+
+            <!-- Name input -->
+            <div class="col">
+                <input
+                    type="text"
+                    class="form-control mb-1"
+                    [(ngModel)]="cat.name"
+                    [name]="'catName' + i"
+                    placeholder="Category name"
+                    required>
+                <div
+                    *ngIf="validateCategoryName(cat)"
+                    style="color: var(--text-color); border-left: 3px solid var(--btn-red-color); padding-left: 8px; font-size: 0.875rem; margin-top: 2px;">
+                    {{ validateCategoryName(cat) }}
+                </div>
+
+                <!-- Image upload trigger (Issue #12) -->
+                <div class="mt-2">
+                    <label [for]="'catImg' + i" class="btn btn-outline-dark btn-sm mb-0" style="cursor: pointer;">
+                        <span *ngIf="!categoryUploading[cat.id]">Upload Image</span>
+                        <span *ngIf="categoryUploading[cat.id]">Uploading...</span>
+                    </label>
+                    <input
+                        [id]="'catImg' + i"
+                        type="file"
+                        accept="image/*"
+                        style="display: none;"
+                        (change)="onCategoryImageSelected($event, cat)"
+                        [disabled]="categoryUploading[cat.id]">
+                </div>
+            </div>
+
+            <!-- Active toggle -->
+            <div class="col-auto text-center">
+                <label style="font-size: 0.8rem; display: block; margin-bottom: 4px;">Active</label>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary btn-sm"
+                        [ngClass]="{'bg-selected': cat.active, 'bg-not-selected': !cat.active}"
+                        (click)="toggleCategoryActive(cat)">
+                        {{ cat.active ? 'Yes' : 'No' }}
+                    </label>
+                </div>
+            </div>
+
+            <!-- Delete button -->
+            <div class="col-auto">
+                <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm"
+                    (click)="removeDeliveryCategory(cat)"
+                    title="Delete category">
+                    <i class="material-icons" style="font-size: 18px; vertical-align: middle;">delete</i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add new category panel -->
+    <div class="add-field-section mt-3 border-top pt-3">
+        <div class="row align-items-center">
+            <div class="col">
+                <input
+                    type="text"
+                    class="form-control"
+                    [(ngModel)]="newCategoryName"
+                    name="newCategoryName"
+                    placeholder="New category name (e.g. Large Furniture)">
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-dark" (click)="addDeliveryCategory()">Add</button>
+            </div>
+        </div>
+        <div
+            *ngIf="categoryValidationError"
+            class="mt-2"
+            style="color: var(--text-color); border-left: 3px solid var(--btn-red-color); padding-left: 8px; font-size: 0.875rem;">
+            {{ categoryValidationError }}
+        </div>
+    </div>
+</div>
+
 <div *ngIf="shop.id">
     <h4 class="mb-3 d-flex align-items-center">Manage Your Stock</h4>
     <div *ngFor="let cat of categories" class="categories">
