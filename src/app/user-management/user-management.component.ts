@@ -420,6 +420,7 @@ export class UserManagementComponent {
 
   resetMissingDocumentsReminder(user: UserProfile): void {
     if (!user.id) return;
+    if (!user.missingDocumentsReminderSent) return;
     user.missingDocumentsReminderSent = false;
     this.izingaOrderService.updateCustomer(user).subscribe({
       next: (updatedUser) => {

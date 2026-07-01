@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WelcomeComponent } from './welcome.component';
+import { WelcomeIndivisualsComponent } from './welcome.component';
 
-describe('WelcomeComponent', () => {
-  let component: WelcomeComponent;
-  let fixture: ComponentFixture<WelcomeComponent>;
+describe('WelcomeIndivisualsComponent', () => {
+  let component: WelcomeIndivisualsComponent;
+  let fixture: ComponentFixture<WelcomeIndivisualsComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [WelcomeComponent]
+      declarations: [WelcomeIndivisualsComponent]
     });
-    fixture = TestBed.createComponent(WelcomeComponent);
+    fixture = TestBed.createComponent(WelcomeIndivisualsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
