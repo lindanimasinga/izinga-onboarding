@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BusinessUpdateComponent } from './stock-update.component';
+import { StockUpdateComponent } from './stock-update.component';
 
-describe('BusinessUpdateComponent', () => {
-  let component: BusinessUpdateComponent;
-  let fixture: ComponentFixture<BusinessUpdateComponent>;
+describe('StockUpdateComponent', () => {
+  let component: StockUpdateComponent;
+  let fixture: ComponentFixture<StockUpdateComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [BusinessUpdateComponent]
+      declarations: [StockUpdateComponent]
     });
-    fixture = TestBed.createComponent(BusinessUpdateComponent);
+    fixture = TestBed.createComponent(StockUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

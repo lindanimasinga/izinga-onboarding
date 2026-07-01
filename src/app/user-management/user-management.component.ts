@@ -418,6 +418,24 @@ export class UserManagementComponent {
     });
   }
 
+  resetMissingDocumentsReminder(user: UserProfile): void {
+    if (!user.id) return;
+    if (!user.missingDocumentsReminderSent) return;
+    user.missingDocumentsReminderSent = false;
+    this.izingaOrderService.updateCustomer(user).subscribe({
+      next: (updatedUser) => {
+        this.selectedUser = updatedUser;
+        this.successMessage = 'Missing documents reminder flag reset. The reminder can now be re-sent.';
+        this.analytics.logEvent('missing_docs_reminder_reset', { userId: user.id });
+        setTimeout(() => this.successMessage = '', 4000);
+      },
+      error: () => {
+        this.errorMessage = 'Failed to reset the missing documents reminder flag.';
+        user.missingDocumentsReminderSent = true; // revert optimistic update
+      }
+    });
+  }
+
   toggleTermsAccepted(user: UserProfile): void {
     if (!user.id) return;
 

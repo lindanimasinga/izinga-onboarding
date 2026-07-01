@@ -70,13 +70,16 @@
                                 </div>
                                 
                                 <!-- Success Message -->
-                                <div *ngIf="userProfile.imageUrl && !uploadProgress['profilePicture']" class="mt-2">
+                                <div *ngIf="profilePictureUploaded && !uploadProgress['profilePicture']" class="mt-2">
                                     <small class="text-success">
                                         <i class="fa fa-check-circle"></i> Profile picture updated successfully
                                     </small>
                                 </div>
-                            
+
                             </div>
+                        </div>
+                        <div *ngIf="showProfilePictureError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Profile picture is required before you can submit your application.</strong> Please take a selfie or upload a photo.</small>
                         </div>
                     </div>
                 </div>

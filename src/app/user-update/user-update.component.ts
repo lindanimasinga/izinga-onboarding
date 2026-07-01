@@ -40,6 +40,11 @@ export class UserUpdateComponent {
   // Upload progress tracking
   uploadProgress: { [key: string]: number } = {};
 
+  // Profile picture validation
+  profilePictureUploaded = false;
+  showProfilePictureError = false;
+  private readonly DEFAULT_PROFILE_PIC = 'https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg';
+
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
     role: UserProfile.RoleEnum.MESSENGER,
@@ -77,6 +82,10 @@ export class UserUpdateComponent {
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
+      // Mark picture as uploaded if user already has a non-default profile picture
+      if (user.imageUrl && user.imageUrl !== this.DEFAULT_PROFILE_PIC) {
+        this.profilePictureUploaded = true;
+      }
       console.log("Loaded user profile: ", user)
       // Load existing dynamic field data if present
       this.loadExistingDynamicFields(user);
@@ -90,6 +99,12 @@ export class UserUpdateComponent {
   }
 
   createCustomer() {
+    this.showProfilePictureError = false;
+    if (!this.profilePictureUploaded) {
+      this.showProfilePictureError = true;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
 
@@ -585,8 +600,10 @@ export class UserUpdateComponent {
         console.log('Profile picture uploaded successfully:', response);        
 
         this.userProfile.imageUrl = response['url'];
+        this.profilePictureUploaded = true;
+        this.showProfilePictureError = false;
         console.log('Profile picture URL assigned:', this.userProfile.imageUrl);
-        
+
         // Complete progress
         this.uploadProgress['profilePicture'] = 100;
         

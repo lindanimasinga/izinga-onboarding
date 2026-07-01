@@ -344,6 +344,25 @@
                     <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.branchCode" name="editBranchCode">
                   </div>
                 </div>
+                <!-- Missing Documents Reminder Flag -->
+                <div class="mt-3 pt-3 border-top">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                      <label class="mb-0" for="reminderSentToggle">Missing Documents Reminder Sent</label>
+                      <p class="text-muted small mb-0">Uncheck to reset — allows the WhatsApp reminder to be re-sent to this driver.</p>
+                    </div>
+                    <div class="form-check form-switch ms-3">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="reminderSentToggle"
+                        [checked]="selectedUser.missingDocumentsReminderSent"
+                        (change)="resetMissingDocumentsReminder(selectedUser)"
+                        [disabled]="!selectedUser.missingDocumentsReminderSent">
+                    </div>
+                  </div>
+                </div>
+
                 <button class="btn btn-dark w-100 mt-2" type="submit" [disabled]="!editUserForm.form.valid">
                   Update User
                 </button>
