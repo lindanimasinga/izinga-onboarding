@@ -95,7 +95,18 @@
                 <i class="fa fa-user text-muted"></i>
               </div>
               <div>
-                <h6 class="mb-1">{{user.name || 'No Name'}}</h6>
+                <h6 class="mb-1">
+                  {{user.name || 'No Name'}}
+                  <span *ngIf="user.tag?.['nationality']"
+                        class="badge ms-1"
+                        [ngClass]="{
+                          'bg-success': user.tag['nationality'] === 'ZAF',
+                          'bg-warning text-dark': user.tag['nationality'] !== 'ZAF'
+                        }">
+                    {{user.tag['nationality']}}
+                  </span>
+                  <span *ngIf="!user.tag?.['nationality']" class="badge bg-secondary ms-1">No nationality</span>
+                </h6>
                 <small class="">{{user.mobileNumber}}</small>
               </div>
             </div>
