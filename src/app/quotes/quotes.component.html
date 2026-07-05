@@ -80,7 +80,7 @@
             </div>
 
             <!-- Items -->
-            <div *ngIf="lead.items?.length > 0" class="mb-2">
+            <div *ngIf="lead.items && lead.items.length > 0" class="mb-2">
               <div class="text-muted small fw-bold mb-1">Items</div>
               <div *ngFor="let item of lead.items" class="text-muted small">
                 {{item.name}} x{{item.quantity}}
