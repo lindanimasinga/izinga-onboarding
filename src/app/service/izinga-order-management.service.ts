@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import {Device, UserProfile, UserConfig, DocType} from '../model/models'
 import { BankConfig } from '../model/bank-config';
 import { environment } from 'src/environments/environment';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
+import { FirebaseService } from './firebase.service';
 import { UserCardLink } from '../model/user-card-link';
 import { StoreProfile } from '../model/storeProfile';
 import { Order } from '../model/order';
@@ -34,7 +35,7 @@ export interface Lead {
 export class IzingaOrderManagementService {
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private firebaseService: FirebaseService) { }
 
   get headers(){ 
     return {
@@ -451,21 +452,29 @@ export class IzingaOrderManagementService {
     }
 
     getLeads(storeType: string = 'MOVERS'): Observable<Lead[]> {
-      return this.http.get<Lead[]>(`${environment.izingaUrl}/v2/leads?storeType=${storeType}`, {headers: this.headers})
-        .pipe(
-          catchError((error: HttpErrorResponse) => {
-            return throwError(error);
-          })
-        );
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({
+            ...this.headers,
+            'Authorization': `Bearer ${token}`
+          });
+          return this.http.get<Lead[]>(`${environment.izingaUrl}/v2/leads?storeType=${storeType}`, { headers });
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
     updateLeadStatus(id: string, status: string): Observable<Lead> {
-      return this.http.patch<Lead>(`${environment.izingaUrl}/v2/leads/${id}/status`, { status }, {headers: this.headers})
-        .pipe(
-          catchError((error: HttpErrorResponse) => {
-            return throwError(error);
-          })
-        );
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({
+            ...this.headers,
+            'Authorization': `Bearer ${token}`
+          });
+          return this.http.patch<Lead>(`${environment.izingaUrl}/v2/leads/${id}/status`, { status }, { headers });
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
 
