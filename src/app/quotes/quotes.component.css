@@ -1,0 +1,33 @@
+.quote-card {
+  background-color: var(--bkg-card-color);
+  border-radius: 8px;
+  height: 100%;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.badge-captured {
+  background-color: #e9ecef;
+  color: var(--text-color);
+}
+
+.badge-contacted {
+  background-color: var(--btn-bg-color);
+  color: #fff;
+}
+
+.badge-converted {
+  background-color: var(--btn-green-color);
+  color: #fff;
+}
+
+.badge-closed {
+  background-color: #6c757d;
+  color: #fff;
+}

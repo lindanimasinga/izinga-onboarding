@@ -90,6 +90,13 @@
                     </div>
                 </div>
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../quotes">
+                        <div style="font-size:48px;">💼</div>
+                        <div class="fw-bold mt-2 ">Quotes</div>
+                        <div class="small ">Review abandoned delivery quotes and follow up to convert leads.</div>
+                    </div>
+                </div>
+                <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color)" routerLink="../restricted-regions">
                         <div style="font-size:48px;">🚫</div>
                         <div class="fw-bold mt-2 ">Restricted Regions</div>

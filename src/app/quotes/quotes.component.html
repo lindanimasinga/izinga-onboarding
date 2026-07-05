@@ -1,0 +1,110 @@
+<div class="mt-3">
+
+  <!-- Access denied -->
+  <div *ngIf="!isAdmin && !isLoading" class="text-center py-5">
+    <i class="material-icons mb-3" style="font-size:48px;color:var(--btn-red-color);">lock</i>
+    <h5>Access Denied</h5>
+    <p class="text-muted">You do not have permission to view this page.</p>
+    <button class="btn btn-dark" (click)="goBack()">Go Back</button>
+  </div>
+
+  <!-- Admin view -->
+  <div *ngIf="isAdmin">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Quotes</h2>
+      <p class="text-muted">Abandoned delivery quotes — follow up to convert</p>
+    </div>
+
+    <!-- Refresh -->
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-sm btn-dark" (click)="loadLeads()">
+        <i class="material-icons" style="font-size:16px;vertical-align:middle;">refresh</i>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="text-center py-5">
+      <div class="spinner-border" role="status" style="color:var(--btn-bg-color);">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-3 text-muted">Loading quotes...</p>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="errorMessage && !isLoading" class="alert" role="alert"
+         style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
+      <i class="material-icons me-2" style="vertical-align:middle;">error_outline</i>
+      {{errorMessage}}
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!isLoading && !errorMessage && leads.length === 0" class="text-center py-5">
+      <div class="mb-3" style="font-size:64px;opacity:0.3;">📋</div>
+      <h5 class="text-muted">No quotes found</h5>
+      <p class="text-muted small">There are no captured quotes at this time.</p>
+    </div>
+
+    <!-- Lead Cards -->
+    <div *ngIf="!isLoading && leads.length > 0">
+      <div class="row">
+        <div class="col-12 col-md-6 col-lg-4 mb-3"
+             *ngFor="let lead of leads; trackBy: trackById">
+          <div class="quote-card p-3">
+
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <span class="text-muted small">
+                {{lead.anonymous ? 'Anonymous' : (lead.phone || 'Unknown')}}
+              </span>
+              <span class="status-badge" [ngClass]="statusBadgeClass(lead.status)">
+                {{lead.status}}
+              </span>
+            </div>
+
+            <div class="mb-1 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">place</i>
+              From: {{lead.fromAddress}}
+            </div>
+            <div class="mb-1 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">flag</i>
+              To: {{lead.toAddress}}
+            </div>
+            <div class="mb-1 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">attach_money</i>
+              Est. {{lead.estimatedPrice | currency:'R'}}
+            </div>
+            <div class="mb-2 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">event</i>
+              {{lead.createdDate | date:'d MMM y h:mma'}}
+            </div>
+
+            <!-- Items -->
+            <div *ngIf="lead.items?.length > 0" class="mb-2">
+              <div class="text-muted small fw-bold mb-1">Items</div>
+              <div *ngFor="let item of lead.items" class="text-muted small">
+                {{item.name}} x{{item.quantity}}
+              </div>
+            </div>
+
+            <!-- Status update -->
+            <div *ngIf="!isConverted(lead)" class="mt-2">
+              <label for="status-{{lead.id}}" class="form-label text-muted small">Update status</label>
+              <select id="status-{{lead.id}}"
+                      class="form-control"
+                      [ngModel]="lead.status"
+                      (ngModelChange)="onStatusChange(lead, $event)">
+                <option value="CAPTURED">CAPTURED</option>
+                <option value="CONTACTED">CONTACTED</option>
+                <option value="CLOSED">CLOSED</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

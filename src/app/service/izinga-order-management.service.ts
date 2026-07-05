@@ -12,6 +12,22 @@ import { StoreSummary } from '../model/store-summary';
 import { Payout, PayoutType } from '../payout/payout.component';
 import { QuoteApproval } from '../model/quoteApproval';
 
+export interface Lead {
+  id: string;
+  phone?: string;
+  items: { stockId: string; name: string; quantity: number }[];
+  fromAddress: string;
+  toAddress: string;
+  estimatedPrice: number;
+  storeType: string;
+  storeId: string;
+  status: 'CAPTURED' | 'CONTACTED' | 'CONVERTED' | 'CLOSED';
+  anonymous: boolean;
+  consentGiven: boolean;
+  consentTimestamp?: string;
+  createdDate: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -434,7 +450,23 @@ export class IzingaOrderManagementService {
         );
     }
 
+    getLeads(storeType: string = 'MOVERS'): Observable<Lead[]> {
+      return this.http.get<Lead[]>(`${environment.izingaUrl}/v2/leads?storeType=${storeType}`, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
 
+    updateLeadStatus(id: string, status: string): Observable<Lead> {
+      return this.http.patch<Lead>(`${environment.izingaUrl}/v2/leads/${id}/status`, { status }, {headers: this.headers})
+        .pipe(
+          catchError((error: HttpErrorResponse) => {
+            return throwError(error);
+          })
+        );
+    }
 
 
 }
