@@ -7,7 +7,7 @@ import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 import { Analytics, getAnalytics } from "firebase/analytics";
 import { Observable, from, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -100,6 +100,14 @@ export class FirebaseService {
 
   getCurrentToken(): string | null {
     return this.storage.getItem("fcmToken")
+  }
+
+  getFirebaseIdToken(): Observable<string> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      return throwError(() => new Error('No authenticated Firebase user'));
+    }
+    return from(user.getIdToken());
   }
 
   listen() {
