@@ -67,6 +67,8 @@ export class WelcomeSelectionComponent {
       this.router.navigate(['/business/dashboard'])
     } else if(this.storageService.userProfile?.role == 'MESSENGER' || this.storageService.userProfile?.role == 'MESSENGER_ADMIN' || this.storageService.userProfile?.role == 'CUSTOMER') {
       this.router.navigate(['/indivisuals/dashboard'])
+    } else if (this.storageService.userProfile?.role == 'AMBASSADOR') {
+      this.router.navigate(['/ambassador/qr'])
     }
   }
 

@@ -34,9 +34,11 @@ import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.compo
 import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
 import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 import { QuotesComponent } from './quotes/quotes.component';
+import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
 
 const routes: Routes = [
-  { path: '', component: WelcomeSelectionComponent}, 
+  { path: '', component: WelcomeSelectionComponent},
+  { path: 'ambassador/qr', component: AmbassadorQrComponent },
   { path: 'indivisuals', 
     children : [
       { path: '', component: WelcomeIndivisualsComponent}, 
