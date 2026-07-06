@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { AnalyticsService } from '../service/analytics.service';
 import { StorageService } from '../service/storage-service.service';
 
@@ -15,7 +16,8 @@ export class WelcomeIndivisualsComponent {
 
   constructor(
     private analytics: AnalyticsService,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private route: ActivatedRoute
   ) {}
 
   get isDriver(): boolean {
@@ -27,6 +29,15 @@ export class WelcomeIndivisualsComponent {
     if (storedUserType === 'driver' || storedUserType === 'individual' || storedUserType === 'shop' || storedUserType === '') {
       this.userType = storedUserType;
     }
+
+    // T-11: Capture ambassador referral param from QR code URL (?ref=<ambassadorUserId>)
+    // Store in sessionStorage so it survives internal navigation (e.g. OTP → registration)
+    this.route.queryParams.subscribe(params => {
+      const ref = params['ref'];
+      if (ref) {
+        this.storageService.ambassadorRef = ref;
+      }
+    });
 
     this.analytics.logScreenView('welcome_individual');
   }

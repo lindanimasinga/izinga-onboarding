@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { PhoneVerifiedGuard } from './guards/phone-verified.guard';
 import { AppComponent } from './app.component';
 import { PhoneVerificationComponent } from './phone-verification/phone-verification.component';
 import { UserInfoComponent } from './user-info/user-info.component';
@@ -42,7 +43,7 @@ const routes: Routes = [
       { path: 'verify', component: PhoneVerificationComponent}, 
       { path: 'dashboard', component: DashboardComponent}, 
       { path: 'card', component: UserInfoComponent }, 
-      { path: 'user', component: UserUpdateComponent},
+      { path: 'user', component: UserUpdateComponent, canActivate: [PhoneVerifiedGuard] },
       { path: 'payout', component: MessengerPayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},
@@ -70,8 +71,8 @@ const routes: Routes = [
       { path: '', component: WelcomeBusinessComponent}, 
       { path: 'verify', component: PhoneVerificationComponent}, 
       { path: 'dashboard', component: DashboardComponent}, 
-      { path: 'card', component: UserInfoComponent }, 
-      { path: 'user', component: UserUpdateComponent},
+      { path: 'card', component: UserInfoComponent },
+      { path: 'user', component: UserUpdateComponent, canActivate: [PhoneVerifiedGuard] },
       { path: 'payout', component: PayoutComponent},
       { path: 'payout-details', component: PayoutDetailsComponent},
       { path: 'payout-orders', component: PayoutOdersComponent},

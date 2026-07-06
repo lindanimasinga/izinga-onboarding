@@ -68,7 +68,17 @@ export class PhoneVerificationComponent {
         this.isPhoneNumberVerified = true
         this.storageService.phoneNumber = this.phoneNumber!!;
         this.analytics.logEvent('phone_verified');
-        this.router.navigate(["../dashboard"], { relativeTo: this.route }  )
+
+        // T-12: If the guard stored a returnUrl (e.g. driver came via QR →
+        // guard redirected to verify → OTP confirmed), navigate back to the
+        // original destination so the ref param is still active in sessionStorage.
+        const returnUrl = this.storageService.returnUrl;
+        if (returnUrl) {
+          this.storageService.returnUrl = null;
+          this.router.navigateByUrl(returnUrl);
+        } else {
+          this.router.navigate(["../dashboard"], { relativeTo: this.route });
+        }
       }, (error) => {
         console.log(error)
       })

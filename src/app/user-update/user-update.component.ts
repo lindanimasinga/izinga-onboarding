@@ -113,8 +113,13 @@ export class UserUpdateComponent {
     // Ensure tags field is initialized
     this.addDynamicFieldsToProfile();
 
+    // T-11: Include ambassador referral ID from sessionStorage in POST /user payload.
+    // ambassadorId is null when no ?ref= param was present — do not send a default value.
+    this.userProfile.ambassadorId = this.storageService.ambassadorRef ?? null;
+
     console.log(`creating customer ${this.userProfile.id} ${this.userProfile.address} ${this.userProfile.description}`)
     console.log('User profile tags:', this.userProfile.tag);
+    console.log('Ambassador ref:', this.userProfile.ambassadorId);
 
     this.izingaOrderManager.registerCustomer(this.userProfile)
     .pipe(
