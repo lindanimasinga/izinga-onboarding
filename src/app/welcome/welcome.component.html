@@ -7,12 +7,16 @@
                 <p>{{ currentHeroCopy.description }}</p>
             </div>
 
-            <div *ngIf="userType !== 'driver'" class="mb-3 d-flex justify-content-center">
+            <div *ngIf="userType !== 'driver' && userType !== 'ambassador'" class="mb-3 d-flex justify-content-center">
                 <img class="welcome-logo" src="../../assets/images/ai-2.jpg">
             </div>
 
             <div *ngIf="userType === 'driver'" class="mb-3 d-flex justify-content-center">
                 <img class="welcome-logo" src="../../assets/images/izinga-driver.png">
+            </div>
+
+            <div *ngIf="userType === 'ambassador'" class="mb-3 d-flex justify-content-center">
+                <img class="welcome-logo" src="../../assets/images/izinga-ambassador.jpg" alt="iZinga Ambassadors">
             </div>
 
             <div *ngIf="userType === ''" class="text-center mb-3">
