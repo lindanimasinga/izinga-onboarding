@@ -18,6 +18,7 @@ export class DashboardComponent {
   isAdmin: boolean = false
   isMessenger: boolean = false
   isMessengerAdmin: boolean = false
+  isAmbassador: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
   missingDocuments: string[] = []
@@ -37,11 +38,12 @@ export class DashboardComponent {
       this.isMessenger = user.role == UserProfile.RoleEnum.MESSENGER || user.role == UserProfile.RoleEnum.CUSTOMER
       this.isMessengerAdmin = user.role == UserProfile.RoleEnum.MESSENGERADMIN
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
+      this.isAmbassador = user.role == UserProfile.RoleEnum.AMBASSADOR
       this.user = user
       this.storageService.userProfile = user
       this.analytics.logScreenView('dashboard', { user_role: user.role });
-      
-      // Check if user has accepted terms and conditions  
+
+      // Check if user has accepted terms and conditions
       if (!user.termsAccepted) {
         // Redirect to terms page with user ID, maintaining current route context
         const currentUrl = this.router.url;

@@ -46,6 +46,10 @@ export const environment = {
       driver: {
         heading: 'Join As A Driver',
         description: 'Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!'
+      },
+      ambassador: {
+        heading: 'Become an iZinga Ambassador',
+        description: 'Earn commissions by referring drivers and customers to iZinga. Sign up, get your unique QR code, and start earning today!'
       }
     },
     signupCards: {
@@ -65,6 +69,12 @@ export const environment = {
         title: 'Become A Driver',
         description: 'Join our delivery network and earn by delivering items for local businesses and individuals. Sign up to become a driver and start earning today!',
         cta: 'Start as a driver',
+        route: './indivisuals'
+      },
+      ambassador: {
+        title: 'Become an iZinga Ambassador',
+        description: 'Earn commissions by referring drivers and customers to iZinga. Sign up to get your personal referral QR code.',
+        cta: 'Sign up as an Ambassador',
         route: './indivisuals'
       }
     },

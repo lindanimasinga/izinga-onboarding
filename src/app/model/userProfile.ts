@@ -45,17 +45,19 @@ export interface UserProfile {
     welcomeMessageSent?: boolean;
     crminalCheckData?: CriminalCheckData;
     tag : { [key: string]: any };
+    ambassadorId?: string | null;
 }
 export namespace UserProfile {
-    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN';
+    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR';
     export const RoleEnum = {
         CUSTOMER: 'CUSTOMER' as RoleEnum,
         STOREADMIN: 'STORE_ADMIN' as RoleEnum,
         STORE: 'STORE' as RoleEnum,
         MESSENGER: 'MESSENGER' as RoleEnum,
         MESSENGERADMIN: 'MESSENGER_ADMIN' as RoleEnum,
-        ADMIN: 'ADMIN' as RoleEnum
-    }; 
+        ADMIN: 'ADMIN' as RoleEnum,
+        AMBASSADOR: 'AMBASSADOR' as RoleEnum
+    };
 }
 
 export namespace ProfileAvailabilityStatus {
