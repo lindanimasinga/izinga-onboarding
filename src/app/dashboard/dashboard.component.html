@@ -12,7 +12,7 @@
             <div *ngIf="isProfileBlocked()" class="alert alert-danger text-start mb-4" role="alert">
                 Your profile is blocked. Dashboard actions are disabled.
             </div>
-            <div *ngIf="!isStoreAdmin" class="col-md-6 mb-5">
+            <div *ngIf="!isAmbassador && !isStoreAdmin" class="col-md-6 mb-5">
                         <div class="btn-group btn-group-toggle" data-toggle="buttons">
                             <label class="btn btn-secondary active" [ngClass]="{'bg-selected': user?.availabilityStatus === 'ONLINE', 'bg-not-selected': user?.availabilityStatus !== 'ONLINE'}">
                                 <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> AVAILABLE
@@ -25,7 +25,39 @@
                             </label>
                         </div>
             </div>
-            <div class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">
+            <!-- Ambassador card grid -->
+            <div *ngIf="isAmbassador" class="row justify-content-center mb-5 menu-items">
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
+                        <div style="font-size:48px;">📈</div>
+                        <div class="fw-bold mt-2">My Profile</div>
+                        <div class="small">Manage your contact information and bank account details</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'qr'}">
+                        <div style="font-size:48px;">📲</div>
+                        <div class="fw-bold mt-2">My QR Code</div>
+                        <div class="small">Share your referral QR code to invite new drivers</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'drivers'}">
+                        <div style="font-size:48px;">👷</div>
+                        <div class="fw-bold mt-2">My Drivers</div>
+                        <div class="small">View drivers you have signed up and their approval status</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'payouts'}">
+                        <div style="font-size:48px;">💰</div>
+                        <div class="fw-bold mt-2">My Payouts</div>
+                        <div class="small">Track your R70 commission earnings per approved driver</div>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="!isAmbassador" class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
                        <div style="font-size:48px;">📈</div>

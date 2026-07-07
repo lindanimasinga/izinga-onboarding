@@ -8,7 +8,7 @@ import { environment } from 'src/environments/environment';
 
 const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
 document.body.classList.toggle('dark-theme', prefersDarkScheme.matches);
-type UserType = '' | 'shop' | 'individual' | 'driver';
+type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador';
 
 interface WelcomeHeroCopy {
   heading: string;
@@ -40,6 +40,13 @@ interface SeoConfig {
 export class AppComponent {
   title = 'izinga business';
   userType: UserType = environment.userTypeConfig.defaultUserType as UserType;
+
+  get dashboardRoute(): string {
+    if (!this.storageService.phoneNumber) return '/';
+    if (this.userType === 'shop') return '/business/dashboard';
+    if (this.userType === 'driver' || this.userType === 'individual' || this.userType === 'ambassador') return '/indivisuals/dashboard';
+    return '/';
+  }
 
   constructor(private router: Router, private storageService: StorageService,
     private firebaseService: FirebaseService, private activatedRoute: ActivatedRoute,
@@ -97,7 +104,7 @@ export class AppComponent {
   }
 
   private normalizeUserType(userType?: string): UserType {
-    if (userType === '' || userType === 'shop' || userType === 'individual' || userType === 'driver') {
+    if (userType === '' || userType === 'shop' || userType === 'individual' || userType === 'driver' || userType === 'ambassador') {
       return userType;
     }
 
@@ -119,6 +126,8 @@ export class AppComponent {
 
     if (this.userType === 'shop' || this.userType === 'driver' || this.userType === 'individual') {
       document.body.classList.add(environment.userTypeConfig.bodyClassByUserType[this.userType]);
+    } else if (this.userType === 'ambassador') {
+      document.body.classList.add('driver'); // ambassadors share the driver/teal colour theme
     }
   }
 
@@ -134,15 +143,18 @@ export class AppComponent {
 
     if (this.userType === 'shop' || this.userType === 'driver' || this.userType === 'individual') {
       manifestLink.href = environment.userTypeConfig.manifestByUserType[this.userType];
+    } else if (this.userType === 'ambassador') {
+      manifestLink.href = environment.userTypeConfig.manifestByUserType['driver'];
     }
   }
 
   private updateSeo(): void {
-    if (this.userType !== 'shop' && this.userType !== 'driver' && this.userType !== 'individual') {
+    if (this.userType !== 'shop' && this.userType !== 'driver' && this.userType !== 'individual' && this.userType !== 'ambassador') {
       return;
     }
 
-    const seo = environment.userTypeConfig.seo[this.userType] as SeoConfig;
+    const resolvedSeoType = this.userType === 'ambassador' ? 'driver' : this.userType;
+    const seo = environment.userTypeConfig.seo[resolvedSeoType] as SeoConfig;
 
     this.titleService.setTitle(seo.title);
     this.metaService.updateTag({ name: 'description', content: seo.description });

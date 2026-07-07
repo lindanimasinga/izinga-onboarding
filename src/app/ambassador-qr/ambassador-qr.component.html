@@ -1,0 +1,159 @@
+<div class="mt-3">
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-secondary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted mt-3">Loading your dashboard...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!loading && error" class="py-4 px-3">
+    <div class="alert alert-warning text-start" role="alert">
+      <p class="mb-0">{{ error }}</p>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div *ngIf="!loading && !error">
+
+    <!-- Tabs -->
+    <div class="d-flex border-bottom mb-4">
+      <button class="amb-tab flex-fill" [class.amb-tab-active]="activeTab === 'qr'" (click)="selectTab('qr')">QR Code</button>
+      <button class="amb-tab flex-fill" [class.amb-tab-active]="activeTab === 'drivers'" (click)="selectTab('drivers')">My Drivers</button>
+      <button class="amb-tab flex-fill" [class.amb-tab-active]="activeTab === 'payouts'" (click)="selectTab('payouts')">Payouts</button>
+    </div>
+
+    <!-- QR Code Tab -->
+    <div *ngIf="activeTab === 'qr'">
+      <div class="text-center mb-4">
+        <h5 class="fw-bold">Your Ambassador QR Code</h5>
+        <p class="text-muted small">Share this QR code or referral link to invite new drivers and earn rewards.</p>
+      </div>
+
+      <div class="d-flex justify-content-center mb-4">
+        <img *ngIf="qrImageUrl" [src]="qrImageUrl" alt="Ambassador referral QR code" class="qr-img shadow-sm" />
+      </div>
+
+      <div class="mb-4 px-2">
+        <p class="text-muted small mb-1">Your referral link</p>
+        <div class="card border-0 shadow-sm p-2">
+          <small class="text-break" style="word-break:break-all;">{{ referralUrl }}</small>
+        </div>
+      </div>
+
+      <div *ngIf="linkCopied" class="alert alert-success mx-2 mb-3 small py-2">Link copied to clipboard!</div>
+
+      <div class="d-grid gap-2 px-2 mb-4">
+        <button class="btn btn-lg btn-block shadow-sm fw-bold" style="background-color: var(--btn-bg-color); color: #fff;" (click)="downloadQr()">Download QR Code</button>
+        <button class="btn btn-lg btn-block shadow-sm fw-bold" style="background-color: var(--btn-green-color); color: #fff;" (click)="copyReferralLink()">
+          {{ linkCopied ? 'Copied!' : 'Copy Referral Link' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- My Drivers Tab -->
+    <div *ngIf="activeTab === 'drivers'">
+      <!-- Summary cards — same style as main dashboard cards -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-4 mb-3">
+          <div class="card border-0 shadow-sm h-100 p-3 text-center" style="background-color: var(--btn-bg-color);">
+            <div class="fw-bold" style="font-size:1.6rem; color:#fff;">{{ drivers.length }}</div>
+            <div class="small" style="color:#fff;">Total</div>
+          </div>
+        </div>
+        <div class="col-4 mb-3">
+          <div class="card border-0 shadow-sm h-100 p-3 text-center" style="background-color: var(--btn-green-color);">
+            <div class="fw-bold" style="font-size:1.6rem; color:#fff;">{{ approvedDriverCount }}</div>
+            <div class="small" style="color:#fff;">Approved</div>
+          </div>
+        </div>
+        <div class="col-4 mb-3">
+          <div class="card border-0 shadow-sm h-100 p-3 text-center" style="background-color: var(--btn-red-color);">
+            <div class="fw-bold" style="font-size:1.6rem; color:#fff;">{{ drivers.length - approvedDriverCount }}</div>
+            <div class="small" style="color:#fff;">Pending</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="driversLoading" class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        <p class="text-muted mt-2 small">Loading drivers...</p>
+      </div>
+
+      <div *ngIf="!driversLoading && drivers.length === 0" class="text-center py-4">
+        <p class="text-muted">No drivers have signed up using your referral link yet.</p>
+        <p class="text-muted small">Share your QR code to start earning!</p>
+      </div>
+
+      <div *ngIf="!driversLoading && drivers.length > 0" class="row justify-content-center">
+        <div *ngFor="let driver of drivers" class="col-12 mb-3">
+          <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3">
+            <div class="driver-avatar" style="background-color: var(--btn-bg-color);">
+              {{ (driver.name || '?')[0].toUpperCase() }}
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small">{{ driver.name || 'Unknown' }}</div>
+              <div class="text-muted small">{{ driver.mobileNumber }}</div>
+            </div>
+            <span class="badge rounded-pill"
+              [style.background-color]="driver.profileApproved ? 'var(--btn-green-color)' : 'var(--btn-red-color)'"
+              style="color:#fff; font-size:0.7rem;">
+              {{ driver.profileApproved ? 'Approved' : 'Pending' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payouts Tab -->
+    <div *ngIf="activeTab === 'payouts'">
+      <!-- Summary cards — same style as main dashboard -->
+      <div class="row justify-content-center mb-4">
+        <div class="col-6 mb-3">
+          <div class="card border-0 shadow-sm h-100 p-3 text-center" style="background-color: var(--btn-green-color);">
+            <div class="fw-bold" style="font-size:1.3rem; color:#fff;">R{{ totalEarnings | number:'1.2-2' }}</div>
+            <div class="small" style="color:#fff;">Total Paid</div>
+          </div>
+        </div>
+        <div class="col-6 mb-3">
+          <div class="card border-0 shadow-sm h-100 p-3 text-center" style="background-color: var(--btn-pill-color);">
+            <div class="fw-bold" style="font-size:1.3rem; color:#fff;">R{{ pendingEarnings | number:'1.2-2' }}</div>
+            <div class="small" style="color:#fff;">Pending</div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="payoutsLoading" class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
+        <p class="text-muted mt-2 small">Loading payouts...</p>
+      </div>
+
+      <div *ngIf="!payoutsLoading && payouts.length === 0" class="text-center py-4">
+        <p class="text-muted">No payouts yet.</p>
+        <p class="text-muted small">Payouts of R70 are processed daily at 17:00 for each approved driver.</p>
+      </div>
+
+      <div *ngIf="!payoutsLoading && payouts.length > 0" class="row justify-content-center">
+        <div *ngFor="let payout of payouts" class="col-12 mb-3">
+          <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center justify-content-between">
+            <div>
+              <div class="fw-bold small">Driver commission</div>
+              <div class="text-muted small">{{ payout.createdDate | date:'d MMM yyyy' }}</div>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold" style="color: var(--btn-green-color);">R{{ payout.commissionAmount | number:'1.2-2' }}</div>
+              <span class="badge rounded-pill small"
+                [style.background-color]="payout.payoutStage === 'COMPLETED' ? 'var(--btn-green-color)' : payout.payoutStage === 'PENDING' ? 'var(--btn-pill-color)' : 'var(--btn-red-color)'"
+                style="color:#fff;">
+                {{ stageLabel(payout.payoutStage) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

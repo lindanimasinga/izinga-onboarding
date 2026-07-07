@@ -7,12 +7,16 @@
                 <p>{{ currentHeroCopy.description }}</p>
             </div>
 
-            <div *ngIf="userType !== 'driver'" class="mb-3 d-flex justify-content-center">
+            <div *ngIf="userType !== 'driver' && userType !== 'ambassador'" class="mb-3 d-flex justify-content-center">
                 <img class="welcome-logo" src="../../assets/images/ai-2.jpg">
             </div>
 
             <div *ngIf="userType === 'driver'" class="mb-3 d-flex justify-content-center">
                 <img class="welcome-logo" src="../../assets/images/izinga-driver.png">
+            </div>
+
+            <div *ngIf="userType === 'ambassador'" class="mb-3 d-flex justify-content-center">
+                <img class="welcome-logo" src="../../assets/images/izinga-ambassador.jpg" alt="iZinga Ambassadors">
             </div>
 
             <div *ngIf="userType === ''" class="text-center mb-3">
@@ -60,6 +64,18 @@
                         <h3 class="card-title">{{ signupCardConfig.driver.title }}</h3>
                         <p class="card-text">{{ signupCardConfig.driver.description }}</p>
                         <a [routerLink]="signupCardConfig.driver.route" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">{{ signupCardConfig.driver.cta }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="userType === 'ambassador'" class="row justify-content-center mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h3 class="card-title">{{ signupCardConfig.ambassador.title }}</h3>
+                        <p class="card-text">{{ signupCardConfig.ambassador.description }}</p>
+                        <a [routerLink]="signupCardConfig.ambassador.route" class="btn btn-lg btn-block bg-dark mt-5 shadow-sm">{{ signupCardConfig.ambassador.cta }}</a>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,44 @@
 
 <div class="container py-4">
 
+    <ng-container *ngIf="isAmbassador; else driverOrIndividual">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">How Does It Work? Ambassador Onboarding</h2>
+            <p>Follow these steps to become an iZinga Ambassador and start earning commissions.</p>
+        </div>
+        <div class="row g-3 mb-5">
+            <div class="col-md-4 col-12 mb-1">
+                <div class="card border-0 shadow-sm h-100 text-center p-3" style="background-color: var(--btn-red-color);">
+                    <div style="font-size:48px;">1</div>
+                    <div class="fw-bold mt-2">Sign up</div>
+                    <div class="small">Create your profile with your phone number and personal details.</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div class="card border-0 shadow-sm h-100 text-center p-3" style="background-color: #10A59F;">
+                    <div style="font-size:48px;">2</div>
+                    <div class="fw-bold mt-2">Profile review</div>
+                    <div class="small">Your profile will be reviewed by the iZinga team before approval.</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div class="card border-0 shadow-sm h-100 text-center p-3" style="background-color: #6A994E;">
+                    <div style="font-size:48px;">3</div>
+                    <div class="fw-bold mt-2">Get your QR code</div>
+                    <div class="small">After approval, receive your unique referral QR code to share with drivers and customers.</div>
+                </div>
+            </div>
+            <div class="col-md-4 col-12 mb-1">
+                <div class="card border-0 shadow-sm h-100 text-center p-3" style="background-color: #4A90E2;">
+                    <div style="font-size:48px;">4</div>
+                    <div class="fw-bold mt-2">Share and earn</div>
+                    <div class="small">Share your QR code and earn commissions for every successful referral to iZinga.</div>
+                </div>
+            </div>
+        </div>
+    </ng-container>
+
+    <ng-template #driverOrIndividual>
     <ng-container *ngIf="isDriver; else individualWelcome">
         <div class="text-center mb-4">
             <h2 class="fw-bold">How Does It Work? Onboarding Steps</h2>
@@ -177,6 +215,7 @@
             </div>
         </div>
     </div>
+    </ng-template>
     </ng-template>
 </div>
 

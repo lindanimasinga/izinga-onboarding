@@ -15,8 +15,11 @@ export class StorageService {
   PHONE_KEY = "alsfnadfwefsdfn"
   STORE_TO_PAY = "nvcaseuhfdkfs"
   PAYOUT = "we434dfsdfsdf"
+  AMBASSADOR_REF_KEY = "ambassadorRef"
+  RETURN_URL_KEY = "returnUrl"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
+  sessionCache: Storage = window.sessionStorage
   _userProfile?: UserProfile
   _phoneNumber?: string | undefined
   errorMessage: string | undefined;
@@ -86,6 +89,30 @@ export class StorageService {
   set userProfile(userProfile: UserProfile | undefined) {
     this._userProfile = userProfile
     this.cache.setItem(this.USER_PROFILE_KEY, JSON.stringify(this._userProfile))
+  }
+
+  get ambassadorRef(): string | null {
+    return this.sessionCache.getItem(this.AMBASSADOR_REF_KEY);
+  }
+
+  set ambassadorRef(ref: string | null) {
+    if (ref) {
+      this.sessionCache.setItem(this.AMBASSADOR_REF_KEY, ref);
+    } else {
+      this.sessionCache.removeItem(this.AMBASSADOR_REF_KEY);
+    }
+  }
+
+  get returnUrl(): string | null {
+    return this.sessionCache.getItem(this.RETURN_URL_KEY);
+  }
+
+  set returnUrl(url: string | null) {
+    if (url) {
+      this.sessionCache.setItem(this.RETURN_URL_KEY, url);
+    } else {
+      this.sessionCache.removeItem(this.RETURN_URL_KEY);
+    }
   }
 
   get userType(): string | undefined {
