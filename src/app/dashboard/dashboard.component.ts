@@ -40,8 +40,14 @@ export class DashboardComponent {
       this.user = user
       this.storageService.userProfile = user
       this.analytics.logScreenView('dashboard', { user_role: user.role });
-      
-      // Check if user has accepted terms and conditions  
+
+      // Ambassadors have their own dedicated page — route immediately after terms are accepted
+      if (user.role == UserProfile.RoleEnum.AMBASSADOR && user.termsAccepted) {
+        this.router.navigate(['/ambassador/qr']);
+        return;
+      }
+
+      // Check if user has accepted terms and conditions
       if (!user.termsAccepted) {
         // Redirect to terms page with user ID, maintaining current route context
         const currentUrl = this.router.url;
