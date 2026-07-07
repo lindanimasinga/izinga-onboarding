@@ -1,31 +1,67 @@
-import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { environment } from '../../environments/environment';
+
+interface AmbassadorDriver {
+  id: string;
+  name: string;
+  mobileNumber: string;
+  profileApproved: boolean;
+  role: string;
+}
+
+interface AmbassadorPayout {
+  id: string;
+  commissionAmount: number;
+  triggerDriverId: string;
+  payoutStage: string;
+  toName: string;
+  createdDate: string;
+}
 
 @Component({
   selector: 'app-ambassador-qr',
   templateUrl: './ambassador-qr.component.html',
   styleUrls: ['./ambassador-qr.component.css']
 })
-export class AmbassadorQrComponent implements OnInit {
+export class AmbassadorQrComponent implements OnInit, OnDestroy {
 
   loading = true;
   error: string | null = null;
+  activeTab: 'qr' | 'payouts' | 'drivers' = 'qr';
+
+  // QR tab
   qrImageUrl: string | null = null;
   referralUrl: string | null = null;
   linkCopied = false;
   private copyTimeout: any;
 
+  // Drivers tab
+  drivers: AmbassadorDriver[] = [];
+  driversLoading = false;
+  driversLoaded = false;
+
+  // Payouts tab
+  payouts: AmbassadorPayout[] = [];
+  payoutsLoading = false;
+  payoutsLoaded = false;
+
   constructor(
     private http: HttpClient,
+    private route: ActivatedRoute,
     private storageService: StorageService,
     private analytics: AnalyticsService
   ) {}
 
   ngOnInit(): void {
     this.analytics.logScreenView('ambassador_qr');
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'drivers' || tab === 'payouts' || tab === 'qr') {
+      this.activeTab = tab;
+    }
     const user = this.storageService.userProfile;
 
     if (!user || !user.id) {
@@ -44,23 +80,28 @@ export class AmbassadorQrComponent implements OnInit {
     this.loadQrCode(user.id);
   }
 
-  private loadQrCode(userId: string): void {
-    const headers = new HttpHeaders({
-      'api-key': this.storageService.phoneNumber || ''
-    });
+  selectTab(tab: 'qr' | 'payouts' | 'drivers'): void {
+    this.activeTab = tab;
+    const user = this.storageService.userProfile;
+    if (!user?.id) return;
 
+    if (tab === 'drivers' && !this.driversLoaded) {
+      this.loadDrivers(user.id);
+    }
+    if (tab === 'payouts' && !this.payoutsLoaded) {
+      this.loadPayouts(user.id);
+    }
+  }
+
+  private loadQrCode(userId: string): void {
     this.http
-      .get(`${environment.izingaUrl}/user/${userId}/ambassador-qr`, {
-        headers,
-        responseType: 'blob'
-      })
+      .get(`${environment.izingaUrl}/user/${userId}/ambassador-qr`, { responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           this.qrImageUrl = URL.createObjectURL(blob);
           this.loading = false;
         },
         error: (err) => {
-          console.error('Failed to load ambassador QR code:', err);
           if (err.status === 403 || err.status === 401) {
             this.error = 'Your account is not yet approved as an Ambassador. Please wait for approval before accessing this page.';
           } else if (err.status === 404) {
@@ -71,6 +112,58 @@ export class AmbassadorQrComponent implements OnInit {
           this.loading = false;
         }
       });
+  }
+
+  private loadDrivers(userId: string): void {
+    this.driversLoading = true;
+    this.http
+      .get<AmbassadorDriver[]>(`${environment.izingaUrl}/user/${userId}/ambassador-drivers`)
+      .subscribe({
+        next: (drivers) => {
+          this.drivers = drivers;
+          this.driversLoading = false;
+          this.driversLoaded = true;
+        },
+        error: () => {
+          this.driversLoading = false;
+          this.driversLoaded = true;
+        }
+      });
+  }
+
+  private loadPayouts(userId: string): void {
+    this.payoutsLoading = true;
+    this.http
+      .get<AmbassadorPayout[]>(`${environment.izingaUrl}/user/${userId}/ambassador-payouts`)
+      .subscribe({
+        next: (payouts) => {
+          this.payouts = payouts.sort((a, b) =>
+            new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+          );
+          this.payoutsLoading = false;
+          this.payoutsLoaded = true;
+        },
+        error: () => {
+          this.payoutsLoading = false;
+          this.payoutsLoaded = true;
+        }
+      });
+  }
+
+  get totalEarnings(): number {
+    return this.payouts
+      .filter(p => p.payoutStage === 'COMPLETED')
+      .reduce((sum, p) => sum + (p.commissionAmount || 0), 0);
+  }
+
+  get pendingEarnings(): number {
+    return this.payouts
+      .filter(p => p.payoutStage === 'PENDING' || p.payoutStage === 'PROCESSING')
+      .reduce((sum, p) => sum + (p.commissionAmount || 0), 0);
+  }
+
+  get approvedDriverCount(): number {
+    return this.drivers.filter(d => d.profileApproved).length;
   }
 
   downloadQr(): void {
@@ -87,12 +180,8 @@ export class AmbassadorQrComponent implements OnInit {
     navigator.clipboard.writeText(this.referralUrl).then(() => {
       this.linkCopied = true;
       clearTimeout(this.copyTimeout);
-      this.copyTimeout = setTimeout(() => {
-        this.linkCopied = false;
-      }, 3000);
-    }).catch((err) => {
-      console.error('Clipboard write failed:', err);
-      // Fallback for older browsers
+      this.copyTimeout = setTimeout(() => { this.linkCopied = false; }, 3000);
+    }).catch(() => {
       const textarea = document.createElement('textarea');
       textarea.value = this.referralUrl!;
       textarea.style.position = 'fixed';
@@ -103,16 +192,28 @@ export class AmbassadorQrComponent implements OnInit {
       document.body.removeChild(textarea);
       this.linkCopied = true;
       clearTimeout(this.copyTimeout);
-      this.copyTimeout = setTimeout(() => {
-        this.linkCopied = false;
-      }, 3000);
+      this.copyTimeout = setTimeout(() => { this.linkCopied = false; }, 3000);
     });
   }
 
+  stageLabel(stage: string): string {
+    const map: Record<string, string> = {
+      PENDING: 'Pending', PROCESSING: 'Processing',
+      COMPLETED: 'Paid', VOIDED: 'Voided'
+    };
+    return map[stage] ?? stage;
+  }
+
+  stageBadgeClass(stage: string): string {
+    const map: Record<string, string> = {
+      PENDING: 'badge-pending', PROCESSING: 'badge-processing',
+      COMPLETED: 'badge-completed', VOIDED: 'badge-voided'
+    };
+    return map[stage] ?? '';
+  }
+
   ngOnDestroy(): void {
-    if (this.qrImageUrl) {
-      URL.revokeObjectURL(this.qrImageUrl);
-    }
+    if (this.qrImageUrl) URL.revokeObjectURL(this.qrImageUrl);
     clearTimeout(this.copyTimeout);
   }
 }

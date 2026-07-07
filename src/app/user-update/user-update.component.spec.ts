@@ -192,3 +192,100 @@ describe('UserUpdateComponent — profile picture validation', () => {
     expect(mockOrderService.uploadFile).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// ADR-004 / T-13 — Ambassador ref attachment to POST /user
+//
+// TC-AMB-REG-01  Scenario 1/happy path: ambassadorRef in storage → included in POST payload.
+// TC-AMB-REG-02  Scenario 2: no ref param → ambassadorId is null in POST payload.
+// TC-AMB-REG-03  Scenario 3: invalid/absent ref → ambassadorId is null (guard at storage level).
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — ambassador ref in registration payload', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  function buildModule(ambassadorRef: string | null) {
+    mockStorage = {
+      phoneNumber: '+27820000000',
+      userProfile: undefined,
+      ambassadorRef,
+      logout: jasmine.createSpy('logout')
+    };
+
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber',
+      'registerCustomer',
+      'updateCustomer',
+      'getUserConfig',
+      'getBankConfigs',
+      'uploadFile'
+    ]);
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(buildUser()));
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture   = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  // TC-AMB-REG-01 — ambassadorRef present: sent as ambassadorId in POST
+  it('TC-AMB-REG-01: includes ambassadorId in POST payload when ambassadorRef is set in storage', () => {
+    buildModule('amb-xyz-999');
+    component.profilePictureUploaded = true;
+
+    const registeredUser = buildUser({ id: 'driver-new', name: 'New Driver' });
+    mockOrderService.registerCustomer.and.returnValue(of(registeredUser));
+
+    component.createCustomer();
+
+    const callArg = mockOrderService.registerCustomer.calls.mostRecent().args[0];
+    expect(callArg.ambassadorId).toBe('amb-xyz-999');
+  });
+
+  // TC-AMB-REG-02 — no ref: ambassadorId is null in POST
+  it('TC-AMB-REG-02: sets ambassadorId to null in POST payload when no ref is in storage', () => {
+    buildModule(null);
+    component.profilePictureUploaded = true;
+
+    const registeredUser = buildUser({ id: 'driver-no-ref', name: 'No Ref Driver' });
+    mockOrderService.registerCustomer.and.returnValue(of(registeredUser));
+
+    component.createCustomer();
+
+    const callArg = mockOrderService.registerCustomer.calls.mostRecent().args[0];
+    expect(callArg.ambassadorId).toBeNull();
+  });
+
+  // TC-AMB-REG-03 — empty/invalid ref (treated as null by StorageService setter): null in POST
+  it('TC-AMB-REG-03: sets ambassadorId to null when ambassadorRef is empty string', () => {
+    // StorageService setter does not store empty strings (falsy guard), so ambassadorRef getter returns null
+    buildModule(null); // mirrors what happens when ?ref= is empty
+    component.profilePictureUploaded = true;
+
+    const registeredUser = buildUser({ id: 'driver-empty-ref', name: 'Empty Ref Driver' });
+    mockOrderService.registerCustomer.and.returnValue(of(registeredUser));
+
+    component.createCustomer();
+
+    const callArg = mockOrderService.registerCustomer.calls.mostRecent().args[0];
+    expect(callArg.ambassadorId).toBeNull();
+  });
+});

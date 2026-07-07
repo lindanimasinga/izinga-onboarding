@@ -41,6 +41,13 @@ export class AppComponent {
   title = 'izinga business';
   userType: UserType = environment.userTypeConfig.defaultUserType as UserType;
 
+  get dashboardRoute(): string {
+    if (!this.storageService.phoneNumber) return '/';
+    if (this.userType === 'shop') return '/business/dashboard';
+    if (this.userType === 'driver' || this.userType === 'individual' || this.userType === 'ambassador') return '/indivisuals/dashboard';
+    return '/';
+  }
+
   constructor(private router: Router, private storageService: StorageService,
     private firebaseService: FirebaseService, private activatedRoute: ActivatedRoute,
     private titleService: Title,
