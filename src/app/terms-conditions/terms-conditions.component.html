@@ -1,3 +1,46 @@
+<!-- Ambassador ICA branch -->
+<ng-container *ngIf="isAmbassador; else generalTerms">
+  <div class="container py-4">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Ambassador Independent Contractor Agreement</h2>
+      <p class="text-muted">Please read and accept this agreement to access your Ambassador dashboard</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body" style="max-height: 60vh; overflow-y: auto; padding-bottom: 80px;">
+        <div [innerHTML]="icaHtml"></div>
+      </div>
+    </div>
+
+    <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Something went wrong saving your agreement. Please try again.
+    </div>
+
+    <div class="card mt-4" *ngIf="!user?.icaAccepted">
+      <div class="card-body">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="termsAccepted" id="icaCheck">
+          <label class="form-check-label" for="icaCheck">
+            I have read and agree to the iZinga Ambassador Independent Contractor Agreement. I understand that I am an independent contractor and not an employee of iZinga.
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row fixed-bottom" *ngIf="!user?.icaAccepted">
+    <button
+      class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
+      type="submit"
+      [disabled]="!termsAccepted"
+      (click)="acceptTerms()">
+      Accept Agreement &amp; Continue
+    </button>
+  </div>
+</ng-container>
+
+<!-- General T&Cs for all other roles -->
+<ng-template #generalTerms>
 <div class="container py-4">
     <div class="text-center mb-4">
         <h2 class="fw-bold">Terms and Conditions</h2>
@@ -7,13 +50,13 @@
     <div class="card">
         <div class="card-body">
             <h4 class="mb-3">iZinga Platform Terms of Service</h4>
-            
+
             <h5 class="mt-4 mb-3">1. Platform Usage</h5>
             <p>By using iZinga, you agree to use our platform responsibly and in accordance with South African laws and regulations.</p>
 
             <h5 class="mt-4 mb-3">2. Prohibited Products and Services</h5>
             <p>The following items and services are strictly prohibited on the iZinga platform:</p>
-            
+
             <div class="row">
                 <div class="col-md-6">
                     <h6 class="fw-bold text-danger">🚫 Illegal Substances</h6>
@@ -48,7 +91,7 @@
                         <li>Dating and escort services</li>
                     </ul>
                 </div>
-                
+
                 <div class="col-md-6">
                     <h6 class="fw-bold text-danger">🚫 Financial Services</h6>
                     <ul>
@@ -148,6 +191,10 @@
         </div>
     </div>
 
+    <div *ngIf="acceptError" class="alert alert-danger mt-3">
+      Something went wrong saving your acceptance. Please try again.
+    </div>
+
     <div class="card mt-4">
         <div class="card-body">
             <div class="form-check">
@@ -161,11 +208,12 @@
 </div>
 
 <div class="row fixed-bottom" *ngIf="!user?.termsAccepted">
-    <button 
-        class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm" 
-        type="submit" 
+    <button
+        class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
+        type="submit"
         [disabled]="!termsAccepted"
         (click)="acceptTerms()">
         Accept Terms & Continue
     </button>
 </div>
+</ng-template>
