@@ -128,6 +128,7 @@ export class UserUpdateComponent {
       return user;
     })).subscribe(resp => {
       console.log(`customer ${this.userProfile.id} created or updated`)
+      this.storageService.ambassadorRef = null;
       if (this.cardId) {
         this.linkCode()
       }
