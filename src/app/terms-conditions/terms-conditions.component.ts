@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { UserProfile } from '../model/userProfile';
@@ -16,7 +14,6 @@ export class TermsConditionsComponent implements OnInit {
 
   termsAccepted = false;
   acceptError = false;
-  icaContent = '';
   userId?: string;
   user: UserProfile | undefined;
 
@@ -25,18 +22,11 @@ export class TermsConditionsComponent implements OnInit {
     private route: ActivatedRoute,
     private storageService: StorageService,
     private izingaOrderManager: IzingaOrderManagementService,
-    private analytics: AnalyticsService,
-    private http: HttpClient,
-    private sanitizer: DomSanitizer
+    private analytics: AnalyticsService
   ) {}
 
   get isAmbassador(): boolean {
     return this.user?.role === UserProfile.RoleEnum.AMBASSADOR;
-  }
-
-  get icaHtml(): SafeHtml {
-    const html = this.simpleMarkdownToHtml(this.icaContent);
-    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 
   ngOnInit() {
@@ -45,13 +35,6 @@ export class TermsConditionsComponent implements OnInit {
       this.userId = params['id'];
     });
     this.user = this.storageService.userProfile!;
-
-    if (this.isAmbassador) {
-      this.http.get('/assets/legal/ambassador-ica-v1.md', { responseType: 'text' }).subscribe({
-        next: (content) => { this.icaContent = content; },
-        error: () => { this.icaContent = ''; }
-      });
-    }
   }
 
   acceptTerms() {
@@ -95,38 +78,4 @@ export class TermsConditionsComponent implements OnInit {
     }
   }
 
-  private simpleMarkdownToHtml(md: string): string {
-    if (!md) { return ''; }
-
-    let html = md
-      // Escape HTML entities first
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      // Tables: simple pipe tables — convert to Bootstrap table
-      .replace(/^\|(.+)\|\s*$/gm, (line) => {
-        const isSeparator = /^\|[\s\-|:]+\|$/.test(line.trim());
-        if (isSeparator) { return ''; }
-        const cells = line.split('|').filter((_, i, a) => i > 0 && i < a.length - 1);
-        return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
-      })
-      // Wrap table rows
-      .replace(/((<tr>.*<\/tr>\n?)+)/g, '<table class="table table-sm table-bordered mt-2 mb-2">$1</table>')
-      // ### headings
-      .replace(/^### (.+)$/gm, '<h5 class="mt-4 mb-2 fw-bold">$1</h5>')
-      // ## headings
-      .replace(/^## (.+)$/gm, '<h4 class="mt-4 mb-2 fw-bold">$1</h4>')
-      // # headings
-      .replace(/^# (.+)$/gm, '<h3 class="mt-4 mb-2 fw-bold">$1</h3>')
-      // Bold
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      // Horizontal rules
-      .replace(/^---+$/gm, '<hr>')
-      // Blank lines → paragraph breaks
-      .replace(/\n\n/g, '</p><p>')
-      // Wrap in paragraph
-      ;
-
-    return '<p>' + html + '</p>';
-  }
 }

@@ -44,7 +44,11 @@ export class DashboardComponent {
       this.analytics.logScreenView('dashboard', { user_role: user.role });
 
       // Check if user has accepted terms and conditions
-      if (!user.termsAccepted) {
+      // Ambassadors accept the ICA (icaAccepted) instead of the general T&Cs (termsAccepted)
+      const hasAcceptedTerms = user.role === UserProfile.RoleEnum.AMBASSADOR
+        ? !!user.icaAccepted
+        : !!user.termsAccepted;
+      if (!hasAcceptedTerms) {
         // Redirect to terms page with user ID, maintaining current route context
         const currentUrl = this.router.url;
         if (currentUrl.includes('/indivisuals/')) {
