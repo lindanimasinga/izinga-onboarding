@@ -1,7 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { DomSanitizer } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { of, throwError } from 'rxjs';
@@ -15,11 +13,9 @@ import { UserProfile } from '../model/userProfile';
 describe('TermsConditionsComponent', () => {
   let component: TermsConditionsComponent;
   let fixture: ComponentFixture<TermsConditionsComponent>;
-  let httpMock: HttpTestingController;
   let orderManagerSpy: jasmine.SpyObj<IzingaOrderManagementService>;
   let analyticsSpy: jasmine.SpyObj<AnalyticsService>;
   let routerSpy: jasmine.SpyObj<Router>;
-  let sanitizerSpy: jasmine.SpyObj<DomSanitizer>;
 
   // Plain writable mock so the component can both read and assign userProfile
   let storageServiceMock: { userProfile: UserProfile | undefined };
@@ -39,11 +35,9 @@ describe('TermsConditionsComponent', () => {
     orderManagerSpy = jasmine.createSpyObj('IzingaOrderManagementService', ['updateCustomer']);
     analyticsSpy = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/indivisuals/terms' });
-    sanitizerSpy = jasmine.createSpyObj('DomSanitizer', ['bypassSecurityTrustHtml']);
-    sanitizerSpy.bypassSecurityTrustHtml.and.callFake((v: string) => v as any);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, FormsModule],
+      imports: [FormsModule],
       declarations: [TermsConditionsComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
@@ -51,41 +45,28 @@ describe('TermsConditionsComponent', () => {
         { provide: StorageService, useValue: storageServiceMock },
         { provide: AnalyticsService, useValue: analyticsSpy },
         { provide: Router, useValue: routerSpy },
-        { provide: DomSanitizer, useValue: sanitizerSpy },
         { provide: ActivatedRoute, useValue: { params: of({ id: 'user-001' }) } }
       ]
     }).compileComponents();
-
-    httpMock = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  // TC-01: Ambassador sees ICA — isAmbassador returns true and ICA asset is fetched
+  // TC-01: Ambassador role — isAmbassador returns true
   describe('TC-01: Ambassador role', () => {
-    it('should set isAmbassador to true and fetch ambassador-ica-v1.md', () => {
+    it('should set isAmbassador to true', () => {
       setupComponent(makeUser(UserProfile.RoleEnum.AMBASSADOR));
       fixture.detectChanges();
 
       expect(component.isAmbassador).toBeTrue();
-
-      const req = httpMock.expectOne('/assets/legal/ambassador-ica-v1.md');
-      expect(req.request.method).toBe('GET');
-      req.flush('# ICA Content');
-      expect(component.icaContent).toBe('# ICA Content');
     });
   });
 
-  // TC-02: Non-ambassador sees general T&Cs — isAmbassador false, ICA asset NOT fetched
+  // TC-02: Non-ambassador role — isAmbassador returns false
   describe('TC-02: Non-ambassador (MESSENGER) role', () => {
-    it('should set isAmbassador to false and NOT fetch the ICA asset', () => {
+    it('should set isAmbassador to false', () => {
       setupComponent(makeUser(UserProfile.RoleEnum.MESSENGER));
       fixture.detectChanges();
 
       expect(component.isAmbassador).toBeFalse();
-      httpMock.expectNone('/assets/legal/ambassador-ica-v1.md');
     });
   });
 
@@ -95,7 +76,6 @@ describe('TermsConditionsComponent', () => {
       const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
       setupComponent(user);
       fixture.detectChanges();
-      httpMock.expectOne('/assets/legal/ambassador-ica-v1.md').flush('');
 
       orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
 
@@ -119,7 +99,6 @@ describe('TermsConditionsComponent', () => {
       const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
       setupComponent(user);
       fixture.detectChanges();
-      httpMock.expectOne('/assets/legal/ambassador-ica-v1.md').flush('');
 
       orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
 
@@ -138,7 +117,6 @@ describe('TermsConditionsComponent', () => {
       const user = makeUser(UserProfile.RoleEnum.MESSENGER);
       setupComponent(user);
       fixture.detectChanges();
-      httpMock.expectNone('/assets/legal/ambassador-ica-v1.md');
 
       orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, termsAccepted: true } as UserProfile));
 
@@ -164,7 +142,6 @@ describe('TermsConditionsComponent', () => {
       const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
       setupComponent(user);
       fixture.detectChanges();
-      httpMock.expectOne('/assets/legal/ambassador-ica-v1.md').flush('');
 
       orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
 
@@ -198,7 +175,6 @@ describe('TermsConditionsComponent', () => {
       const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
       setupComponent(user);
       fixture.detectChanges();
-      httpMock.expectOne('/assets/legal/ambassador-ica-v1.md').flush('');
 
       orderManagerSpy.updateCustomer.and.returnValue(throwError(() => new Error('network error')));
 
