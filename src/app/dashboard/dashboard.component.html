@@ -55,6 +55,13 @@
                         <div class="small">Track your R70 commission earnings per approved driver</div>
                     </div>
                 </div>
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: #4a5568;" [routerLink]="['/indivisuals/terms', user?.id]">
+                        <div style="font-size:48px;">📄</div>
+                        <div class="fw-bold mt-2">My Agreement</div>
+                        <div class="small">View your Ambassador Independent Contractor Agreement</div>
+                    </div>
+                </div>
             </div>
 
             <div *ngIf="!isAmbassador" class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">

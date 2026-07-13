@@ -38,6 +38,9 @@ export interface UserProfile {
     yearsInService?: number;
     termsAccepted?: boolean;
     termsAcceptedDate?: Date;
+    icaAccepted?: boolean;
+    icaAcceptedDate?: Date;
+    icaVersion?: string;
     availabilityStatus?: ProfileAvailabilityStatus.Availability;
     profileApproved?: boolean;
     profileApprovedDate?: Date;
