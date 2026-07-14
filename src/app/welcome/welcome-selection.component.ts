@@ -73,6 +73,10 @@ export class WelcomeSelectionComponent {
       this.router.navigate(['/indivisuals/dashboard'])
     } else if (this.storageService.userProfile?.role == 'AMBASSADOR') {
       this.router.navigate(['/ambassador/qr'])
+    } else if (this.storageService.userProfile?.role == 'REFERRAL_PARTNER') {
+      // RP-002 (issue #29): enrolment flow not yet built — route to individual dashboard
+      // as a safe holding destination until the referral-partner flow is implemented.
+      this.router.navigate(['/indivisuals/dashboard'])
     }
   }
 

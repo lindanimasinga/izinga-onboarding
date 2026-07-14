@@ -19,6 +19,7 @@ export class DashboardComponent {
   isMessenger: boolean = false
   isMessengerAdmin: boolean = false
   isAmbassador: boolean = false
+  isReferralPartner: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
   missingDocuments: string[] = []
@@ -39,6 +40,7 @@ export class DashboardComponent {
       this.isMessengerAdmin = user.role == UserProfile.RoleEnum.MESSENGERADMIN
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
       this.isAmbassador = user.role == UserProfile.RoleEnum.AMBASSADOR
+      this.isReferralPartner = user.role == UserProfile.RoleEnum.REFERRALPARTNER
       this.user = user
       this.storageService.userProfile = user
       this.analytics.logScreenView('dashboard', { user_role: user.role });

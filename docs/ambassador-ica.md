@@ -73,7 +73,21 @@ iZinga and the Ambassador are referred to individually as "**a Party**" and coll
 
 (b) make representations about iZinga's commission rates, approval timelines, or earnings guarantees to prospective drivers that are not published on iZinga's official platforms;
 
-(c) collect any fee, payment, or documentation from a prospective driver on iZinga's behalf.
+(c) collect any fee, payment, or documentation from a prospective driver on iZinga's behalf. [~~ORIGINAL CLAUSE — SEE SUGGESTED REPLACEMENT BELOW~~]
+
+> **⚠️ SUGGESTED EDIT — pending Jason van der Merwe's review, not yet applied to the live agreement (`src/assets/legal/ambassador-ica-v1.md`)**
+>
+> **Issue:** Clause 2.2(c) as drafted prohibits an Ambassador from collecting "documentation" from a prospective driver at all. This conflicts with the operating model Lindani Masinga confirmed on 13 July 2026: Ambassadors are physically present with the driver and actively help them upload required documents (ID, licence, proof of vehicle, bank details) during registration — this is now the instructed behaviour in the Ambassador Training Pack. As worded, 2.2(c) could be read as forbidding that entire workflow, creating a direct conflict between the signed legal agreement and the operational training material.
+>
+> There is a secondary, lower-severity point worth Jason's attention: Part A's independent-contractor classification argument relies partly on "no control over manner of work" (clause 1.3, and the s200A LRA table). The Training Pack's instruction to stay with the driver until submission is a fairly specific manner-of-work requirement, which nudges against that factor. Probably still fine on balance of the full multi-factor test, but flagging so it's a conscious call, not an oversight.
+>
+> **Suggested replacement text for 2.2(c):**
+>
+> (c) collect any fee or payment from a prospective driver in connection with iZinga registration;
+>
+> (d) take custody of, retain, photograph, or store copies of a prospective driver's identity documents, driver's licence, proof of vehicle, or bank details outside of the driver's own registration on iZinga's platform. For the avoidance of doubt, the Ambassador may be physically present with and assist a prospective driver while that driver uploads their own documents directly into iZinga's registration platform, provided the Ambassador does not separately collect, photograph, or retain copies of those documents.
+>
+> This preserves the core protection (Ambassadors must not become an unauthorised custodian of driver documents/personal information, which also matters for the POPIA position in clause 6) while explicitly permitting the confirmed in-person assisted-upload model. **Not to be treated as final — requires Jason's sign-off before this or the corresponding clause in `src/assets/legal/ambassador-ica-v1.md` is changed.**
 
 2.3 The Ambassador acknowledges that iZinga retains sole discretion to approve or decline any Referred Driver and that referral does not guarantee approval.
 
@@ -277,6 +291,7 @@ iZinga and the Ambassador are referred to individually as "**a Party**" and coll
 | Item | Owner | Status |
 |---|---|---|
 | Jason van der Merwe to review and approve ICA | Lindani | ⚠️ Required before any ambassador signs |
+| **Clause 2.2(c) conflicts with in-person assisted document-upload model confirmed 13 July 2026 — suggested replacement drafted inline above** | **Jason** | **⚠️ New — needs sign-off before applying to `src/assets/legal/ambassador-ica-v1.md`** |
 | POPIA Information Officer registration | Hloniphani | ⚠️ Overdue — was due 30 June 2026 |
 | Onboarding platform stores timestamped click-wrap acceptance per ambassador | Lindani (engineering) | ⚠️ Must confirm before go-live |
 | Tax practitioner to confirm PAYE/VAT gross-up position | Lindani | ⚠️ Before first commission payout run |
