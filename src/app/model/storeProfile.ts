@@ -68,6 +68,13 @@ export interface StoreProfile {
     profileApproved?: boolean;
     profileApprovedDate?: Date;
     /**
+     * RP-005b: referral code of the Referral Partner who assisted in registering this store.
+     * Populated from the ?ref= query param captured at the start of the /business registration
+     * flow and sent to the backend on store creation (POST /store).
+     * Field name confirmed with RP-005a backend ticket — update if backend contract differs.
+     */
+    referralCode?: string;
+    /**
      * Delivery categories configured for this store (Issue #10).
      * Optional to avoid breaking existing code — treat undefined/null as [].
      */

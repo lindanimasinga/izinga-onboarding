@@ -35,10 +35,12 @@ import { UserConfigManagementComponent } from './user-config-management/user-con
 import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
+import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
   { path: 'ambassador/qr', component: AmbassadorQrComponent },
+  { path: 'referral-partner/enroll', component: ReferralPartnerEnrollmentComponent },
   { path: 'indivisuals', 
     children : [
       { path: '', component: WelcomeIndivisualsComponent}, 
