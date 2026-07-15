@@ -49,6 +49,7 @@ import { UserConfigManagementComponent } from './user-config-management/user-con
 import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
+import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
 
 @NgModule({
   declarations: [
@@ -91,6 +92,7 @@ import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
     AdminOrdersComponent,
     QuotesComponent,
     AmbassadorQrComponent,
+    ReferralPartnerEnrollmentComponent,
   ],
   imports: [
     BrowserModule,

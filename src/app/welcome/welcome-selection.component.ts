@@ -74,9 +74,13 @@ export class WelcomeSelectionComponent {
     } else if (this.storageService.userProfile?.role == 'AMBASSADOR') {
       this.router.navigate(['/ambassador/qr'])
     } else if (this.storageService.userProfile?.role == 'REFERRAL_PARTNER') {
-      // RP-002 (issue #29): enrolment flow not yet built — route to individual dashboard
-      // as a safe holding destination until the referral-partner flow is implemented.
-      this.router.navigate(['/indivisuals/dashboard'])
+      // RP-002 (issue #29): route to enrollment if Agreement not yet accepted,
+      // otherwise to the dashboard placeholder until RP-010 (partner portal) is built.
+      if (this.storageService.userProfile?.icaAccepted) {
+        this.router.navigate(['/indivisuals/dashboard'])
+      } else {
+        this.router.navigate(['/referral-partner/enroll'])
+      }
     }
   }
 
