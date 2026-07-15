@@ -68,10 +68,14 @@ export interface StoreProfile {
     profileApproved?: boolean;
     profileApprovedDate?: Date;
     /**
-     * RP-005b: referral code of the Referral Partner who assisted in registering this store.
-     * Populated from the ?ref= query param captured at the start of the /business registration
-     * flow and sent to the backend on store creation (POST /store).
-     * Field name confirmed with RP-005a backend ticket — update if backend contract differs.
+     * RP-005b: TRANSPORT-ONLY — not sent in the JSON body on POST /store.
+     * IzingaOrderManagementService.createStore() strips this field from the body and
+     * sends it as a URL query parameter (?referralCode=CODE) because
+     * StoreController.create() reads it via @RequestParam, not from the request body.
+     * The backend stores the resolved partner ID as `referredByPartnerId` on the
+     * persisted store document — a different field name to this client-side transport field.
+     * Value is populated from StorageService.referralPartnerRef (captured from ?ref= at
+     * the /business entry point) and cleared from sessionStorage after first use.
      */
     referralCode?: string;
     /**

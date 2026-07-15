@@ -30,7 +30,16 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
   saving = false;
   user: UserProfile | undefined;
 
-  /** Version stamp — update to attorney-approved version before production go-live. */
+  /**
+   * NOTE-04 — RELEASE BLOCKER: This version stamp is 'rpa-draft-v1' while the
+   * Referral Partner Agreement is in DRAFT pending attorney Jason van der Merwe's
+   * sign-off. Before production go-live the Release Manager must:
+   *   1. Replace the agreement body in the template with the final attorney-approved text.
+   *   2. Update this constant to the attorney-assigned version stamp (e.g. 'rpa-v1').
+   *   3. Confirm with Legal that 'rpa-draft-v1' acceptances (if any from testing) are
+   *      voided and not treated as binding before the final text is published.
+   * This item is tracked on the RP-002 release checklist in the PR description.
+   */
   readonly RPA_VERSION = 'rpa-draft-v1';
 
   constructor(
@@ -77,8 +86,14 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
           userId: savedProfile.id,
           icaVersion: this.RPA_VERSION
         });
-        // RP-003 DEPENDENCY: call ReferralCodeService.assignReferralCode here
-        // once the backend endpoint POST /user/{id}/referral-code is available.
+        // NOTE-03 (tracked as GitHub issue — raise under RP-003 follow-up):
+        // Enrolled partners reach the dashboard without a referral code until
+        // POST /user/{id}/referral-code is wired here. That call must be added
+        // before this enrollment flow is considered complete for production.
+        // Contract: POST /user/{userId}/referral-code, no request body,
+        // response is updated UserProfile with referralCode populated.
+        // This enrollment is BLOCKED from production use until RP-003 merges
+        // on ijudi-api and this call is added.
         this.router.navigate(['/indivisuals/dashboard']);
       },
       error: () => {

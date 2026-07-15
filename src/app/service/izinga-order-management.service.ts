@@ -213,8 +213,20 @@ export class IzingaOrderManagementService {
       }));
   }
 
-  createStore(storeProfile : StoreProfile): Observable<StoreProfile> {
-    return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, storeProfile, {headers: this.headers})
+  createStore(storeProfile: StoreProfile): Observable<StoreProfile> {
+    // FIX-01 (RP-005b): backend StoreController.create() reads referralCode via
+    // @RequestParam (URL query param), NOT from the request body. Strip it from
+    // the body and send as a query param so attribution is not silently dropped.
+    const params: Record<string, string> = {};
+    if (storeProfile.referralCode) {
+      params['referralCode'] = storeProfile.referralCode;
+    }
+    const body = { ...storeProfile };
+    delete body.referralCode;
+    return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, body, {
+      headers: this.headers,
+      params
+    })
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)
