@@ -165,8 +165,10 @@ describe('QuotesComponent', () => {
     };
     const { fixture } = buildTestBed({ role: 'ADMIN' }, of([legacyLead]));
     const compiled: HTMLElement = fixture.nativeElement;
-    // The attach_money icon row should not appear
-    expect(compiled.querySelector('[data-testid="price-row"]')).toBeNull();
+    // The attach_money icon row should not appear — check by scanning rendered material-icons
+    const iconTexts = Array.from(compiled.querySelectorAll('i.material-icons'))
+      .map(el => el.textContent?.trim());
+    expect(iconTexts).not.toContain('attach_money');
     // And there should be no "R0" artefact
     expect(compiled.textContent).not.toContain('R0');
   });
@@ -181,6 +183,32 @@ describe('QuotesComponent', () => {
   it('should display distanceKm when present', () => {
     const { fixture } = buildTestBed({ role: 'ADMIN' }, of(MOCK_LEADS));
     expect(fixture.nativeElement.textContent).toContain('12.5');
+  });
+
+  it('should display distance row when distanceKm is exactly 0 (genuine zero, not missing)', () => {
+    const zeroDistanceLead: Lead = {
+      id: 'lead-zero',
+      phone: '0829999999',
+      items: [],
+      fromAddress: 'A',
+      toAddress: 'B',
+      estimatedDeliveryFee: 200,
+      storeType: 'MOVERS',
+      storeId: 'store-1',
+      status: 'CAPTURED',
+      anonymous: false,
+      consentGiven: true,
+      distanceKm: 0,
+      createdDate: '2026-07-01T10:00:00+02:00'
+    };
+    const { fixture } = buildTestBed({ role: 'ADMIN' }, of([zeroDistanceLead]));
+    const compiled: HTMLElement = fixture.nativeElement;
+    // The *ngIf="lead.distanceKm != null" guard must NOT suppress 0 — row must be rendered
+    const iconTexts = Array.from(compiled.querySelectorAll('i.material-icons'))
+      .map(el => el.textContent?.trim());
+    expect(iconTexts).toContain('straighten');
+    // The formatted value "0.0 km" must appear in the rendered text
+    expect(compiled.textContent).toContain('0');
   });
 
   it('should display standardFee and standardKm when present', () => {
