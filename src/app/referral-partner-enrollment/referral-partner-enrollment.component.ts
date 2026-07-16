@@ -60,7 +60,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
 
     // If the user has already completed enrollment, skip to dashboard.
     if (this.user.icaAccepted && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
-      this.router.navigate(['/indivisuals/dashboard']);
+      this.router.navigate(['/indivisuals/rp-dashboard']);
     }
   }
 
@@ -94,7 +94,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
         // response is updated UserProfile with referralCode populated.
         // This enrollment is BLOCKED from production use until RP-003 merges
         // on ijudi-api and this call is added.
-        this.router.navigate(['/indivisuals/dashboard']);
+        this.router.navigate(['/indivisuals/rp-dashboard']);
       },
       error: () => {
         this.acceptError = true;

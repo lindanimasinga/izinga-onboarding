@@ -50,6 +50,7 @@ import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
 import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
+import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/referral-partner-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -93,6 +94,7 @@ import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollmen
     QuotesComponent,
     AmbassadorQrComponent,
     ReferralPartnerEnrollmentComponent,
+    ReferralPartnerDashboardComponent,
   ],
   imports: [
     BrowserModule,

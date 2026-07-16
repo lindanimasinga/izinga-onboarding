@@ -74,10 +74,10 @@ export class WelcomeSelectionComponent {
     } else if (this.storageService.userProfile?.role == 'AMBASSADOR') {
       this.router.navigate(['/ambassador/qr'])
     } else if (this.storageService.userProfile?.role == 'REFERRAL_PARTNER') {
-      // RP-002 (issue #29): route to enrollment if Agreement not yet accepted,
-      // otherwise to the dashboard placeholder until RP-010 (partner portal) is built.
+      // RP-010: route to enrollment if Agreement not yet accepted,
+      // otherwise to the Referral Partner Dashboard.
       if (this.storageService.userProfile?.icaAccepted) {
-        this.router.navigate(['/indivisuals/dashboard'])
+        this.router.navigate(['/indivisuals/rp-dashboard'])
       } else {
         this.router.navigate(['/referral-partner/enroll'])
       }
