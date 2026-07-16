@@ -26,7 +26,8 @@ export class UserConfigManagementComponent implements OnInit {
     label: '',
     userRole: UserProfile.RoleEnum.CUSTOMER,
     mandatoryFields: [],
-    optionalFields: []
+    optionalFields: [],
+    hiddenFields: []
   };
 
   newMandatoryField: FieldDefinition = {
@@ -37,6 +38,13 @@ export class UserConfigManagementComponent implements OnInit {
   };
 
   newOptionalField: FieldDefinition = {
+    name: '',
+    label: '',
+    dataType: DataType.STRING,
+    description: ''
+  };
+
+  newHiddenField: FieldDefinition = {
     name: '',
     label: '',
     dataType: DataType.STRING,
@@ -74,6 +82,9 @@ export class UserConfigManagementComponent implements OnInit {
   selectUserConfig(config: UserConfig): void {
     this.selectedUserConfig = config;
     this.formData = JSON.parse(JSON.stringify(config));
+    if (!this.formData.hiddenFields) {
+      this.formData.hiddenFields = [];
+    }
     this.isEditMode = true;
     this.showForm = true;
   }
@@ -87,10 +98,12 @@ export class UserConfigManagementComponent implements OnInit {
       label: '',
       userRole: UserProfile.RoleEnum.CUSTOMER,
       mandatoryFields: [],
-      optionalFields: []
+      optionalFields: [],
+      hiddenFields: []
     };
     this.newMandatoryField = { name: '', label: '', dataType: DataType.STRING, description: '' };
     this.newOptionalField = { name: '', label: '', dataType: DataType.STRING, description: '' };
+    this.newHiddenField = { name: '', label: '', dataType: DataType.STRING, description: '' };
     this.errorMessage = '';
     this.successMessage = '';
   }
@@ -102,7 +115,8 @@ export class UserConfigManagementComponent implements OnInit {
       label: '',
       userRole: UserProfile.RoleEnum.CUSTOMER,
       mandatoryFields: [],
-      optionalFields: []
+      optionalFields: [],
+      hiddenFields: []
     };
     this.selectedUserConfig = null;
   }
@@ -141,6 +155,24 @@ export class UserConfigManagementComponent implements OnInit {
 
   removeOptionalField(index: number): void {
     this.formData.optionalFields.splice(index, 1);
+  }
+
+  addHiddenField(): void {
+    const name = this.newHiddenField.name?.trim();
+    const label = this.newHiddenField.label?.trim();
+    if (name && label) {
+      this.formData.hiddenFields.push({
+        ...JSON.parse(JSON.stringify(this.newHiddenField)),
+        name,
+        label,
+        description: this.newHiddenField.description?.trim() || ''
+      });
+      this.newHiddenField = { name: '', label: '', dataType: DataType.STRING, description: '' };
+    }
+  }
+
+  removeHiddenField(index: number): void {
+    this.formData.hiddenFields.splice(index, 1);
   }
 
   saveUserConfig(): void {
@@ -211,6 +243,11 @@ export class UserConfigManagementComponent implements OnInit {
 
     if (this.formData.optionalFields.some(field => !field.name?.trim() || !field.label?.trim())) {
       this.errorMessage = 'All optional fields must include a field name and label.';
+      return false;
+    }
+
+    if (this.formData.hiddenFields.some(field => !field.name?.trim() || !field.label?.trim())) {
+      this.errorMessage = 'All hidden fields must include a field name and label.';
       return false;
     }
 

@@ -175,6 +175,15 @@ export class BusinessUpdateComponent {
       console.log(`setting store owner id to ${this.storageService?.userProfile?.id}`);
       this.shop.ownerId = this.storageService.userProfile?.id
       this.shop.shortName = this.replaceSpecialChars(this.shop.name)
+
+      // RP-005b: attach referral code on new store creation only.
+      // The ref value was captured from ?ref= at the /business entry point and
+      // stored in sessionStorage. Clear it after attaching to prevent double-attribution.
+      const rpRef = this.storageService.referralPartnerRef;
+      if (rpRef) {
+        this.shop.referralCode = rpRef;
+        this.storageService.referralPartnerRef = null;
+      }
     }
 
     // Issue #11: always send the full categories array to the backend

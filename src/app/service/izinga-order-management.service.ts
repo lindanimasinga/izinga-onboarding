@@ -12,6 +12,12 @@ import { Order } from '../model/order';
 import { StoreSummary } from '../model/store-summary';
 import { Payout, PayoutType } from '../payout/payout.component';
 import { QuoteApproval } from '../model/quoteApproval';
+import {
+  ReferralPartnerSummary,
+  ReferralPage,
+  ReferralPartnerCommissions,
+  PayoutPage
+} from '../model/referral-partner';
 
 export interface Lead {
   id: string;
@@ -19,7 +25,12 @@ export interface Lead {
   items: { stockId: string; name: string; quantity: number }[];
   fromAddress: string;
   toAddress: string;
-  estimatedPrice: number;
+  estimatedDeliveryFee: number;
+  category?: string;
+  distanceKm?: number;
+  standardFee?: number;
+  standardKm?: number;
+  ratePerKm?: number;
   storeType: string;
   storeId: string;
   status: 'CAPTURED' | 'CONTACTED' | 'CONVERTED' | 'CLOSED';
@@ -27,6 +38,7 @@ export interface Lead {
   consentGiven: boolean;
   consentTimestamp?: string;
   createdDate: string;
+  totalPrice?: number;
 }
 
 @Injectable({
@@ -213,8 +225,20 @@ export class IzingaOrderManagementService {
       }));
   }
 
-  createStore(storeProfile : StoreProfile): Observable<StoreProfile> {
-    return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, storeProfile, {headers: this.headers})
+  createStore(storeProfile: StoreProfile): Observable<StoreProfile> {
+    // FIX-01 (RP-005b): backend StoreController.create() reads referralCode via
+    // @RequestParam (URL query param), NOT from the request body. Strip it from
+    // the body and send as a query param so attribution is not silently dropped.
+    const params: Record<string, string> = {};
+    if (storeProfile.referralCode) {
+      params['referralCode'] = storeProfile.referralCode;
+    }
+    const body = { ...storeProfile };
+    delete body.referralCode;
+    return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, body, {
+      headers: this.headers,
+      params
+    })
     .pipe(
       catchError((error: HttpErrorResponse) => {
         return throwError(error)
@@ -440,6 +464,33 @@ export class IzingaOrderManagementService {
             return throwError(error);
           })
         );
+    }
+
+    // RP-010: Referral Partner dashboard endpoints — all REFERRAL_PARTNER-scoped, auth via JWT.
+    // Never pass a partnerId param — the backend derives it from the JWT subject.
+
+    getReferralPartnerSummary(): Observable<ReferralPartnerSummary> {
+      return this.http.get<ReferralPartnerSummary>(`${environment.izingaUrl}/referral-partner/me/summary`, {headers: this.headers})
+        .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+    }
+
+    getReferralPartnerReferrals(page: number = 0, size: number = 20): Observable<ReferralPage> {
+      return this.http.get<ReferralPage>(
+        `${environment.izingaUrl}/referral-partner/me/referrals?page=${page}&size=${size}`,
+        {headers: this.headers}
+      ).pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+    }
+
+    getReferralPartnerCommissions(): Observable<ReferralPartnerCommissions> {
+      return this.http.get<ReferralPartnerCommissions>(`${environment.izingaUrl}/referral-partner/me/commissions`, {headers: this.headers})
+        .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+    }
+
+    getReferralPartnerPayouts(page: number = 0, size: number = 20): Observable<PayoutPage> {
+      return this.http.get<PayoutPage>(
+        `${environment.izingaUrl}/recon/referral-partner/me/payouts?page=${page}&size=${size}`,
+        {headers: this.headers}
+      ).pipe(catchError((error: HttpErrorResponse) => throwError(error)));
     }
 
     notifyNewMessage(chatSessionId: string, messageId: string): Observable<any> {

@@ -56,6 +56,9 @@
                 <span class="badge bg-secondary">
                   Optional: {{ config.optionalFields.length }}
                 </span>
+                <span class="badge bg-dark" *ngIf="config.hiddenFields?.length">
+                  Hidden: {{ config.hiddenFields.length }}
+                </span>
               </div>
 
               <div class="d-flex gap-2">
@@ -221,15 +224,15 @@
 
                   <div class="mb-2">
                     <label class="form-label small">Description (optional)</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                         class="form-control"
                       [(ngModel)]="newMandatoryField.description"
                       name="mandatoryFieldDescription"
                       placeholder="e.g., Valid South African driver's license">
                   </div>
 
-                  <button 
+                  <button
                     type="button"
                     class="btn btn-dark w-100"
                     (click)="addMandatoryField()">
@@ -344,10 +347,126 @@
                       placeholder="e.g., License plate number">
                   </div>
 
-                  <button 
+                  <button
                     type="button"
                     class="btn btn-dark w-100"
                     (click)="addOptionalField()">
+                    <i class="fa fa-plus"></i> Add Field
+                  </button>
+              </div>
+            </div>
+
+            <hr>
+
+            <!-- Hidden Fields -->
+            <div class="mb-4">
+              <label class="form-label">Hidden Fields</label>
+              <p class="small text-muted mb-2">Captured programmatically (e.g. document extraction) — never rendered on the onboarding form, but saved with the profile.</p>
+
+              <!-- Display existing hidden fields -->
+              <div *ngFor="let field of formData.hiddenFields; let i = index">
+                <div class="field-row">
+                    <div class="row g-2 align-items-end">
+                      <div class="col-md-3">
+                        <label class="form-label small mb-1">Field Name</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          [(ngModel)]="field.name"
+                          [name]="'hiddenExistingFieldName' + i"
+                          placeholder="e.g., id_number">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label small mb-1">Field Label</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          [(ngModel)]="field.label"
+                          [name]="'hiddenExistingFieldLabel' + i"
+                          placeholder="e.g., ID Number">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label small mb-1">Data Type</label>
+                        <select
+                            class="form-control"
+                          [(ngModel)]="field.dataType"
+                          [name]="'hiddenExistingFieldType' + i">
+                          <option *ngFor="let type of dataTypes" [value]="type">
+                            {{ type }}
+                          </option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label small mb-1">Description</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          [(ngModel)]="field.description"
+                          [name]="'hiddenExistingFieldDescription' + i"
+                          placeholder="Optional description">
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        (click)="removeHiddenField(i)">
+                        <i class="fa fa-trash"></i> Remove
+                      </button>
+                    </div>
+                  </div>
+              </div>
+
+              <!-- Add hidden field form -->
+              <div class="add-field-section mb-3">
+                <p class="mb-3">Add Hidden Field</p>
+
+                  <div class="mb-2">
+                    <label class="form-label small">Field Name</label>
+                    <input
+                      type="text"
+                        class="form-control"
+                      [(ngModel)]="newHiddenField.name"
+                      name="hiddenFieldName"
+                      placeholder="e.g., id_number">
+                  </div>
+
+                  <div class="mb-2">
+                    <label class="form-label small">Field Label</label>
+                    <input
+                      type="text"
+                        class="form-control"
+                      [(ngModel)]="newHiddenField.label"
+                      name="hiddenFieldLabel"
+                      placeholder="e.g., ID Number">
+                  </div>
+
+                  <div class="mb-2">
+                    <label class="form-label small">Data Type</label>
+                    <select
+                      class="form-control"
+                      [(ngModel)]="newHiddenField.dataType"
+                      name="hiddenFieldDataType">
+                      <option *ngFor="let type of dataTypes" [value]="type">
+                        {{ type }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="mb-2">
+                    <label class="form-label small">Description (optional)</label>
+                    <input
+                      type="text"
+                        class="form-control"
+                      [(ngModel)]="newHiddenField.description"
+                      name="hiddenFieldDescription"
+                      placeholder="e.g., Extracted from ID document, used for fraud checks">
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn btn-dark w-100"
+                    (click)="addHiddenField()">
                     <i class="fa fa-plus"></i> Add Field
                   </button>
               </div>

@@ -70,9 +70,25 @@
               <i class="material-icons" style="font-size:14px;vertical-align:middle;">flag</i>
               To: {{lead.toAddress}}
             </div>
-            <div class="mb-1 text-muted small">
-              <i class="material-icons" style="font-size:14px;vertical-align:middle;">attach_money</i>
-              Est. {{lead.estimatedPrice | currency:'R'}}
+            <div *ngIf="lead.estimatedDeliveryFee != null" class="mb-1 text-muted small">
+              Delivery Fee  {{lead.estimatedDeliveryFee | currency:'ZAR':'symbol-narrow':'1.2-2'}}
+            </div>
+            <div *ngIf="lead.totalPrice != null" class="mb-1 text-muted small">
+              Total Price {{lead.totalPrice | currency:'ZAR':'symbol-narrow':'1.2-2'}}
+            </div>
+            <div *ngIf="lead.category" class="mb-1 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">category</i>
+              {{lead.category}}
+            </div>
+            <div *ngIf="lead.distanceKm != null" class="mb-1 text-muted small">
+              <i class="material-icons" style="font-size:14px;vertical-align:middle;">straighten</i>
+              {{lead.distanceKm | number:'1.1-1'}} km
+            </div>
+            <div *ngIf="lead.standardFee != null" class="mb-1 text-muted small">
+              Standard Fee {{lead.standardFee | currency:'ZAR':'symbol-narrow':'1.2-2'}} for {{lead.standardKm}} km
+            </div>
+            <div *ngIf="lead.ratePerKm != null" class="mb-1 text-muted small">
+              Rate R{{lead.ratePerKm}}/km
             </div>
             <div class="mb-2 text-muted small">
               <i class="material-icons" style="font-size:14px;vertical-align:middle;">event</i>

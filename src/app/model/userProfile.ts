@@ -38,6 +38,9 @@ export interface UserProfile {
     yearsInService?: number;
     termsAccepted?: boolean;
     termsAcceptedDate?: Date;
+    icaAccepted?: boolean;
+    icaAcceptedDate?: Date;
+    icaVersion?: string;
     availabilityStatus?: ProfileAvailabilityStatus.Availability;
     profileApproved?: boolean;
     profileApprovedDate?: Date;
@@ -48,7 +51,7 @@ export interface UserProfile {
     ambassadorId?: string | null;
 }
 export namespace UserProfile {
-    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR';
+    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR' | 'REFERRAL_PARTNER';
     export const RoleEnum = {
         CUSTOMER: 'CUSTOMER' as RoleEnum,
         STOREADMIN: 'STORE_ADMIN' as RoleEnum,
@@ -56,7 +59,8 @@ export namespace UserProfile {
         MESSENGER: 'MESSENGER' as RoleEnum,
         MESSENGERADMIN: 'MESSENGER_ADMIN' as RoleEnum,
         ADMIN: 'ADMIN' as RoleEnum,
-        AMBASSADOR: 'AMBASSADOR' as RoleEnum
+        AMBASSADOR: 'AMBASSADOR' as RoleEnum,
+        REFERRALPARTNER: 'REFERRAL_PARTNER' as RoleEnum
     };
 }
 

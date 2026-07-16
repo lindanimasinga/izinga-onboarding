@@ -27,6 +27,10 @@ export interface UserConfig {
     userRole: UserProfile.RoleEnum;
     mandatoryFields: FieldDefinition[];
     optionalFields: FieldDefinition[];
+    /** Fields that are never rendered on the onboarding form but still travel with the
+     *  profile payload — e.g. set programmatically from document extraction rather than
+     *  typed by the user. */
+    hiddenFields: FieldDefinition[];
 }
 
 // Predefined service type names for type safety

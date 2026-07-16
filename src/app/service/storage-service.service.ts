@@ -16,6 +16,7 @@ export class StorageService {
   STORE_TO_PAY = "nvcaseuhfdkfs"
   PAYOUT = "we434dfsdfsdf"
   AMBASSADOR_REF_KEY = "ambassadorRef"
+  REFERRAL_PARTNER_REF_KEY = "referralPartnerRef"
   RETURN_URL_KEY = "returnUrl"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
@@ -100,6 +101,24 @@ export class StorageService {
       this.sessionCache.setItem(this.AMBASSADOR_REF_KEY, ref);
     } else {
       this.sessionCache.removeItem(this.AMBASSADOR_REF_KEY);
+    }
+  }
+
+  /**
+   * RP-005b: Referral Partner code captured from ?ref= query param on the business
+   * registration entry point. Persisted in sessionStorage so it survives navigation
+   * through the phone-verify → dashboard → store-create flow without surviving
+   * a full browser restart (intentional — stale referral attribution should not persist).
+   */
+  get referralPartnerRef(): string | null {
+    return this.sessionCache.getItem(this.REFERRAL_PARTNER_REF_KEY);
+  }
+
+  set referralPartnerRef(ref: string | null) {
+    if (ref) {
+      this.sessionCache.setItem(this.REFERRAL_PARTNER_REF_KEY, ref);
+    } else {
+      this.sessionCache.removeItem(this.REFERRAL_PARTNER_REF_KEY);
     }
   }
 
