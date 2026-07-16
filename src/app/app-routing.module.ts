@@ -36,6 +36,7 @@ import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
 import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
 import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
+import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/referral-partner-dashboard.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
@@ -68,7 +69,8 @@ const routes: Routes = [
       { path: 'user-config-management', component: UserConfigManagementComponent},
       { path: 'admin-orders', component: AdminOrdersComponent},
       { path: 'quotes', component: QuotesComponent},
-      { path: 'info', component: UserInfoComponent}
+      { path: 'info', component: UserInfoComponent},
+      { path: 'rp-dashboard', component: ReferralPartnerDashboardComponent}
     ]},
   { path: 'business',
     children : [

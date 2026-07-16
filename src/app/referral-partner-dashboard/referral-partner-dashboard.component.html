@@ -1,0 +1,156 @@
+<div class="mt-3">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <div class="text-center mb-4">
+        <h2 class="fw-bold">Partner Dashboard</h2>
+        <p class="text-muted">Track your referrals, commissions, and earnings</p>
+      </div>
+
+      <!-- AC-010-05/06: Banking details banner -->
+      <div *ngIf="!hasBankDetails" class="alert text-start mb-4 rp-alert-warning" role="alert">
+        <strong>Add your banking details to receive payouts.</strong>
+        <span class="ms-2">
+          <button type="button" class="btn btn-dark btn-sm" (click)="navigateToProfile()">Update Profile</button>
+        </span>
+      </div>
+      <div *ngIf="hasBankDetails" class="alert text-start mb-4 rp-alert-success" role="alert">
+        Payout account: <strong>{{ maskedBankDetails }}</strong>
+      </div>
+
+      <!-- AC-010-01: Referral code and shareable link -->
+      <div class="mb-4 rp-section">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Your Referral Code</h5>
+
+        <div *ngIf="summaryLoading" class="text-muted">Loading...</div>
+
+        <div *ngIf="summaryError" class="rp-section-error" role="alert">
+          Could not load referral code.
+          <button type="button" class="btn btn-outline-dark btn-sm ms-2" (click)="loadSummary()">Retry</button>
+        </div>
+
+        <div *ngIf="!summaryLoading && !summaryError && summary">
+          <div class="mb-2">
+            <span class="fw-bold rp-code">{{ summary.referralCode }}</span>
+          </div>
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <span class="text-muted rp-link-text">{{ shareableLink }}</span>
+            <button type="button" class="btn btn-dark btn-sm" (click)="copyLink()">
+              {{ linkCopied ? 'Copied!' : 'Copy Link' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AC-010-02: Referral summary counts -->
+      <div class="mb-4 rp-section">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Referral Summary</h5>
+
+        <div *ngIf="summaryLoading" class="text-muted">Loading...</div>
+
+        <div *ngIf="summaryError" class="rp-section-error" role="alert">
+          Could not load referral summary.
+          <button type="button" class="btn btn-outline-dark btn-sm ms-2" (click)="loadSummary()">Retry</button>
+        </div>
+
+        <div *ngIf="!summaryLoading && !summaryError && summary">
+          <div class="row text-center">
+            <div class="col-4">
+              <div class="rp-stat-card">
+                <div class="rp-stat-value">{{ totalReferrals }}</div>
+                <div class="rp-stat-label">Total Referrals</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="rp-stat-card">
+                <div class="rp-stat-value">{{ summary.referralCounts.foodCustomers }}</div>
+                <div class="rp-stat-label">Food Customers</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="rp-stat-card">
+                <div class="rp-stat-value">{{ summary.referralCounts.storePartners }}</div>
+                <div class="rp-stat-label">Store Partners</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AC-010-03: Referral list -->
+      <div class="mb-4 rp-section">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Your Referrals</h5>
+
+        <div *ngIf="referralsLoading" class="text-muted">Loading...</div>
+
+        <div *ngIf="referralsError" class="rp-section-error" role="alert">
+          Could not load referrals.
+          <button type="button" class="btn btn-outline-dark btn-sm ms-2" (click)="loadReferrals()">Retry</button>
+        </div>
+
+        <div *ngIf="!referralsLoading && !referralsError && referrals.length === 0" class="text-muted">
+          No referrals yet. Share your link to start earning commissions.
+        </div>
+
+        <div *ngIf="!referralsLoading && !referralsError && referrals.length > 0">
+          <div *ngFor="let item of referrals" class="rp-referral-row">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <div class="fw-bold">{{ item.name }}</div>
+                <div class="rp-referral-meta">
+                  {{ referralTypeLabel(item.type) }} &middot;
+                  {{ item.referredAt | date:'d MMM yyyy' }}
+                </div>
+              </div>
+              <span class="rp-badge" [class.rp-badge-converted]="item.converted" [class.rp-badge-registered]="!item.converted">
+                {{ item.converted ? 'CONVERTED' : 'REGISTERED' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AC-010-04: Commission totals -->
+      <div class="mb-4 rp-section">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">Your Commissions</h5>
+
+        <div *ngIf="commissionsLoading" class="text-muted">Loading...</div>
+
+        <div *ngIf="commissionsError" class="rp-section-error" role="alert">
+          Could not load commissions.
+          <button type="button" class="btn btn-outline-dark btn-sm ms-2" (click)="loadCommissions()">Retry</button>
+        </div>
+
+        <div *ngIf="!commissionsLoading && !commissionsError && commissions">
+          <div class="row text-center mb-3">
+            <div class="col-4">
+              <div class="rp-stat-card rp-stat-card-primary">
+                <div class="rp-stat-value">R {{ totalEarned | number:'1.2-2' }}</div>
+                <div class="rp-stat-label">Total Earned</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="rp-stat-card">
+                <div class="rp-stat-value">R {{ commissions.totals.PENDING | number:'1.2-2' }}</div>
+                <div class="rp-stat-label">Pending</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="rp-stat-card">
+                <div class="rp-stat-value">R {{ commissions.totals.PAID | number:'1.2-2' }}</div>
+                <div class="rp-stat-label">Paid</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation actions -->
+      <div class="mt-4 pt-3 border-top d-flex justify-content-between">
+        <button type="button" class="btn btn-outline-dark" (click)="navigateToProfile()">My Profile</button>
+        <button type="button" class="btn btn-outline-danger" (click)="logout()">Logout</button>
+      </div>
+
+    </div>
+  </div>
+</div>

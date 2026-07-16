@@ -1,0 +1,96 @@
+.rp-section {
+  background-color: var(--bkg-card-color);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+}
+
+.rp-code {
+  font-size: 1.5rem;
+  letter-spacing: 0.05em;
+  color: #00A9A1;
+}
+
+.rp-link-text {
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+.rp-stat-card {
+  background-color: var(--bkg-card-color);
+  border-radius: 6px;
+  padding: 0.75rem 0.5rem;
+}
+
+.rp-stat-card-primary .rp-stat-value {
+  color: #00A9A1;
+}
+
+.rp-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.rp-stat-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+.rp-referral-row {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.rp-referral-row:last-child {
+  border-bottom: none;
+}
+
+.rp-referral-meta {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.15rem;
+}
+
+.rp-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.rp-badge-converted {
+  background-color: var(--btn-green-color);
+  color: var(--text-color);
+}
+
+.rp-badge-registered {
+  background-color: var(--bkg-card-color);
+  border: 1px solid #6c757d;
+  color: var(--text-color);
+}
+
+.rp-section-error {
+  color: var(--text-color);
+  border-left: 4px solid var(--btn-red-color);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--bkg-card-color);
+  border-radius: 0 4px 4px 0;
+}
+
+.rp-alert-warning {
+  color: var(--text-color);
+  border-left: 4px solid #f39c12;
+  background-color: var(--bkg-card-color);
+  border-radius: 0 4px 4px 0;
+  padding: 0.75rem 1rem;
+}
+
+.rp-alert-success {
+  color: var(--text-color);
+  border-left: 4px solid var(--btn-green-color);
+  background-color: var(--bkg-card-color);
+  border-radius: 0 4px 4px 0;
+  padding: 0.75rem 1rem;
+}

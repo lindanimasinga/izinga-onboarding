@@ -79,7 +79,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
       icaVersion: 'rpa-draft-v1'
     } as UserProfile;
     fixture.detectChanges();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/dashboard']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
   });
 
   // RP-ENR-03
@@ -115,7 +115,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
     component.enroll();
 
     expect(mockStorage.userProfile).toEqual(savedProfile);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/dashboard']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
   });
 
   // RP-ENR-06
