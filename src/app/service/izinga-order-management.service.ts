@@ -25,7 +25,12 @@ export interface Lead {
   items: { stockId: string; name: string; quantity: number }[];
   fromAddress: string;
   toAddress: string;
-  estimatedPrice: number;
+  estimatedDeliveryFee: number;
+  category?: string;
+  distanceKm?: number;
+  standardFee?: number;
+  standardKm?: number;
+  ratePerKm?: number;
   storeType: string;
   storeId: string;
   status: 'CAPTURED' | 'CONTACTED' | 'CONVERTED' | 'CLOSED';
