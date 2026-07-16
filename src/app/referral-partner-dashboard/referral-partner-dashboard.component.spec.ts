@@ -111,8 +111,9 @@ describe('ReferralPartnerDashboardComponent', () => {
       setupHappyPath();
       fixture.detectChanges();
 
-      // Stub clipboard API
-      spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+      // ChromeHeadless does not expose navigator.clipboard — install a minimal stub.
+      const clipboardStub = { writeText: jasmine.createSpy('writeText').and.returnValue(Promise.resolve()) };
+      Object.defineProperty(navigator, 'clipboard', { value: clipboardStub, configurable: true });
 
       component.copyLink();
       tick(0); // resolve the Promise microtask
@@ -120,6 +121,26 @@ describe('ReferralPartnerDashboardComponent', () => {
 
       tick(2000);
       expect(component.linkCopied).toBeFalse();
+
+      // Restore — leave clipboard undefined for the next test
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    }));
+
+    it('copyLink() should not throw and linkCopied should remain false when navigator.clipboard is undefined', fakeAsync(() => {
+      setupHappyPath();
+      fixture.detectChanges();
+
+      const originalDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+
+      expect(() => component.copyLink()).not.toThrow();
+      tick(2000);
+      expect(component.linkCopied).toBeFalse();
+
+      // Restore original descriptor so other tests are not affected
+      if (originalDescriptor) {
+        Object.defineProperty(navigator, 'clipboard', originalDescriptor);
+      }
     }));
   });
 

@@ -169,11 +169,14 @@ export class ReferralPartnerDashboardComponent implements OnInit {
 
   /** One-click copy of the shareable link (AC-010-01). */
   copyLink(): void {
+    if (!navigator.clipboard) {
+      return;
+    }
     navigator.clipboard.writeText(this.shareableLink).then(() => {
       this.linkCopied = true;
       setTimeout(() => { this.linkCopied = false; }, 2000);
     }).catch(() => {
-      // Clipboard API unavailable — silently ignore (Safari desktop restriction).
+      // Silently ignore write errors (e.g. permission denied).
     });
   }
 
