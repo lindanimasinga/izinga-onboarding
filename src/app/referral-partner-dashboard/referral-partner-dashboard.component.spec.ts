@@ -269,6 +269,35 @@ describe('ReferralPartnerDashboardComponent', () => {
       fixture.detectChanges();
       expect(component.maskedBankDetails).toBe('');
     });
+
+    // FIX-01: accountId shorter than 4 characters uses the full accountId (else branch)
+    it('maskedBankDetails should use full accountId when it has fewer than 4 characters', () => {
+      const userShortAccount: UserProfile = {
+        ...MOCK_RP_USER,
+        bank: { accountId: '12', name: 'FNB', type: 'CHEQUE' as any, branchCode: '250655' }
+      };
+      Object.defineProperty(mockStorage, 'userProfile', { get: () => userShortAccount, configurable: true });
+      mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
+      mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
+      mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
+      fixture.detectChanges();
+      expect(component.maskedBankDetails).toBe('FNB ****12');
+    });
+
+    // FIX-02: bank is null at runtime — hasBankDetails must be false and maskedBankDetails must be ''
+    it('hasBankDetails should be false and maskedBankDetails should be empty when bank is null', () => {
+      const userNullBank: UserProfile = {
+        ...MOCK_RP_USER,
+        bank: null as any
+      };
+      Object.defineProperty(mockStorage, 'userProfile', { get: () => userNullBank, configurable: true });
+      mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
+      mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
+      mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
+      fixture.detectChanges();
+      expect(component.hasBankDetails).toBeFalse();
+      expect(component.maskedBankDetails).toBe('');
+    });
   });
 
   // ── AC-010-07: Per-section error and retry ───────────────────────────────
