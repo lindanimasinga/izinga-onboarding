@@ -38,6 +38,7 @@ export interface Lead {
   consentGiven: boolean;
   consentTimestamp?: string;
   createdDate: string;
+  totalPrice?: number;
 }
 
 @Injectable({
