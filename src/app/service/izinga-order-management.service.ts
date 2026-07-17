@@ -466,6 +466,18 @@ export class IzingaOrderManagementService {
         );
     }
 
+    // RP-003/RP-002: Assign a referral code to the REFERRAL_PARTNER user identified by userId.
+    // Idempotent — returns the existing code if already assigned. Called immediately after
+    // the partner accepts the ICA in ReferralPartnerEnrollmentComponent.
+    // Backend: POST /user/{userId}/referral-code — requires ADMIN role OR self (#userId == auth.name).
+    assignReferralCode(userId: string): Observable<UserProfile> {
+      return this.http.post<UserProfile>(
+        `${environment.izingaUrl}/user/${userId}/referral-code`,
+        null,
+        {headers: this.headers}
+      ).pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+    }
+
     // RP-010: Referral Partner dashboard endpoints — all REFERRAL_PARTNER-scoped, auth via JWT.
     // Never pass a partnerId param — the backend derives it from the JWT subject.
 

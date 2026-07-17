@@ -15,10 +15,11 @@ import { AnalyticsService } from '../service/analytics.service';
  * Partners who accepted under 'rpa-draft-v1' are NOT redirected — they see the form
  * again and must re-accept the corrected terms. See the RPA_VERSION property JSDoc.
  *
- * Blocking dependency: referral code assignment (ReferralCodeService.assignReferralCode)
- * requires backend endpoint RP-003 to be merged and available. Until then, enrollment
- * completes the ICA acceptance but does NOT call a referral code endpoint.
- * See PR notes for the assumed API contract.
+ * Enrollment flow (two-step, sequential):
+ *   1. PATCH /user/{id} — persists ICA acceptance fields (icaAccepted, icaAcceptedDate, icaVersion).
+ *   2. POST  /user/{id}/referral-code — assigns a unique referral code (idempotent).
+ *      Backend merged via PR #113 on 15 July 2026. Authorization: ADMIN or self.
+ *      Both calls must succeed before navigation to the dashboard.
  */
 @Component({
   selector: 'app-referral-partner-enrollment',
@@ -88,20 +89,24 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
 
     this.izingaOrderManager.updateCustomer(updatedProfile).subscribe({
       next: (savedProfile: UserProfile) => {
-        this.storageService.userProfile = savedProfile;
-        this.analytics.logEvent('referral_partner_rpa_accepted', {
-          userId: savedProfile.id,
-          icaVersion: this.RPA_VERSION
+        // Step 1 succeeded — ICA acceptance persisted. Now assign the referral code (RP-003).
+        this.izingaOrderManager.assignReferralCode(savedProfile.id!).subscribe({
+          next: (profileWithCode: UserProfile) => {
+            // Both steps succeeded. Persist the profile that now carries referralCode.
+            this.storageService.userProfile = profileWithCode;
+            this.analytics.logEvent('referral_partner_rpa_accepted', {
+              userId: profileWithCode.id,
+              icaVersion: this.RPA_VERSION
+            });
+            this.router.navigate(['/indivisuals/rp-dashboard']);
+          },
+          error: () => {
+            // Referral code assignment failed — ICA is recorded but the partner cannot
+            // use their shareable link. Surface the error so the user can retry.
+            this.acceptError = true;
+            this.saving = false;
+          }
         });
-        // NOTE-03 (tracked as GitHub issue — raise under RP-003 follow-up):
-        // Enrolled partners reach the dashboard without a referral code until
-        // POST /user/{id}/referral-code is wired here. That call must be added
-        // before this enrollment flow is considered complete for production.
-        // Contract: POST /user/{userId}/referral-code, no request body,
-        // response is updated UserProfile with referralCode populated.
-        // This enrollment is BLOCKED from production use until RP-003 merges
-        // on ijudi-api and this call is added.
-        this.router.navigate(['/indivisuals/rp-dashboard']);
       },
       error: () => {
         this.acceptError = true;

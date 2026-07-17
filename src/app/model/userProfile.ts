@@ -49,6 +49,7 @@ export interface UserProfile {
     crminalCheckData?: CriminalCheckData;
     tag : { [key: string]: any };
     ambassadorId?: string | null;
+    referralCode?: string | null;
 }
 export namespace UserProfile {
     export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR' | 'REFERRAL_PARTNER';
