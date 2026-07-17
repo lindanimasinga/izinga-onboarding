@@ -9,9 +9,11 @@ import { AnalyticsService } from '../service/analytics.service';
  * RP-002: Referral Partner enrollment — click-wrap acceptance of the Referral Partner Agreement.
  *
  * ADR-017 pattern: acceptance is recorded on the UserProfile via the three ICA fields
- * (icaAccepted, icaAcceptedDate, icaVersion) using version string 'rpa-draft-v1'.
- * The version string MUST be updated to 'rpa-v1' (or the final version stamp supplied
- * by attorney Jason van der Merwe) before this screen goes live in production.
+ * (icaAccepted, icaAcceptedDate, icaVersion) using version string 'rpa-v1'.
+ * This version stamp was bumped from 'rpa-draft-v1' on 2026-07-17 when the two
+ * placeholder commission amounts were replaced with confirmed material terms.
+ * Partners who accepted under 'rpa-draft-v1' are NOT redirected — they see the form
+ * again and must re-accept the corrected terms. See the RPA_VERSION property JSDoc.
  *
  * Blocking dependency: referral code assignment (ReferralCodeService.assignReferralCode)
  * requires backend endpoint RP-003 to be merged and available. Until then, enrollment
@@ -31,16 +33,20 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
   user: UserProfile | undefined;
 
   /**
-   * NOTE-04 — RELEASE BLOCKER: This version stamp is 'rpa-draft-v1' while the
-   * Referral Partner Agreement is in DRAFT pending attorney Jason van der Merwe's
-   * sign-off. Before production go-live the Release Manager must:
-   *   1. Replace the agreement body in the template with the final attorney-approved text.
-   *   2. Update this constant to the attorney-assigned version stamp (e.g. 'rpa-v1').
-   *   3. Confirm with Legal that 'rpa-draft-v1' acceptances (if any from testing) are
-   *      voided and not treated as binding before the final text is published.
-   * This item is tracked on the RP-002 release checklist in the PR description.
+   * Version stamp written to icaVersion on the UserProfile at acceptance.
+   *
+   * Bumped from 'rpa-draft-v1' to 'rpa-v1' on 2026-07-17 when the two
+   * R[TBC by attorney] commission placeholders in Schedule 1 were replaced
+   * with the confirmed material terms (Food Customer: R15.00 flat; Furniture
+   * Customer: 5% of Total Delivery Charge). This constitutes a material change
+   * to the agreement text — any acceptance recorded under 'rpa-draft-v1' used
+   * placeholder text and is distinguishable in the audit log from partners who
+   * accepted the confirmed terms under 'rpa-v1'.
+   *
+   * Terms confirmed by co-founder Lindani Masinga on 14 July 2026.
+   * See docs/referral-partner-agreement.md, Schedule 1.
    */
-  readonly RPA_VERSION = 'rpa-draft-v1';
+  readonly RPA_VERSION = 'rpa-v1';
 
   constructor(
     private router: Router,
@@ -58,8 +64,9 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
       return;
     }
 
-    // If the user has already completed enrollment, skip to dashboard.
-    if (this.user.icaAccepted && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
+    // If the user has already completed enrollment under the current agreement version, skip to dashboard.
+    // Partners who accepted an older version (e.g. 'rpa-draft-v1') must re-accept the corrected terms.
+    if (this.user.icaAccepted && this.user.icaVersion === this.RPA_VERSION && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
       this.router.navigate(['/indivisuals/rp-dashboard']);
     }
   }
