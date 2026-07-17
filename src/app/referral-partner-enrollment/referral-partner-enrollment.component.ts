@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { UserProfile } from '../model/userProfile';
@@ -15,10 +16,23 @@ import { AnalyticsService } from '../service/analytics.service';
  * Partners who accepted under 'rpa-draft-v1' are NOT redirected — they see the form
  * again and must re-accept the corrected terms. See the RPA_VERSION property JSDoc.
  *
- * Blocking dependency: referral code assignment (ReferralCodeService.assignReferralCode)
- * requires backend endpoint RP-003 to be merged and available. Until then, enrollment
- * completes the ICA acceptance but does NOT call a referral code endpoint.
- * See PR notes for the assumed API contract.
+ * Enrollment flow (two-step, sequential):
+ *   1. PATCH /user/{id} — persists ICA acceptance fields (icaAccepted, icaAcceptedDate, icaVersion).
+ *   2. POST  /user/{id}/referral-code — assigns a unique referral code (idempotent).
+ *
+ *      OUTSTANDING BACKEND DEPENDENCY: the ADMIN-or-self authorization widening for
+ *      this endpoint has NOT yet merged. It lives on ijudi-api branch
+ *      `fix/rp-enrollment-referral-code-assignment`, which is currently blocked in
+ *      Code Review on a security-test coverage gap. The existing production backend
+ *      only accepts ADMIN tokens for this call — self-calls from enrolled partners
+ *      will receive 403 until that branch merges to develop.
+ *
+ *      DO NOT deploy this frontend branch to any shared environment (dev, staging,
+ *      or production) ahead of ijudi-api `fix/rp-enrollment-referral-code-assignment`
+ *      merging to develop. Deploying this frontend first would cause every enrollment
+ *      attempt to fail at step 2 with a 403.
+ *
+ *      Both calls must succeed before navigation to the dashboard.
  */
 @Component({
   selector: 'app-referral-partner-enrollment',
@@ -86,24 +100,30 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
       icaVersion: this.RPA_VERSION
     };
 
-    this.izingaOrderManager.updateCustomer(updatedProfile).subscribe({
-      next: (savedProfile: UserProfile) => {
-        this.storageService.userProfile = savedProfile;
+    // NOTE-01 fix: flattened from nested subscribe to switchMap so that navigating
+    // away between the two calls does not leave an inner subscription alive against
+    // a destroyed component. A single subscription covers both steps; cancellation
+    // of the outer observable also cancels any in-flight step-2 request.
+    this.izingaOrderManager.updateCustomer(updatedProfile).pipe(
+      switchMap((savedProfile: UserProfile) => {
+        // Step 1 succeeded — ICA acceptance persisted. Now assign the referral code (RP-003).
+        return this.izingaOrderManager.assignReferralCode(savedProfile.id!);
+      })
+    ).subscribe({
+      next: (profileWithCode: UserProfile) => {
+        // Both steps succeeded. Persist the profile that now carries referralCode.
+        this.storageService.userProfile = profileWithCode;
         this.analytics.logEvent('referral_partner_rpa_accepted', {
-          userId: savedProfile.id,
+          userId: profileWithCode.id,
           icaVersion: this.RPA_VERSION
         });
-        // NOTE-03 (tracked as GitHub issue — raise under RP-003 follow-up):
-        // Enrolled partners reach the dashboard without a referral code until
-        // POST /user/{id}/referral-code is wired here. That call must be added
-        // before this enrollment flow is considered complete for production.
-        // Contract: POST /user/{userId}/referral-code, no request body,
-        // response is updated UserProfile with referralCode populated.
-        // This enrollment is BLOCKED from production use until RP-003 merges
-        // on ijudi-api and this call is added.
         this.router.navigate(['/indivisuals/rp-dashboard']);
       },
       error: () => {
+        // Either step failed — surface the error so the user can retry.
+        // ICA may already be recorded (step 1 succeeded) but referral code is
+        // not yet assigned. The retry is safe: updateCustomer is idempotent for
+        // the same icaVersion, and assignReferralCode is idempotent by design.
         this.acceptError = true;
         this.saving = false;
       }
