@@ -76,7 +76,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
     mockStorage.userProfile = {
       ...baseProfile,
       icaAccepted: true,
-      icaVersion: 'rpa-draft-v1'
+      icaVersion: 'rpa-v1'
     } as UserProfile;
     fixture.detectChanges();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
@@ -92,7 +92,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
 
   // RP-ENR-04
   it('RP-ENR-04: calls updateCustomer with correct ICA fields when checkbox ticked', () => {
-    const savedProfile = { ...baseProfile, icaAccepted: true, icaVersion: 'rpa-draft-v1' } as UserProfile;
+    const savedProfile = { ...baseProfile, icaAccepted: true, icaVersion: 'rpa-v1' } as UserProfile;
     mockOrderService.updateCustomer.and.returnValue(of(savedProfile));
     fixture.detectChanges();
 
@@ -102,7 +102,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
     const callArg: UserProfile = mockOrderService.updateCustomer.calls.mostRecent().args[0];
     expect(callArg.icaAccepted).toBeTrue();
     expect(callArg.icaAcceptedDate).toBeDefined();
-    expect(callArg.icaVersion).toBe('rpa-draft-v1');
+    expect(callArg.icaVersion).toBe('rpa-v1');
   });
 
   // RP-ENR-05
@@ -132,7 +132,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
 
   // RP-ENR-08
   it('RP-ENR-08: fires rpa_accepted analytics event on success', () => {
-    const savedProfile = { ...baseProfile, id: 'user-rp-1', icaAccepted: true, icaVersion: 'rpa-draft-v1' } as UserProfile;
+    const savedProfile = { ...baseProfile, id: 'user-rp-1', icaAccepted: true, icaVersion: 'rpa-v1' } as UserProfile;
     mockOrderService.updateCustomer.and.returnValue(of(savedProfile));
     fixture.detectChanges();
 
@@ -141,7 +141,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
 
     expect(mockAnalytics.logEvent).toHaveBeenCalledWith(
       'referral_partner_rpa_accepted',
-      jasmine.objectContaining({ userId: 'user-rp-1', icaVersion: 'rpa-draft-v1' })
+      jasmine.objectContaining({ userId: 'user-rp-1', icaVersion: 'rpa-v1' })
     );
   });
 });

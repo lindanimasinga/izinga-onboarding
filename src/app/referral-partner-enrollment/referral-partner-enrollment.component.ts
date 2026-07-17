@@ -31,16 +31,20 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
   user: UserProfile | undefined;
 
   /**
-   * NOTE-04 — RELEASE BLOCKER: This version stamp is 'rpa-draft-v1' while the
-   * Referral Partner Agreement is in DRAFT pending attorney Jason van der Merwe's
-   * sign-off. Before production go-live the Release Manager must:
-   *   1. Replace the agreement body in the template with the final attorney-approved text.
-   *   2. Update this constant to the attorney-assigned version stamp (e.g. 'rpa-v1').
-   *   3. Confirm with Legal that 'rpa-draft-v1' acceptances (if any from testing) are
-   *      voided and not treated as binding before the final text is published.
-   * This item is tracked on the RP-002 release checklist in the PR description.
+   * Version stamp written to icaVersion on the UserProfile at acceptance.
+   *
+   * Bumped from 'rpa-draft-v1' to 'rpa-v1' on 2026-07-17 when the two
+   * R[TBC by attorney] commission placeholders in Schedule 1 were replaced
+   * with the confirmed material terms (Food Customer: R15.00 flat; Furniture
+   * Customer: 5% of Total Delivery Charge). This constitutes a material change
+   * to the agreement text — any acceptance recorded under 'rpa-draft-v1' used
+   * placeholder text and is distinguishable in the audit log from partners who
+   * accepted the confirmed terms under 'rpa-v1'.
+   *
+   * Terms confirmed by co-founder Lindani Masinga on 14 July 2026.
+   * See docs/referral-partner-agreement.md, Schedule 1.
    */
-  readonly RPA_VERSION = 'rpa-draft-v1';
+  readonly RPA_VERSION = 'rpa-v1';
 
   constructor(
     private router: Router,
