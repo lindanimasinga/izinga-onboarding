@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { UserProfile } from '../model/userProfile';
@@ -18,7 +19,19 @@ import { AnalyticsService } from '../service/analytics.service';
  * Enrollment flow (two-step, sequential):
  *   1. PATCH /user/{id} — persists ICA acceptance fields (icaAccepted, icaAcceptedDate, icaVersion).
  *   2. POST  /user/{id}/referral-code — assigns a unique referral code (idempotent).
- *      Backend merged via PR #113 on 15 July 2026. Authorization: ADMIN or self.
+ *
+ *      OUTSTANDING BACKEND DEPENDENCY: the ADMIN-or-self authorization widening for
+ *      this endpoint has NOT yet merged. It lives on ijudi-api branch
+ *      `fix/rp-enrollment-referral-code-assignment`, which is currently blocked in
+ *      Code Review on a security-test coverage gap. The existing production backend
+ *      only accepts ADMIN tokens for this call — self-calls from enrolled partners
+ *      will receive 403 until that branch merges to develop.
+ *
+ *      DO NOT deploy this frontend branch to any shared environment (dev, staging,
+ *      or production) ahead of ijudi-api `fix/rp-enrollment-referral-code-assignment`
+ *      merging to develop. Deploying this frontend first would cause every enrollment
+ *      attempt to fail at step 2 with a 403.
+ *
  *      Both calls must succeed before navigation to the dashboard.
  */
 @Component({
@@ -87,28 +100,30 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
       icaVersion: this.RPA_VERSION
     };
 
-    this.izingaOrderManager.updateCustomer(updatedProfile).subscribe({
-      next: (savedProfile: UserProfile) => {
+    // NOTE-01 fix: flattened from nested subscribe to switchMap so that navigating
+    // away between the two calls does not leave an inner subscription alive against
+    // a destroyed component. A single subscription covers both steps; cancellation
+    // of the outer observable also cancels any in-flight step-2 request.
+    this.izingaOrderManager.updateCustomer(updatedProfile).pipe(
+      switchMap((savedProfile: UserProfile) => {
         // Step 1 succeeded — ICA acceptance persisted. Now assign the referral code (RP-003).
-        this.izingaOrderManager.assignReferralCode(savedProfile.id!).subscribe({
-          next: (profileWithCode: UserProfile) => {
-            // Both steps succeeded. Persist the profile that now carries referralCode.
-            this.storageService.userProfile = profileWithCode;
-            this.analytics.logEvent('referral_partner_rpa_accepted', {
-              userId: profileWithCode.id,
-              icaVersion: this.RPA_VERSION
-            });
-            this.router.navigate(['/indivisuals/rp-dashboard']);
-          },
-          error: () => {
-            // Referral code assignment failed — ICA is recorded but the partner cannot
-            // use their shareable link. Surface the error so the user can retry.
-            this.acceptError = true;
-            this.saving = false;
-          }
+        return this.izingaOrderManager.assignReferralCode(savedProfile.id!);
+      })
+    ).subscribe({
+      next: (profileWithCode: UserProfile) => {
+        // Both steps succeeded. Persist the profile that now carries referralCode.
+        this.storageService.userProfile = profileWithCode;
+        this.analytics.logEvent('referral_partner_rpa_accepted', {
+          userId: profileWithCode.id,
+          icaVersion: this.RPA_VERSION
         });
+        this.router.navigate(['/indivisuals/rp-dashboard']);
       },
       error: () => {
+        // Either step failed — surface the error so the user can retry.
+        // ICA may already be recorded (step 1 succeeded) but referral code is
+        // not yet assigned. The retry is safe: updateCustomer is idempotent for
+        // the same icaVersion, and assignReferralCode is idempotent by design.
         this.acceptError = true;
         this.saving = false;
       }
