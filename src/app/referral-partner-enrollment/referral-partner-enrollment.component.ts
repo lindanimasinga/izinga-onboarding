@@ -9,9 +9,11 @@ import { AnalyticsService } from '../service/analytics.service';
  * RP-002: Referral Partner enrollment — click-wrap acceptance of the Referral Partner Agreement.
  *
  * ADR-017 pattern: acceptance is recorded on the UserProfile via the three ICA fields
- * (icaAccepted, icaAcceptedDate, icaVersion) using version string 'rpa-draft-v1'.
- * The version string MUST be updated to 'rpa-v1' (or the final version stamp supplied
- * by attorney Jason van der Merwe) before this screen goes live in production.
+ * (icaAccepted, icaAcceptedDate, icaVersion) using version string 'rpa-v1'.
+ * This version stamp was bumped from 'rpa-draft-v1' on 2026-07-17 when the two
+ * placeholder commission amounts were replaced with confirmed material terms.
+ * Partners who accepted under 'rpa-draft-v1' are NOT redirected — they see the form
+ * again and must re-accept the corrected terms. See the RPA_VERSION property JSDoc.
  *
  * Blocking dependency: referral code assignment (ReferralCodeService.assignReferralCode)
  * requires backend endpoint RP-003 to be merged and available. Until then, enrollment
@@ -62,8 +64,9 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
       return;
     }
 
-    // If the user has already completed enrollment, skip to dashboard.
-    if (this.user.icaAccepted && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
+    // If the user has already completed enrollment under the current agreement version, skip to dashboard.
+    // Partners who accepted an older version (e.g. 'rpa-draft-v1') must re-accept the corrected terms.
+    if (this.user.icaAccepted && this.user.icaVersion === this.RPA_VERSION && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
       this.router.navigate(['/indivisuals/rp-dashboard']);
     }
   }

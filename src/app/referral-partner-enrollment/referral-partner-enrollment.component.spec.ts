@@ -13,7 +13,8 @@ import { UserProfile } from '../model/userProfile';
  * RP-002 unit tests — ReferralPartnerEnrollmentComponent
  *
  * RP-ENR-01  No user profile: redirects to root.
- * RP-ENR-02  User already enrolled (icaAccepted=true): redirects to dashboard.
+ * RP-ENR-02  User already enrolled (icaAccepted=true, icaVersion='rpa-v1'): redirects to dashboard.
+ * RP-ENR-02b User accepted old version (icaAccepted=true, icaVersion='rpa-draft-v1'): NOT redirected — sees form.
  * RP-ENR-03  Checkbox unticked: enroll() does not call updateCustomer.
  * RP-ENR-04  Checkbox ticked: calls updateCustomer with correct ICA fields.
  * RP-ENR-05  Successful save: stores updated profile and navigates to dashboard.
@@ -72,7 +73,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
   });
 
   // RP-ENR-02
-  it('RP-ENR-02: redirects to dashboard when user already enrolled', () => {
+  it('RP-ENR-02: redirects to dashboard when user already enrolled under current version', () => {
     mockStorage.userProfile = {
       ...baseProfile,
       icaAccepted: true,
@@ -80,6 +81,17 @@ describe('ReferralPartnerEnrollmentComponent', () => {
     } as UserProfile;
     fixture.detectChanges();
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
+  });
+
+  // RP-ENR-02b
+  it('RP-ENR-02b: does NOT redirect to dashboard when user accepted old version rpa-draft-v1', () => {
+    mockStorage.userProfile = {
+      ...baseProfile,
+      icaAccepted: true,
+      icaVersion: 'rpa-draft-v1'
+    } as UserProfile;
+    fixture.detectChanges();
+    expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
   });
 
   // RP-ENR-03
