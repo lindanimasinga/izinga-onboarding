@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FirebaseService } from '../service/firebase.service';
 import { environment } from '../../environments/environment';
 
 interface AmbassadorDriver {
@@ -52,8 +54,10 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
+    private router: Router,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private firebaseService: FirebaseService
   ) {}
 
   ngOnInit(): void {
@@ -94,24 +98,33 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
   }
 
   private loadQrCode(userId: string): void {
-    this.http
-      .get(`${environment.izingaUrl}/user/${userId}/ambassador-qr`, { responseType: 'blob' })
-      .subscribe({
-        next: (blob: Blob) => {
-          this.qrImageUrl = URL.createObjectURL(blob);
-          this.loading = false;
-        },
-        error: (err) => {
-          if (err.status === 403 || err.status === 401) {
-            this.error = 'Your account is not yet approved as an Ambassador. Please wait for approval before accessing this page.';
-          } else if (err.status === 404) {
-            this.error = 'Ambassador QR code not found. Please contact support.';
-          } else {
-            this.error = 'Could not load your QR code. Please try again later.';
-          }
-          this.loading = false;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get(
+          `${environment.izingaUrl}/user/${userId}/ambassador-qr`,
+          { responseType: 'blob', headers }
+        );
+      })
+    ).subscribe({
+      next: (blob: Blob) => {
+        this.qrImageUrl = URL.createObjectURL(blob);
+        this.loading = false;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
+        } else if (err.status === 403) {
+          this.error = 'Your account is not yet approved as an Ambassador. Please wait for approval before accessing this page.';
+        } else if (err.status === 404) {
+          this.error = 'Ambassador QR code not found. Please contact support.';
+        } else {
+          this.error = 'Could not load your QR code. Please try again later.';
         }
-      });
+        this.loading = false;
+      }
+    });
   }
 
   private loadDrivers(userId: string): void {
