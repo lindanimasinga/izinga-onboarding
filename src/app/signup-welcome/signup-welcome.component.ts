@@ -89,7 +89,7 @@ export class SignupWelcomeComponent implements OnInit {
     // the current user from storageService.userProfile directly — no userId param
     // needed.  This mirrors the same branch already applied in dashboard.component.ts.
     if (this.userRole === UserProfile.RoleEnum.REFERRALPARTNER) {
-      return ['/indivisuals', 'referral-partner-enrollment'];
+      return ['/referral-partner/enroll'];
     }
     const base = this.router.url.includes('/business/') ? '/business' : '/indivisuals';
     return [base, 'terms', this.userId || ''];

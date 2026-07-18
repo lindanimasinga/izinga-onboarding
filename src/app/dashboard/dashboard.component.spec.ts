@@ -11,7 +11,7 @@ import { AnalyticsService } from '../service/analytics.service';
 import { UserProfile } from '../model/userProfile';
 
 /**
- * TC-DASH-01  REFERRAL_PARTNER without icaAccepted: redirected to /indivisuals/referral-partner-enrollment.
+ * TC-DASH-01  REFERRAL_PARTNER without icaAccepted: redirected to /referral-partner/enroll.
  * TC-DASH-02  REFERRAL_PARTNER without icaAccepted: NOT redirected to /indivisuals/terms.
  * TC-DASH-03  REFERRAL_PARTNER with icaAccepted=true: NOT redirected (proceeds normally, no nav call).
  * TC-DASH-04  AMBASSADOR without icaAccepted: redirected to /indivisuals/terms (regression guard).
@@ -71,14 +71,14 @@ describe('DashboardComponent — terms routing', () => {
   });
 
   // TC-DASH-01
-  it('TC-DASH-01: REFERRAL_PARTNER without icaAccepted is redirected to /indivisuals/referral-partner-enrollment', fakeAsync(() => {
+  it('TC-DASH-01: REFERRAL_PARTNER without icaAccepted is redirected to /referral-partner/enroll', fakeAsync(() => {
     const user = buildUser(UserProfile.RoleEnum.REFERRALPARTNER, { icaAccepted: false });
     mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
 
     fixture.detectChanges();
     tick();
 
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/referral-partner-enrollment']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/referral-partner/enroll']);
   }));
 
   // TC-DASH-02

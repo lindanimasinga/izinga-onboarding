@@ -10,7 +10,7 @@ import { AnalyticsService } from '../service/analytics.service';
 import { UserProfile } from '../model/models';
 
 /**
- * TC-SW-01  REFERRAL_PARTNER: termsRoute → ['/indivisuals', 'referral-partner-enrollment']
+ * TC-SW-01  REFERRAL_PARTNER: termsRoute → ['/referral-partner/enroll']
  * TC-SW-02  REFERRAL_PARTNER: termsRoute has no userId segment (length === 2)
  * TC-SW-03  REFERRAL_PARTNER: canViewTerms is true even before userId resolves
  * TC-SW-04  REFERRAL_PARTNER: canViewTerms is true after full profile resolution
@@ -72,12 +72,12 @@ describe('SignupWelcomeComponent — termsRoute and canViewTerms', () => {
       fixture.detectChanges();
     });
 
-    it('TC-SW-01: termsRoute points to referral-partner-enrollment, not generic terms', () => {
-      expect(component.termsRoute).toEqual(['/indivisuals', 'referral-partner-enrollment']);
+    it('TC-SW-01: termsRoute points to /referral-partner/enroll, not generic terms', () => {
+      expect(component.termsRoute).toEqual(['/referral-partner/enroll']);
     });
 
-    it('TC-SW-02: termsRoute has no userId segment', () => {
-      expect(component.termsRoute.length).toBe(2);
+    it('TC-SW-02: termsRoute is a single-element array (no userId segment)', () => {
+      expect(component.termsRoute.length).toBe(1);
     });
 
     it('TC-SW-04: canViewTerms is true after profile resolves', () => {
