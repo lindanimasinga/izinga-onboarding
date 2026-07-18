@@ -129,38 +129,58 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
 
   private loadDrivers(userId: string): void {
     this.driversLoading = true;
-    this.http
-      .get<AmbassadorDriver[]>(`${environment.izingaUrl}/user/${userId}/ambassador-drivers`)
-      .subscribe({
-        next: (drivers) => {
-          this.drivers = drivers;
-          this.driversLoading = false;
-          this.driversLoaded = true;
-        },
-        error: () => {
-          this.driversLoading = false;
-          this.driversLoaded = true;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get<AmbassadorDriver[]>(
+          `${environment.izingaUrl}/user/${userId}/ambassador-drivers`,
+          { headers }
+        );
+      })
+    ).subscribe({
+      next: (drivers) => {
+        this.drivers = drivers;
+        this.driversLoading = false;
+        this.driversLoaded = true;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
         }
-      });
+        this.driversLoading = false;
+        this.driversLoaded = true;
+      }
+    });
   }
 
   private loadPayouts(userId: string): void {
     this.payoutsLoading = true;
-    this.http
-      .get<AmbassadorPayout[]>(`${environment.izingaUrl}/user/${userId}/ambassador-payouts`)
-      .subscribe({
-        next: (payouts) => {
-          this.payouts = payouts.sort((a, b) =>
-            new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-          );
-          this.payoutsLoading = false;
-          this.payoutsLoaded = true;
-        },
-        error: () => {
-          this.payoutsLoading = false;
-          this.payoutsLoaded = true;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get<AmbassadorPayout[]>(
+          `${environment.izingaUrl}/user/${userId}/ambassador-payouts`,
+          { headers }
+        );
+      })
+    ).subscribe({
+      next: (payouts) => {
+        this.payouts = payouts.sort((a, b) =>
+          new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+        );
+        this.payoutsLoading = false;
+        this.payoutsLoaded = true;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
         }
-      });
+        this.payoutsLoading = false;
+        this.payoutsLoaded = true;
+      }
+    });
   }
 
   get totalEarnings(): number {

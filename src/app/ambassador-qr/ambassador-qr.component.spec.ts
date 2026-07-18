@@ -26,6 +26,10 @@ import { environment } from '../../environments/environment';
  * TC-AMB-10  copyReferralLink: no-op when referralUrl is null.
  * TC-AMB-11  referralUrl built from user.id after successful load.
  * TC-AMB-12  HTTP 401 response: session-expired error message shown and router navigates to /.
+ * TC-AMB-13  loadDrivers: HTTP GET hits correct endpoint with Authorization header.
+ * TC-AMB-14  loadPayouts: HTTP GET hits correct endpoint with Authorization header.
+ * TC-AMB-15  loadDrivers HTTP 401: session-expired error and router navigates to /.
+ * TC-AMB-16  loadPayouts HTTP 401: session-expired error and router navigates to /.
  */
 describe('AmbassadorQrComponent', () => {
   let component: AmbassadorQrComponent;
@@ -208,11 +212,16 @@ describe('AmbassadorQrComponent', () => {
 
   // -----------------------------------------------------------------------
   // TC-AMB-09 — copyReferralLink: linkCopied true after clipboard write
+  // navigator.clipboard is undefined in ChromeHeadless (no secure context);
+  // stub the property explicitly before creating the spy.
   // -----------------------------------------------------------------------
   it('TC-AMB-09: sets linkCopied = true after successful clipboard write', fakeAsync(() => {
-    component.referralUrl = 'https://onboarding.izinga.co.za/indivisuals?ref=amb-001';
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: jasmine.createSpy().and.returnValue(Promise.resolve()) },
+      configurable: true
+    });
 
-    spyOn(navigator.clipboard, 'writeText').and.returnValue(Promise.resolve());
+    component.referralUrl = 'https://onboarding.izinga.co.za/indivisuals?ref=amb-001';
 
     component.copyReferralLink();
     tick();
@@ -225,14 +234,21 @@ describe('AmbassadorQrComponent', () => {
 
   // -----------------------------------------------------------------------
   // TC-AMB-10 — copyReferralLink: no-op when referralUrl is null
+  // navigator.clipboard is undefined in ChromeHeadless (no secure context);
+  // stub the property explicitly before creating the spy.
   // -----------------------------------------------------------------------
   it('TC-AMB-10: copyReferralLink does nothing when referralUrl is null', () => {
+    const writeTextSpy = jasmine.createSpy('writeText').and.returnValue(Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextSpy },
+      configurable: true
+    });
+
     component.referralUrl = null;
-    const clipboardSpy = spyOn(navigator.clipboard, 'writeText');
 
     component.copyReferralLink();
 
-    expect(clipboardSpy).not.toHaveBeenCalled();
+    expect(writeTextSpy).not.toHaveBeenCalled();
   });
 
   // -----------------------------------------------------------------------
@@ -247,5 +263,105 @@ describe('AmbassadorQrComponent', () => {
     tick();
 
     expect(component.referralUrl).toBe('https://onboarding.izinga.co.za/indivisuals?ref=amb-001');
+  }));
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-13 — loadDrivers: Authorization header attached (mirrors TC-AMB-03)
+  // -----------------------------------------------------------------------
+  it('TC-AMB-13: loadDrivers sends Authorization header and loads drivers', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    // flush the QR code request triggered by ngOnInit
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('drivers');
+
+    const driversReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-drivers`);
+    expect(driversReq.request.method).toBe('GET');
+    expect(driversReq.request.headers.get('Authorization')).toBe('Bearer fake-firebase-token');
+
+    const fakeDrivers: any[] = [{ id: 'd-1', name: 'Driver One', mobileNumber: '+27831111111', profileApproved: true, role: 'MESSENGER' }];
+    driversReq.flush(fakeDrivers);
+    tick();
+
+    expect(component.driversLoaded).toBeTrue();
+    expect(component.drivers.length).toBe(1);
+  }));
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-14 — loadPayouts: Authorization header attached (mirrors TC-AMB-03)
+  // -----------------------------------------------------------------------
+  it('TC-AMB-14: loadPayouts sends Authorization header and loads payouts', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    // flush the QR code request triggered by ngOnInit
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('payouts');
+
+    const payoutsReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-payouts`);
+    expect(payoutsReq.request.method).toBe('GET');
+    expect(payoutsReq.request.headers.get('Authorization')).toBe('Bearer fake-firebase-token');
+
+    const fakePayouts: any[] = [{ id: 'p-1', commissionAmount: 50, triggerDriverId: 'd-1', payoutStage: 'COMPLETED', toName: 'Test', createdDate: '2026-07-01T10:00:00+02:00' }];
+    payoutsReq.flush(fakePayouts);
+    tick();
+
+    expect(component.payoutsLoaded).toBeTrue();
+    expect(component.payouts.length).toBe(1);
+  }));
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-15 — loadDrivers HTTP 401: session-expired error, router navigates to /
+  // -----------------------------------------------------------------------
+  it('TC-AMB-15: loadDrivers shows session-expired error and navigates to / on 401', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('drivers');
+
+    const driversReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-drivers`);
+    driversReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+    tick();
+
+    expect(component.error).toContain('session has expired');
+    expect(component.error).toContain('sign in again');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    expect(component.driversLoaded).toBeTrue();
+    expect(component.driversLoading).toBeFalse();
+  }));
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-16 — loadPayouts HTTP 401: session-expired error, router navigates to /
+  // -----------------------------------------------------------------------
+  it('TC-AMB-16: loadPayouts shows session-expired error and navigates to / on 401', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('payouts');
+
+    const payoutsReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-payouts`);
+    payoutsReq.flush(null, { status: 401, statusText: 'Unauthorized' });
+    tick();
+
+    expect(component.error).toContain('session has expired');
+    expect(component.error).toContain('sign in again');
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
+    expect(component.payoutsLoaded).toBeTrue();
+    expect(component.payoutsLoading).toBeFalse();
   }));
 });
