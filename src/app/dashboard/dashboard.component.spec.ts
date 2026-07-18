@@ -107,6 +107,36 @@ describe('DashboardComponent — terms routing', () => {
     tick();
 
     expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(component.isReferralPartner).toBeTrue();
+    expect(component.isAmbassador).toBeFalse();
+  }));
+
+  // TC-DASH-09
+  it('TC-DASH-09: REFERRAL_PARTNER with icaAccepted=true shows RP card grid and hides generic Payouts card', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.REFERRALPARTNER, { icaAccepted: true });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    const nativeEl: HTMLElement = fixture.nativeElement;
+
+    // RP card grid must be present — contains "Partner Dashboard" text
+    const allText = nativeEl.textContent || '';
+    expect(allText).toContain('Partner Dashboard');
+
+    // Generic grid Payouts card must NOT be present — the generic grid is hidden for RP
+    // Query all fw-bold elements and verify none of the non-RP-grid ones render "Payouts"
+    const genericGrid = nativeEl.querySelector('[class*="menu-items"]:not([class*="ng-hide"])');
+    // Simpler: the generic grid div has *ngIf="!isAmbassador && !isReferralPartner", so it
+    // should be absent from the DOM entirely when isReferralPartner is true.
+    // We verify no element with text "Payouts" exists outside the RP grid context by checking
+    // that the generic payouts card label is not rendered.
+    const boldDivs = Array.from(nativeEl.querySelectorAll('.fw-bold'));
+    const payoutsLabels = boldDivs.filter(el => el.textContent?.trim() === 'Payouts' || el.textContent?.trim() === 'Team Payouts');
+    expect(payoutsLabels.length).toBe(0);
   }));
 
   // TC-DASH-04
