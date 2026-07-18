@@ -12,7 +12,7 @@
   </div>
 
   <!-- DRAFT notice — visible until attorney-approved version replaces this content -->
-  <div class="alert mb-4" style="border-left: 4px solid #be833d; color: var(--text-color);">
+  <div class="alert mb-4 rpa-alert-draft">
     <strong>Notice:</strong> This agreement is in DRAFT status and is pending final review by iZinga's attorney.
     It is displayed here for development purposes only and must not be presented to partners as a binding
     document until the attorney-approved version is published.
@@ -367,7 +367,7 @@
   </div>
 
   <!-- Error alert -->
-  <div *ngIf="acceptError" class="alert mb-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+  <div *ngIf="acceptError" class="alert mb-3 rpa-alert-error">
     Something went wrong saving your agreement. Please try again.
   </div>
 
