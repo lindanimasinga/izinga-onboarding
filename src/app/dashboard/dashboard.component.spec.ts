@@ -123,9 +123,11 @@ describe('DashboardComponent — terms routing', () => {
 
     const nativeEl: HTMLElement = fixture.nativeElement;
 
-    // RP card grid must be present — contains "Partner Dashboard" text
+    // RP card grid must be present — contains the 5 new card titles
     const allText = nativeEl.textContent || '';
-    expect(allText).toContain('Partner Dashboard');
+    expect(allText).toContain('My Referral Code');
+    expect(allText).toContain('My Referrals');
+    expect(allText).toContain('My Commissions');
 
     // Generic grid Payouts card must NOT be present — the generic grid is hidden for RP
     // Query all fw-bold elements and verify none of the non-RP-grid ones render "Payouts"

@@ -81,7 +81,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
     // If the user has already completed enrollment under the current agreement version, skip to dashboard.
     // Partners who accepted an older version (e.g. 'rpa-draft-v1') must re-accept the corrected terms.
     if (this.user.icaAccepted && this.user.icaVersion === this.RPA_VERSION && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
-      this.router.navigate(['/indivisuals/rp-dashboard']);
+      this.router.navigate(['/indivisuals/rp-referral-code']);
     }
   }
 
@@ -117,7 +117,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
           userId: profileWithCode.id,
           icaVersion: this.RPA_VERSION
         });
-        this.router.navigate(['/indivisuals/rp-dashboard']);
+        this.router.navigate(['/indivisuals/rp-referral-code']);
       },
       error: () => {
         // Either step failed — surface the error so the user can retry.

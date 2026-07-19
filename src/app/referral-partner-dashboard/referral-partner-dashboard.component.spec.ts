@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { of, throwError } from 'rxjs';
 import { DatePipe, DecimalPipe } from '@angular/common';
 
@@ -56,6 +57,7 @@ describe('ReferralPartnerDashboardComponent', () => {
   let mockStorage: jasmine.SpyObj<StorageService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+  let routeData$: BehaviorSubject<{ tab?: string; title?: string }>;
 
   function setupHappyPath(): void {
     mockStorage.userProfile = MOCK_RP_USER;
@@ -64,7 +66,20 @@ describe('ReferralPartnerDashboardComponent', () => {
     mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
   }
 
+  /** Switch to a tab by emitting a new route.data value (simulates navigating to a distinct route). */
+  function switchTab(tab: string): void {
+    const titleMap: Record<string, string> = {
+      code: 'My Referral Code',
+      referrals: 'My Referrals',
+      commissions: 'My Commissions'
+    };
+    routeData$.next({ tab, title: titleMap[tab] ?? 'My Referral Code' });
+    fixture.detectChanges();
+  }
+
   beforeEach(async () => {
+    routeData$ = new BehaviorSubject<{ tab?: string; title?: string }>({ tab: 'code', title: 'My Referral Code' });
+
     mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
       'getReferralPartnerSummary',
       'getReferralPartnerReferrals',
@@ -82,6 +97,7 @@ describe('ReferralPartnerDashboardComponent', () => {
         { provide: IzingaOrderManagementService, useValue: mockService },
         { provide: StorageService, useValue: mockStorage },
         { provide: Router, useValue: mockRouter },
+        { provide: ActivatedRoute, useValue: { data: routeData$.asObservable() } },
         { provide: AnalyticsService, useValue: mockAnalytics },
         DatePipe,
         DecimalPipe
@@ -90,6 +106,108 @@ describe('ReferralPartnerDashboardComponent', () => {
 
     fixture = TestBed.createComponent(ReferralPartnerDashboardComponent);
     component = fixture.componentInstance;
+  });
+
+  // ── Tab routing ──────────────────────────────────────────────────────────
+
+  describe('Tab routing', () => {
+    it('should default to "code" tab when route data tab is "code"', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(component.activeTab).toBe('code');
+    });
+
+    it('should set activeTab to "referrals" when tab=referrals', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      switchTab('referrals');
+      expect(component.activeTab).toBe('referrals');
+    });
+
+    it('should set activeTab to "commissions" when tab=commissions', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      switchTab('commissions');
+      expect(component.activeTab).toBe('commissions');
+    });
+
+    it('should fall back to "code" for an unrecognised tab value in route data', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      routeData$.next({ tab: 'unknown-value', title: '' });
+      fixture.detectChanges();
+      expect(component.activeTab).toBe('code');
+    });
+
+    it('should set pageTitle from route data title', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(component.pageTitle).toBe('My Referral Code');
+
+      switchTab('referrals');
+      expect(component.pageTitle).toBe('My Referrals');
+
+      switchTab('commissions');
+      expect(component.pageTitle).toBe('My Commissions');
+    });
+
+    it('should log tab-aware analytics screen view on each tab switch', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(mockAnalytics.logScreenView).toHaveBeenCalledWith('referral_partner_code');
+
+      switchTab('referrals');
+      expect(mockAnalytics.logScreenView).toHaveBeenCalledWith('referral_partner_referrals');
+
+      switchTab('commissions');
+      expect(mockAnalytics.logScreenView).toHaveBeenCalledWith('referral_partner_commissions');
+    });
+  });
+
+  // ── Lazy loading — only the active tab's API is called ───────────────────
+
+  describe('Lazy loading', () => {
+    it('should call only getReferralPartnerSummary on init (code tab default)', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(mockService.getReferralPartnerSummary).toHaveBeenCalledTimes(1);
+      expect(mockService.getReferralPartnerReferrals).not.toHaveBeenCalled();
+      expect(mockService.getReferralPartnerCommissions).not.toHaveBeenCalled();
+    });
+
+    it('should call getReferralPartnerReferrals only when switching to referrals tab', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      switchTab('referrals');
+      expect(mockService.getReferralPartnerReferrals).toHaveBeenCalledTimes(1);
+      expect(mockService.getReferralPartnerCommissions).not.toHaveBeenCalled();
+    });
+
+    it('should call getReferralPartnerCommissions only when switching to commissions tab', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      switchTab('commissions');
+      expect(mockService.getReferralPartnerCommissions).toHaveBeenCalledTimes(1);
+      expect(mockService.getReferralPartnerReferrals).not.toHaveBeenCalled();
+    });
+
+    it('should not re-fetch summary when switching back to code tab after data is loaded', () => {
+      setupHappyPath();
+      fixture.detectChanges(); // loads summary once
+      switchTab('referrals');
+      switchTab('code');
+      // Summary was already loaded — should not fire again
+      expect(mockService.getReferralPartnerSummary).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not re-fetch referrals when switching back to referrals tab after data is loaded', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      switchTab('referrals'); // loads referrals once
+      switchTab('code');
+      switchTab('referrals');
+      expect(mockService.getReferralPartnerReferrals).toHaveBeenCalledTimes(1);
+    });
   });
 
   // ── AC-010-01: Referral code and copyable link ───────────────────────────
@@ -177,14 +295,16 @@ describe('ReferralPartnerDashboardComponent', () => {
   // ── AC-010-03: Referral list ─────────────────────────────────────────────
 
   describe('AC-010-03: referral list', () => {
-    it('should populate referrals array from API', () => {
+    it('should populate referrals array when on referrals tab', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       expect(component.referrals.length).toBe(3);
     });
 
     it('should expose name, type, referredAt, and converted flag for each item', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       const first = component.referrals[0];
       expect(first.name).toBe('Sipho Dlamini');
@@ -199,6 +319,7 @@ describe('ReferralPartnerDashboardComponent', () => {
 
     it('unconverted referrals should be marked REGISTERED', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       const unConverted = component.referrals.find(r => !r.converted);
       expect(unConverted).toBeDefined();
@@ -209,20 +330,23 @@ describe('ReferralPartnerDashboardComponent', () => {
   // ── AC-010-04: Commission section ────────────────────────────────────────
 
   describe('AC-010-04: commission totals', () => {
-    it('should set commissions from API', () => {
+    it('should set commissions from API when on commissions tab', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.commissions).toBeDefined();
     });
 
     it('totalEarned should be PENDING + PAID', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.totalEarned).toBe(45.00); // 15 + 30
     });
 
     it('should expose PENDING and PAID totals separately', () => {
       setupHappyPath();
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.commissions!.totals.PENDING).toBe(15.00);
       expect(component.commissions!.totals.PAID).toBe(30.00);
@@ -303,43 +427,39 @@ describe('ReferralPartnerDashboardComponent', () => {
   // ── AC-010-07: Per-section error and retry ───────────────────────────────
 
   describe('AC-010-07: per-section error handling', () => {
-    it('summary error should set summaryError=true without affecting referrals or commissions', () => {
+    it('summary error on code tab should set summaryError=true', () => {
       mockStorage.userProfile = MOCK_RP_USER;
       mockService.getReferralPartnerSummary.and.returnValue(throwError({ status: 500 }));
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
-      fixture.detectChanges();
+      fixture.detectChanges(); // default tab = code
 
       expect(component.summaryError).toBeTrue();
       expect(component.summaryLoading).toBeFalse();
-      expect(component.referralsError).toBeFalse();
-      expect(component.commissionsError).toBeFalse();
     });
 
-    it('referrals error should set referralsError=true without affecting summary or commissions', () => {
+    it('referrals error on referrals tab should set referralsError=true', () => {
       mockStorage.userProfile = MOCK_RP_USER;
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(throwError({ status: 500 }));
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
 
       expect(component.referralsError).toBeTrue();
       expect(component.referralsLoading).toBeFalse();
-      expect(component.summaryError).toBeFalse();
-      expect(component.commissionsError).toBeFalse();
     });
 
-    it('commissions error should set commissionsError=true without affecting summary or referrals', () => {
+    it('commissions error on commissions tab should set commissionsError=true', () => {
       mockStorage.userProfile = MOCK_RP_USER;
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
       mockService.getReferralPartnerCommissions.and.returnValue(throwError({ status: 500 }));
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
 
       expect(component.commissionsError).toBeTrue();
       expect(component.commissionsLoading).toBeFalse();
-      expect(component.summaryError).toBeFalse();
-      expect(component.referralsError).toBeFalse();
     });
 
     it('loadSummary() retry should clear summaryError and reload', () => {
@@ -363,6 +483,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(throwError({ status: 500 }));
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
 
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
@@ -376,6 +497,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
       mockService.getReferralPartnerCommissions.and.returnValue(throwError({ status: 500 }));
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
 
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));

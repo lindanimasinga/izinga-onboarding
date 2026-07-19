@@ -77,7 +77,7 @@ export class WelcomeSelectionComponent {
       // RP-010: route to enrollment if Agreement not yet accepted,
       // otherwise to the Referral Partner Dashboard.
       if (this.storageService.userProfile?.icaAccepted) {
-        this.router.navigate(['/indivisuals/rp-dashboard'])
+        this.router.navigate(['/indivisuals/rp-referral-code'])
       } else {
         this.router.navigate(['/referral-partner/enroll'])
       }

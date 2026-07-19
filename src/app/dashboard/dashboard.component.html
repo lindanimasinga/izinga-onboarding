@@ -64,8 +64,9 @@
                 </div>
             </div>
 
-            <!-- Referral Partner card grid -->
+            <!-- Referral Partner card grid — shown only for isReferralPartner -->
             <div *ngIf="isReferralPartner" class="row justify-content-center mb-5 menu-items">
+
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
                     <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
                         <div style="font-size:48px;">📈</div>
@@ -73,20 +74,43 @@
                         <div class="small">Manage your contact information and bank account details</div>
                     </div>
                 </div>
+
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../rp-dashboard">
-                        <div style="font-size:48px;">🤝</div>
-                        <div class="fw-bold mt-2">Partner Dashboard</div>
-                        <div class="small">View your referral code, referrals, and commission summary</div>
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);"
+                         routerLink="../rp-referral-code">
+                        <div style="font-size:48px;">🔗</div>
+                        <div class="fw-bold mt-2">My Referral Code</div>
+                        <div class="small">Share your referral link and copy your unique code</div>
                     </div>
                 </div>
+
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);" routerLink="/referral-partner/enroll">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-bg-color);"
+                         routerLink="../rp-referrals">
+                        <div style="font-size:48px;">👥</div>
+                        <div class="fw-bold mt-2">My Referrals</div>
+                        <div class="small">See who has registered and converted using your link</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-pill-color);"
+                         routerLink="../rp-commissions">
+                        <div style="font-size:48px;">💰</div>
+                        <div class="fw-bold mt-2">My Commissions</div>
+                        <div class="small">Track your pending and paid commission earnings</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="card border-0 shadow-sm h-100 p-3" style="background-color: var(--btn-green-color);"
+                         routerLink="/referral-partner/enroll">
                         <div style="font-size:48px;">📄</div>
                         <div class="fw-bold mt-2">My Agreement</div>
                         <div class="small">View your Referral Partner Agreement</div>
                     </div>
                 </div>
+
             </div>
 
             <div *ngIf="!isAmbassador && !isReferralPartner" class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">

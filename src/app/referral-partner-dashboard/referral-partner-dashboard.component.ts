@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { AnalyticsService } from '../service/analytics.service';
@@ -11,43 +13,54 @@ import {
 } from '../model/referral-partner';
 
 /**
- * RP-010: Referral Partner Dashboard.
+ * RP-010: Referral Partner pages.
  *
- * Loaded at /indivisuals/rp-dashboard for users whose role is REFERRAL_PARTNER
- * and who have completed enrollment (icaAccepted === true).
+ * Reused across three distinct routes:
+ *   /indivisuals/rp-referral-code  → tab: 'code',        title: 'My Referral Code'
+ *   /indivisuals/rp-referrals      → tab: 'referrals',   title: 'My Referrals'
+ *   /indivisuals/rp-commissions    → tab: 'commissions', title: 'My Commissions'
  *
- * Each section loads independently so a single failing call never blanks the
- * whole page (AC-010-07).
+ * Active tab and page title are sourced from route.data so each URL has its own
+ * distinct identity. Each navigation produces a fresh component instance (Angular's
+ * default RouteReuseStrategy compares routeConfig objects — each route entry above
+ * is a distinct object — so ngOnInit always fires fresh and route.data Observable
+ * changes are also handled for safety).
  */
 @Component({
   selector: 'app-referral-partner-dashboard',
   templateUrl: './referral-partner-dashboard.component.html',
   styleUrls: ['./referral-partner-dashboard.component.css']
 })
-export class ReferralPartnerDashboardComponent implements OnInit {
+export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
 
   user: UserProfile | undefined;
 
-  // --- Summary section (AC-010-01, AC-010-02) ---
+  activeTab: 'code' | 'referrals' | 'commissions' = 'code';
+  pageTitle = 'My Referral Code';
+
+  // --- Summary section (AC-010-01, AC-010-02) — loaded for 'code' tab ---
   summary: ReferralPartnerSummary | undefined;
-  summaryLoading = true;
+  summaryLoading = false;
   summaryError = false;
 
-  // --- Referrals section (AC-010-03) ---
+  // --- Referrals section (AC-010-03) — loaded for 'referrals' tab ---
   referrals: ReferralItem[] = [];
-  referralsLoading = true;
+  referralsLoading = false;
   referralsError = false;
 
-  // --- Commissions section (AC-010-04) ---
+  // --- Commissions section (AC-010-04) — loaded for 'commissions' tab ---
   commissions: ReferralPartnerCommissions | undefined;
-  commissionsLoading = true;
+  commissionsLoading = false;
   commissionsError = false;
 
   // --- Copy-to-clipboard feedback ---
   linkCopied = false;
 
+  private routeDataSub: Subscription | undefined;
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private storageService: StorageService,
     private service: IzingaOrderManagementService,
     private analytics: AnalyticsService
@@ -55,7 +68,6 @@ export class ReferralPartnerDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.user = this.storageService.userProfile ?? undefined;
-    this.analytics.logScreenView('referral_partner_dashboard');
 
     if (!this.user || this.user.role !== UserProfile.RoleEnum.REFERRALPARTNER) {
       this.router.navigate(['/']);
@@ -67,9 +79,48 @@ export class ReferralPartnerDashboardComponent implements OnInit {
       return;
     }
 
-    this.loadSummary();
-    this.loadReferrals();
-    this.loadCommissions();
+    // Subscribe to route.data so the correct tab and title are applied whether
+    // this is the initial navigation or a future re-use of the instance.
+    this.routeDataSub = this.route.data
+      .pipe(
+        map(data => ({
+          tab: (data['tab'] === 'referrals' || data['tab'] === 'commissions') ? data['tab'] : 'code' as 'code' | 'referrals' | 'commissions',
+          title: (data['title'] as string) || 'My Referral Code'
+        })),
+        distinctUntilChanged((a, b) => a.tab === b.tab)
+      )
+      .subscribe(({ tab, title }) => {
+        this.activeTab = tab;
+        this.pageTitle = title;
+        this.analytics.logScreenView(`referral_partner_${this.activeTab}`);
+        this.loadActiveTab();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.routeDataSub?.unsubscribe();
+  }
+
+  // ── Tab loader ───────────────────────────────────────────────────────────
+
+  private loadActiveTab(): void {
+    switch (this.activeTab) {
+      case 'code':
+        if (!this.summary && !this.summaryLoading) {
+          this.loadSummary();
+        }
+        break;
+      case 'referrals':
+        if (!this.referrals.length && !this.referralsLoading) {
+          this.loadReferrals();
+        }
+        break;
+      case 'commissions':
+        if (!this.commissions && !this.commissionsLoading) {
+          this.loadCommissions();
+        }
+        break;
+    }
   }
 
   // ── Section loaders ──────────────────────────────────────────────────────

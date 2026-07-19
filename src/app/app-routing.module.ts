@@ -70,7 +70,9 @@ const routes: Routes = [
       { path: 'admin-orders', component: AdminOrdersComponent},
       { path: 'quotes', component: QuotesComponent},
       { path: 'info', component: UserInfoComponent},
-      { path: 'rp-dashboard', component: ReferralPartnerDashboardComponent}
+      { path: 'rp-referral-code', component: ReferralPartnerDashboardComponent, data: { tab: 'code', title: 'My Referral Code' } },
+      { path: 'rp-referrals', component: ReferralPartnerDashboardComponent, data: { tab: 'referrals', title: 'My Referrals' } },
+      { path: 'rp-commissions', component: ReferralPartnerDashboardComponent, data: { tab: 'commissions', title: 'My Commissions' } }
     ]},
   { path: 'business',
     children : [
