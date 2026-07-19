@@ -82,7 +82,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
       icaVersion: 'rpa-v1'
     } as UserProfile;
     fixture.detectChanges();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
   });
 
   // RP-ENR-02b
@@ -93,7 +93,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
       icaVersion: 'rpa-draft-v1'
     } as UserProfile;
     fixture.detectChanges();
-    expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
+    expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
   });
 
   // RP-ENR-03
@@ -134,7 +134,7 @@ describe('ReferralPartnerEnrollmentComponent', () => {
 
     // Storage must hold the profile from step 2, which carries referralCode
     expect(mockStorage.userProfile).toEqual(profileWithCode);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-dashboard']);
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
   });
 
   // RP-ENR-06

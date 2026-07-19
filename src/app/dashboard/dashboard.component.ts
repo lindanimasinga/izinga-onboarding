@@ -60,7 +60,7 @@ export class DashboardComponent {
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
           // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).
           // That component's ngOnInit will redirect already-enrolled partners onward to
-          // /indivisuals/rp-dashboard, so routing every RP through it is safe.
+          // /indivisuals/rp-referral-code, so routing every RP through it is safe.
           this.router.navigate(['/referral-partner/enroll']);
           return;
         }

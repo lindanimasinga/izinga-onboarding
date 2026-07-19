@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { AnalyticsService } from '../service/analytics.service';
@@ -12,15 +13,18 @@ import {
 } from '../model/referral-partner';
 
 /**
- * RP-010: Referral Partner Dashboard (tabbed).
+ * RP-010: Referral Partner pages.
  *
- * Loaded at /indivisuals/rp-dashboard for users whose role is REFERRAL_PARTNER
- * and who have completed enrollment (icaAccepted === true).
+ * Reused across three distinct routes:
+ *   /indivisuals/rp-referral-code  → tab: 'code',        title: 'My Referral Code'
+ *   /indivisuals/rp-referrals      → tab: 'referrals',   title: 'My Referrals'
+ *   /indivisuals/rp-commissions    → tab: 'commissions', title: 'My Commissions'
  *
- * Query param `tab` drives the active tab: 'code' | 'referrals' | 'commissions'.
- * Defaults to 'code' when absent. Each tab lazy-loads only its own data, and
- * the component reacts to queryParam changes so browser back/forward and direct
- * URL changes all re-render correctly.
+ * Active tab and page title are sourced from route.data so each URL has its own
+ * distinct identity. Each navigation produces a fresh component instance (Angular's
+ * default RouteReuseStrategy compares routeConfig objects — each route entry above
+ * is a distinct object — so ngOnInit always fires fresh and route.data Observable
+ * changes are also handled for safety).
  */
 @Component({
   selector: 'app-referral-partner-dashboard',
@@ -32,6 +36,7 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
   user: UserProfile | undefined;
 
   activeTab: 'code' | 'referrals' | 'commissions' = 'code';
+  pageTitle = 'My Referral Code';
 
   // --- Summary section (AC-010-01, AC-010-02) — loaded for 'code' tab ---
   summary: ReferralPartnerSummary | undefined;
@@ -51,7 +56,7 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
   // --- Copy-to-clipboard feedback ---
   linkCopied = false;
 
-  private queryParamsSub: Subscription | undefined;
+  private routeDataSub: Subscription | undefined;
 
   constructor(
     private router: Router,
@@ -74,18 +79,26 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Subscribe to queryParams so tab switches via browser back/forward or
-    // direct URL changes are handled reactively throughout the component lifetime.
-    this.queryParamsSub = this.route.queryParams.subscribe(params => {
-      const tab = params['tab'];
-      this.activeTab = (tab === 'referrals' || tab === 'commissions') ? tab : 'code';
-      this.analytics.logScreenView(`referral_partner_${this.activeTab}`);
-      this.loadActiveTab();
-    });
+    // Subscribe to route.data so the correct tab and title are applied whether
+    // this is the initial navigation or a future re-use of the instance.
+    this.routeDataSub = this.route.data
+      .pipe(
+        map(data => ({
+          tab: (data['tab'] === 'referrals' || data['tab'] === 'commissions') ? data['tab'] : 'code' as 'code' | 'referrals' | 'commissions',
+          title: (data['title'] as string) || 'My Referral Code'
+        })),
+        distinctUntilChanged((a, b) => a.tab === b.tab)
+      )
+      .subscribe(({ tab, title }) => {
+        this.activeTab = tab;
+        this.pageTitle = title;
+        this.analytics.logScreenView(`referral_partner_${this.activeTab}`);
+        this.loadActiveTab();
+      });
   }
 
   ngOnDestroy(): void {
-    this.queryParamsSub?.unsubscribe();
+    this.routeDataSub?.unsubscribe();
   }
 
   // ── Tab loader ───────────────────────────────────────────────────────────

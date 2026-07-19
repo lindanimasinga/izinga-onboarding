@@ -57,7 +57,7 @@ describe('ReferralPartnerDashboardComponent', () => {
   let mockStorage: jasmine.SpyObj<StorageService>;
   let mockRouter: jasmine.SpyObj<Router>;
   let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
-  let queryParams$: BehaviorSubject<{ tab?: string }>;
+  let routeData$: BehaviorSubject<{ tab?: string; title?: string }>;
 
   function setupHappyPath(): void {
     mockStorage.userProfile = MOCK_RP_USER;
@@ -66,14 +66,19 @@ describe('ReferralPartnerDashboardComponent', () => {
     mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
   }
 
-  /** Switch to a tab by emitting a new queryParams value and triggering change detection. */
+  /** Switch to a tab by emitting a new route.data value (simulates navigating to a distinct route). */
   function switchTab(tab: string): void {
-    queryParams$.next({ tab });
+    const titleMap: Record<string, string> = {
+      code: 'My Referral Code',
+      referrals: 'My Referrals',
+      commissions: 'My Commissions'
+    };
+    routeData$.next({ tab, title: titleMap[tab] ?? 'My Referral Code' });
     fixture.detectChanges();
   }
 
   beforeEach(async () => {
-    queryParams$ = new BehaviorSubject<{ tab?: string }>({});
+    routeData$ = new BehaviorSubject<{ tab?: string; title?: string }>({ tab: 'code', title: 'My Referral Code' });
 
     mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
       'getReferralPartnerSummary',
@@ -92,7 +97,7 @@ describe('ReferralPartnerDashboardComponent', () => {
         { provide: IzingaOrderManagementService, useValue: mockService },
         { provide: StorageService, useValue: mockStorage },
         { provide: Router, useValue: mockRouter },
-        { provide: ActivatedRoute, useValue: { queryParams: queryParams$.asObservable() } },
+        { provide: ActivatedRoute, useValue: { data: routeData$.asObservable() } },
         { provide: AnalyticsService, useValue: mockAnalytics },
         DatePipe,
         DecimalPipe
@@ -106,7 +111,7 @@ describe('ReferralPartnerDashboardComponent', () => {
   // ── Tab routing ──────────────────────────────────────────────────────────
 
   describe('Tab routing', () => {
-    it('should default to "code" tab when no query param is present', () => {
+    it('should default to "code" tab when route data tab is "code"', () => {
       setupHappyPath();
       fixture.detectChanges();
       expect(component.activeTab).toBe('code');
@@ -126,11 +131,24 @@ describe('ReferralPartnerDashboardComponent', () => {
       expect(component.activeTab).toBe('commissions');
     });
 
-    it('should fall back to "code" for an unknown tab value', () => {
+    it('should fall back to "code" for an unrecognised tab value in route data', () => {
       setupHappyPath();
       fixture.detectChanges();
-      switchTab('unknown-value');
+      routeData$.next({ tab: 'unknown-value', title: '' });
+      fixture.detectChanges();
       expect(component.activeTab).toBe('code');
+    });
+
+    it('should set pageTitle from route data title', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(component.pageTitle).toBe('My Referral Code');
+
+      switchTab('referrals');
+      expect(component.pageTitle).toBe('My Referrals');
+
+      switchTab('commissions');
+      expect(component.pageTitle).toBe('My Commissions');
     });
 
     it('should log tab-aware analytics screen view on each tab switch', () => {
@@ -279,14 +297,14 @@ describe('ReferralPartnerDashboardComponent', () => {
   describe('AC-010-03: referral list', () => {
     it('should populate referrals array when on referrals tab', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'referrals' });
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       expect(component.referrals.length).toBe(3);
     });
 
     it('should expose name, type, referredAt, and converted flag for each item', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'referrals' });
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       const first = component.referrals[0];
       expect(first.name).toBe('Sipho Dlamini');
@@ -301,7 +319,7 @@ describe('ReferralPartnerDashboardComponent', () => {
 
     it('unconverted referrals should be marked REGISTERED', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'referrals' });
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
       const unConverted = component.referrals.find(r => !r.converted);
       expect(unConverted).toBeDefined();
@@ -314,21 +332,21 @@ describe('ReferralPartnerDashboardComponent', () => {
   describe('AC-010-04: commission totals', () => {
     it('should set commissions from API when on commissions tab', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'commissions' });
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.commissions).toBeDefined();
     });
 
     it('totalEarned should be PENDING + PAID', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'commissions' });
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.totalEarned).toBe(45.00); // 15 + 30
     });
 
     it('should expose PENDING and PAID totals separately', () => {
       setupHappyPath();
-      queryParams$.next({ tab: 'commissions' });
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
       expect(component.commissions!.totals.PENDING).toBe(15.00);
       expect(component.commissions!.totals.PAID).toBe(30.00);
@@ -425,7 +443,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(throwError({ status: 500 }));
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
-      queryParams$.next({ tab: 'referrals' });
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
 
       expect(component.referralsError).toBeTrue();
@@ -437,7 +455,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
       mockService.getReferralPartnerCommissions.and.returnValue(throwError({ status: 500 }));
-      queryParams$.next({ tab: 'commissions' });
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
 
       expect(component.commissionsError).toBeTrue();
@@ -465,7 +483,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(throwError({ status: 500 }));
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
-      queryParams$.next({ tab: 'referrals' });
+      routeData$.next({ tab: 'referrals', title: 'My Referrals' });
       fixture.detectChanges();
 
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
@@ -479,7 +497,7 @@ describe('ReferralPartnerDashboardComponent', () => {
       mockService.getReferralPartnerSummary.and.returnValue(of(MOCK_SUMMARY));
       mockService.getReferralPartnerReferrals.and.returnValue(of(MOCK_REFERRALS));
       mockService.getReferralPartnerCommissions.and.returnValue(throwError({ status: 500 }));
-      queryParams$.next({ tab: 'commissions' });
+      routeData$.next({ tab: 'commissions', title: 'My Commissions' });
       fixture.detectChanges();
 
       mockService.getReferralPartnerCommissions.and.returnValue(of(MOCK_COMMISSIONS));
