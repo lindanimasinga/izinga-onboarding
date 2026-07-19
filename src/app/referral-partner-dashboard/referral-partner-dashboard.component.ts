@@ -175,7 +175,7 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
   /** Shareable referral link (AC-010-01). */
   get shareableLink(): string {
     const code = this.summary?.referralCode ?? '';
-    return `https://izinga.co.za/register?ref=${code}`;
+    return `https://shop.izinga.co.za/?ref=${code}`;
   }
 
   /** Total referrals across all types (AC-010-02). */

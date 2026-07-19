@@ -216,7 +216,7 @@ describe('ReferralPartnerDashboardComponent', () => {
     it('should expose shareableLink containing the referral code', () => {
       setupHappyPath();
       fixture.detectChanges();
-      expect(component.shareableLink).toBe('https://izinga.co.za/register?ref=THABO01');
+      expect(component.shareableLink).toBe('https://shop.izinga.co.za/?ref=THABO01');
     });
 
     it('should set summary.referralCode from the API response', () => {
