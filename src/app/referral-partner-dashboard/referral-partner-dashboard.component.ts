@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { StorageService } from '../service/storage-service.service';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { AnalyticsService } from '../service/analytics.service';
@@ -11,43 +12,50 @@ import {
 } from '../model/referral-partner';
 
 /**
- * RP-010: Referral Partner Dashboard.
+ * RP-010: Referral Partner Dashboard (tabbed).
  *
  * Loaded at /indivisuals/rp-dashboard for users whose role is REFERRAL_PARTNER
  * and who have completed enrollment (icaAccepted === true).
  *
- * Each section loads independently so a single failing call never blanks the
- * whole page (AC-010-07).
+ * Query param `tab` drives the active tab: 'code' | 'referrals' | 'commissions'.
+ * Defaults to 'code' when absent. Each tab lazy-loads only its own data, and
+ * the component reacts to queryParam changes so browser back/forward and direct
+ * URL changes all re-render correctly.
  */
 @Component({
   selector: 'app-referral-partner-dashboard',
   templateUrl: './referral-partner-dashboard.component.html',
   styleUrls: ['./referral-partner-dashboard.component.css']
 })
-export class ReferralPartnerDashboardComponent implements OnInit {
+export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
 
   user: UserProfile | undefined;
 
-  // --- Summary section (AC-010-01, AC-010-02) ---
+  activeTab: 'code' | 'referrals' | 'commissions' = 'code';
+
+  // --- Summary section (AC-010-01, AC-010-02) — loaded for 'code' tab ---
   summary: ReferralPartnerSummary | undefined;
-  summaryLoading = true;
+  summaryLoading = false;
   summaryError = false;
 
-  // --- Referrals section (AC-010-03) ---
+  // --- Referrals section (AC-010-03) — loaded for 'referrals' tab ---
   referrals: ReferralItem[] = [];
-  referralsLoading = true;
+  referralsLoading = false;
   referralsError = false;
 
-  // --- Commissions section (AC-010-04) ---
+  // --- Commissions section (AC-010-04) — loaded for 'commissions' tab ---
   commissions: ReferralPartnerCommissions | undefined;
-  commissionsLoading = true;
+  commissionsLoading = false;
   commissionsError = false;
 
   // --- Copy-to-clipboard feedback ---
   linkCopied = false;
 
+  private queryParamsSub: Subscription | undefined;
+
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private storageService: StorageService,
     private service: IzingaOrderManagementService,
     private analytics: AnalyticsService
@@ -55,7 +63,6 @@ export class ReferralPartnerDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.user = this.storageService.userProfile ?? undefined;
-    this.analytics.logScreenView('referral_partner_dashboard');
 
     if (!this.user || this.user.role !== UserProfile.RoleEnum.REFERRALPARTNER) {
       this.router.navigate(['/']);
@@ -67,9 +74,40 @@ export class ReferralPartnerDashboardComponent implements OnInit {
       return;
     }
 
-    this.loadSummary();
-    this.loadReferrals();
-    this.loadCommissions();
+    // Subscribe to queryParams so tab switches via browser back/forward or
+    // direct URL changes are handled reactively throughout the component lifetime.
+    this.queryParamsSub = this.route.queryParams.subscribe(params => {
+      const tab = params['tab'];
+      this.activeTab = (tab === 'referrals' || tab === 'commissions') ? tab : 'code';
+      this.analytics.logScreenView(`referral_partner_${this.activeTab}`);
+      this.loadActiveTab();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.queryParamsSub?.unsubscribe();
+  }
+
+  // ── Tab loader ───────────────────────────────────────────────────────────
+
+  private loadActiveTab(): void {
+    switch (this.activeTab) {
+      case 'code':
+        if (!this.summary && !this.summaryLoading) {
+          this.loadSummary();
+        }
+        break;
+      case 'referrals':
+        if (!this.referrals.length && !this.referralsLoading) {
+          this.loadReferrals();
+        }
+        break;
+      case 'commissions':
+        if (!this.commissions && !this.commissionsLoading) {
+          this.loadCommissions();
+        }
+        break;
+    }
   }
 
   // ── Section loaders ──────────────────────────────────────────────────────
