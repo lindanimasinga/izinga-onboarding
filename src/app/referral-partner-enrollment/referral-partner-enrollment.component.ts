@@ -44,6 +44,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
   agreementAccepted = false;
   acceptError = false;
   saving = false;
+  readOnlyMode = false;
   user: UserProfile | undefined;
 
   /**
@@ -63,7 +64,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
   readonly RPA_VERSION = 'rpa-v1';
 
   constructor(
-    private router: Router,
+    public router: Router,
     private storageService: StorageService,
     private izingaOrderManager: IzingaOrderManagementService,
     private analytics: AnalyticsService
@@ -78,10 +79,12 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
       return;
     }
 
-    // If the user has already completed enrollment under the current agreement version, skip to dashboard.
-    // Partners who accepted an older version (e.g. 'rpa-draft-v1') must re-accept the corrected terms.
+    // If the user has already completed enrollment under the current agreement version, show
+    // a read-only view of the agreement they accepted — do not redirect them away.
+    // Partners who accepted an older version (e.g. 'rpa-draft-v1') must re-accept the corrected terms
+    // and fall through to the normal acceptance form.
     if (this.user.icaAccepted && this.user.icaVersion === this.RPA_VERSION && this.user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
-      this.router.navigate(['/indivisuals/rp-referral-code']);
+      this.readOnlyMode = true;
     }
   }
 

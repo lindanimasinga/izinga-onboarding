@@ -8,7 +8,8 @@
   <!-- Page title -->
   <div class="text-center mb-4">
     <h2 class="fw-bold">Referral Partner Agreement</h2>
-    <p class="text-muted">Please read and accept this agreement to complete your Referral Partner enrollment</p>
+    <p class="text-muted" *ngIf="!readOnlyMode">Please read and accept this agreement to complete your Referral Partner enrollment</p>
+    <p class="text-muted" *ngIf="readOnlyMode">Your accepted agreement — read only</p>
   </div>
 
   <!-- DRAFT notice — visible until attorney-approved version replaces this content -->
@@ -366,13 +367,21 @@
     </div>
   </div>
 
-  <!-- Error alert -->
-  <div *ngIf="acceptError" class="alert mb-3 rpa-alert-error">
+  <!-- Read-only: acceptance confirmation banner -->
+  <div *ngIf="readOnlyMode" class="alert mb-4 rpa-alert-accepted">
+    <strong>Agreement accepted.</strong>
+    You accepted this agreement on {{ user?.icaAcceptedDate | date:'d MMMM yyyy' }}
+    (version: {{ user?.icaVersion }}).
+    This is a read-only copy of the agreement you accepted.
+  </div>
+
+  <!-- Error alert (acceptance flow only) -->
+  <div *ngIf="!readOnlyMode && acceptError" class="alert mb-3 rpa-alert-error">
     Something went wrong saving your agreement. Please try again.
   </div>
 
-  <!-- Acceptance checkbox -->
-  <div class="card mb-4">
+  <!-- Acceptance checkbox (new-enrollment flow only) -->
+  <div *ngIf="!readOnlyMode" class="card mb-4">
     <div class="card-body">
       <div class="form-check">
         <input class="form-check-input" type="checkbox" [(ngModel)]="agreementAccepted" id="rpaCheck">
@@ -387,8 +396,8 @@
 
 </div>
 
-<!-- Fixed-bottom action button -->
-<div class="row fixed-bottom">
+<!-- Fixed-bottom action: enroll (new partners) or back to dashboard (read-only) -->
+<div class="row fixed-bottom" *ngIf="!readOnlyMode">
   <button
     class="col btn btn-lg btn-block bg-dark shadow-sm"
     type="submit"
@@ -396,5 +405,14 @@
     (click)="enroll()">
     <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
     {{ saving ? 'Saving...' : 'Accept Agreement &amp; Enroll' }}
+  </button>
+</div>
+
+<div class="row fixed-bottom" *ngIf="readOnlyMode">
+  <button
+    class="col btn btn-lg btn-block bg-dark shadow-sm"
+    type="button"
+    (click)="router.navigate(['/indivisuals/rp-referral-code'])">
+    Back to Dashboard
   </button>
 </div>
