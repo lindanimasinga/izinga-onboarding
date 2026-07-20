@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { StoreCardComponent } from './store-card.component';
 
@@ -8,7 +9,8 @@ describe('StoreCardComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ StoreCardComponent ]
+      declarations: [ StoreCardComponent ],
+      imports: [ RouterTestingModule ]
     })
     .compileComponents();
   }));

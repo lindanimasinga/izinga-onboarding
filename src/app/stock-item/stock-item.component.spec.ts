@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { StockItemComponent } from './stock-item.component';
 
@@ -8,7 +9,8 @@ describe('ShopItemComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ StockItemComponent ]
+      declarations: [ StockItemComponent ],
+      imports: [ RouterTestingModule ]
     })
     .compileComponents();
   }));
