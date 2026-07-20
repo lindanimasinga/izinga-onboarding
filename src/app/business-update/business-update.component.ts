@@ -198,7 +198,7 @@ export class BusinessUpdateComponent {
         console.log('Store details updated successfully:', data);
         this.storageService.infoMessage = "Store details updated successfully"
         if(this.shop.id) {
-          window.location.reload()
+          this.reloadPage()
         } else {
           this.router.navigate([data.id], {relativeTo: this.route})
         }
@@ -457,6 +457,11 @@ export class BusinessUpdateComponent {
    */
   private syncCategoriesToShop(): void {
     this.shop.categories = [...this.deliveryCategories];
+  }
+
+  /** Extracted so tests can spy on it without touching window.location directly. */
+  protected reloadPage(): void {
+    window.location.reload();
   }
 
 }
