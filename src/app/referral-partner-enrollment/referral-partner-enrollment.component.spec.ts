@@ -12,17 +12,21 @@ import { UserProfile } from '../model/userProfile';
 /**
  * RP-002 unit tests — ReferralPartnerEnrollmentComponent
  *
- * RP-ENR-01  No user profile: redirects to root.
- * RP-ENR-02  User already enrolled (icaAccepted=true, icaVersion='rpa-v1'): redirects to dashboard.
- * RP-ENR-02b User accepted old version (icaAccepted=true, icaVersion='rpa-draft-v1'): NOT redirected — sees form.
- * RP-ENR-03  Checkbox unticked: enroll() does not call updateCustomer.
- * RP-ENR-04  Checkbox ticked: calls updateCustomer with correct ICA fields.
- * RP-ENR-05  Successful save: stores profile from assignReferralCode (not updateCustomer) and navigates.
- * RP-ENR-06  API error on updateCustomer: sets acceptError, clears saving flag.
- * RP-ENR-06b API error on assignReferralCode: sets acceptError, clears saving flag.
- * RP-ENR-07  Screen view analytics event fired on init.
- * RP-ENR-08  rpa_accepted analytics event fired on success.
- * RP-ENR-09  Enrolled partner ends up with a non-empty referralCode after enrollment.
+ * RP-ENR-01   No user profile: redirects to root.
+ * RP-ENR-02   User already enrolled (icaAccepted=true, icaVersion='rpa-v1'): sets readOnlyMode=true, no redirect.
+ * RP-ENR-02b  User accepted old version (icaAccepted=true, icaVersion='rpa-draft-v1'): NOT in read-only — sees form.
+ * RP-ENR-02c  Read-only mode: acceptance checkbox is NOT rendered.
+ * RP-ENR-02d  Read-only mode: PDF download link is present.
+ * RP-ENR-02e  Old-version partner: readOnlyMode stays false (acceptance flow shown, not read-only).
+ * RP-ENR-02f  Non-enrolled partner: readOnlyMode stays false.
+ * RP-ENR-03   Checkbox unticked: enroll() does not call updateCustomer.
+ * RP-ENR-04   Checkbox ticked: calls updateCustomer with correct ICA fields.
+ * RP-ENR-05   Successful save: stores profile from assignReferralCode (not updateCustomer) and navigates.
+ * RP-ENR-06   API error on updateCustomer: sets acceptError, clears saving flag.
+ * RP-ENR-06b  API error on assignReferralCode: sets acceptError, clears saving flag.
+ * RP-ENR-07   Screen view analytics event fired on init.
+ * RP-ENR-08   rpa_accepted analytics event fired on success.
+ * RP-ENR-09   Enrolled partner ends up with a non-empty referralCode after enrollment.
  */
 describe('ReferralPartnerEnrollmentComponent', () => {
   let component: ReferralPartnerEnrollmentComponent;
@@ -75,25 +79,73 @@ describe('ReferralPartnerEnrollmentComponent', () => {
   });
 
   // RP-ENR-02
-  it('RP-ENR-02: redirects to dashboard when user already enrolled under current version', () => {
+  it('RP-ENR-02: sets readOnlyMode=true and does NOT redirect when user already enrolled under current version', () => {
     mockStorage.userProfile = {
       ...baseProfile,
       icaAccepted: true,
       icaVersion: 'rpa-v1'
     } as UserProfile;
     fixture.detectChanges();
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
+    expect(component.readOnlyMode).toBeTrue();
+    expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
   });
 
   // RP-ENR-02b
-  it('RP-ENR-02b: does NOT redirect to dashboard when user accepted old version rpa-draft-v1', () => {
+  it('RP-ENR-02b: does NOT enter read-only mode when user accepted old version rpa-draft-v1', () => {
     mockStorage.userProfile = {
       ...baseProfile,
       icaAccepted: true,
       icaVersion: 'rpa-draft-v1'
     } as UserProfile;
     fixture.detectChanges();
-    expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
+    expect(component.readOnlyMode).toBeFalse();
+  });
+
+  // RP-ENR-02c
+  it('RP-ENR-02c: acceptance checkbox is NOT rendered in read-only mode', () => {
+    mockStorage.userProfile = {
+      ...baseProfile,
+      icaAccepted: true,
+      icaVersion: 'rpa-v1'
+    } as UserProfile;
+    fixture.detectChanges();
+    const checkbox = fixture.nativeElement.querySelector('#rpaCheck');
+    expect(checkbox).toBeNull();
+  });
+
+  // RP-ENR-02d
+  it('RP-ENR-02d: PDF download link is present in read-only mode', () => {
+    mockStorage.userProfile = {
+      ...baseProfile,
+      icaAccepted: true,
+      icaVersion: 'rpa-v1'
+    } as UserProfile;
+    fixture.detectChanges();
+    const downloadLink: HTMLAnchorElement = fixture.nativeElement.querySelector('a[download]');
+    expect(downloadLink).not.toBeNull();
+    expect(downloadLink.href).toContain('referral-partner-agreement-v1.pdf');
+  });
+
+  // RP-ENR-02e
+  it('RP-ENR-02e: old-version partner stays in acceptance flow (readOnlyMode=false)', () => {
+    mockStorage.userProfile = {
+      ...baseProfile,
+      icaAccepted: true,
+      icaVersion: 'rpa-draft-v1'
+    } as UserProfile;
+    fixture.detectChanges();
+    expect(component.readOnlyMode).toBeFalse();
+    const checkbox = fixture.nativeElement.querySelector('#rpaCheck');
+    expect(checkbox).not.toBeNull();
+  });
+
+  // RP-ENR-02f
+  it('RP-ENR-02f: non-enrolled partner sees the normal acceptance form (readOnlyMode=false)', () => {
+    mockStorage.userProfile = { ...baseProfile } as UserProfile;
+    fixture.detectChanges();
+    expect(component.readOnlyMode).toBeFalse();
+    const checkbox = fixture.nativeElement.querySelector('#rpaCheck');
+    expect(checkbox).not.toBeNull();
   });
 
   // RP-ENR-03

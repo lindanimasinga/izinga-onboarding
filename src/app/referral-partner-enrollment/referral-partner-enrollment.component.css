@@ -24,3 +24,8 @@
   border-left: 4px solid var(--btn-red-color);
   color: var(--text-color);
 }
+
+.rpa-alert-accepted {
+  border-left: 4px solid var(--btn-green-color);
+  color: var(--text-color);
+}
