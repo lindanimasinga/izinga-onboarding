@@ -17,7 +17,9 @@ export const environment = {
     hostnameToUserType: {
       'driver.izinga.co.za': 'driver',
       'biz.izinga.co.za': 'shop',
-      'earn.izinga.co.za': 'individual'
+      'earn.izinga.co.za': 'individual',
+      'ambassador.izinga.co.za': 'ambassador',
+      'refer.izinga.co.za': 'referral-partner'
     },
     bodyClassByUserType: {
       shop: 'shop',
@@ -105,6 +107,15 @@ export const environment = {
         ogDescription: 'Join iZinga as an individual and receive payments or tips with easy withdrawals.',
         twitterTitle: 'Receive Payments Seamlessly | Join iZinga as an Individual',
         twitterDescription: 'Sign up as an individual on iZinga and receive payments or tips directly.'
+      },
+      'referral-partner': {
+        title: 'Earn Commissions by Referring | iZinga Referral Partner',
+        description: 'Join the iZinga Referral Partner programme. Earn commissions for every driver, customer, and store you refer to the iZinga platform.',
+        keywords: 'iZinga, Referral Partner, Earn Commissions, Refer and Earn, Partner Programme, iZinga Referrals',
+        ogTitle: 'Earn Commissions by Referring | iZinga Referral Partner',
+        ogDescription: 'Sign up as an iZinga Referral Partner and earn commissions for every successful referral.',
+        twitterTitle: 'Earn Commissions by Referring | iZinga Referral Partner',
+        twitterDescription: 'Join the iZinga Referral Partner programme and start earning commissions today.'
       }
     }
   }
