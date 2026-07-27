@@ -52,6 +52,10 @@ export const environment = {
       ambassador: {
         heading: 'Become an iZinga Ambassador',
         description: 'Earn commissions by referring drivers and customers to iZinga. Sign up, get your unique QR code, and start earning today!'
+      },
+      'referral-partner': {
+        heading: 'Become an iZinga Referral Partner',
+        description: 'Earn commissions by referring customers and store partners to iZinga. Sign up, get your unique referral code, and start earning today!'
       }
     },
     signupCards: {
@@ -78,6 +82,12 @@ export const environment = {
         description: 'Earn commissions by referring drivers and customers to iZinga. Sign up to get your personal referral QR code.',
         cta: 'Sign up as an Ambassador',
         route: './indivisuals'
+      },
+      'referral-partner': {
+        title: 'Become an iZinga Referral Partner',
+        description: 'Earn commissions by referring customers and store partners to iZinga. Sign up to get your unique referral code and start earning.',
+        cta: 'Sign up as a Referral Partner',
+        route: '/referral-partner/enroll'
       }
     },
     seo: {
