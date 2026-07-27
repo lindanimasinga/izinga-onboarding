@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FirebaseService } from '../service/firebase.service';
 import { environment } from '../../environments/environment';
 
 interface AmbassadorDriver {
@@ -52,8 +54,10 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
+    private router: Router,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private firebaseService: FirebaseService
   ) {}
 
   ngOnInit(): void {
@@ -94,60 +98,89 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
   }
 
   private loadQrCode(userId: string): void {
-    this.http
-      .get(`${environment.izingaUrl}/user/${userId}/ambassador-qr`, { responseType: 'blob' })
-      .subscribe({
-        next: (blob: Blob) => {
-          this.qrImageUrl = URL.createObjectURL(blob);
-          this.loading = false;
-        },
-        error: (err) => {
-          if (err.status === 403 || err.status === 401) {
-            this.error = 'Your account is not yet approved as an Ambassador. Please wait for approval before accessing this page.';
-          } else if (err.status === 404) {
-            this.error = 'Ambassador QR code not found. Please contact support.';
-          } else {
-            this.error = 'Could not load your QR code. Please try again later.';
-          }
-          this.loading = false;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get(
+          `${environment.izingaUrl}/user/${userId}/ambassador-qr`,
+          { responseType: 'blob', headers }
+        );
+      })
+    ).subscribe({
+      next: (blob: Blob) => {
+        this.qrImageUrl = URL.createObjectURL(blob);
+        this.loading = false;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
+        } else if (err.status === 403) {
+          this.error = 'Your account is not yet approved as an Ambassador. Please wait for approval before accessing this page.';
+        } else if (err.status === 404) {
+          this.error = 'Ambassador QR code not found. Please contact support.';
+        } else {
+          this.error = 'Could not load your QR code. Please try again later.';
         }
-      });
+        this.loading = false;
+      }
+    });
   }
 
   private loadDrivers(userId: string): void {
     this.driversLoading = true;
-    this.http
-      .get<AmbassadorDriver[]>(`${environment.izingaUrl}/user/${userId}/ambassador-drivers`)
-      .subscribe({
-        next: (drivers) => {
-          this.drivers = drivers;
-          this.driversLoading = false;
-          this.driversLoaded = true;
-        },
-        error: () => {
-          this.driversLoading = false;
-          this.driversLoaded = true;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get<AmbassadorDriver[]>(
+          `${environment.izingaUrl}/user/${userId}/ambassador-drivers`,
+          { headers }
+        );
+      })
+    ).subscribe({
+      next: (drivers) => {
+        this.drivers = drivers;
+        this.driversLoading = false;
+        this.driversLoaded = true;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
         }
-      });
+        this.driversLoading = false;
+        this.driversLoaded = true;
+      }
+    });
   }
 
   private loadPayouts(userId: string): void {
     this.payoutsLoading = true;
-    this.http
-      .get<AmbassadorPayout[]>(`${environment.izingaUrl}/user/${userId}/ambassador-payouts`)
-      .subscribe({
-        next: (payouts) => {
-          this.payouts = payouts.sort((a, b) =>
-            new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-          );
-          this.payoutsLoading = false;
-          this.payoutsLoaded = true;
-        },
-        error: () => {
-          this.payoutsLoading = false;
-          this.payoutsLoaded = true;
+    this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+        return this.http.get<AmbassadorPayout[]>(
+          `${environment.izingaUrl}/user/${userId}/ambassador-payouts`,
+          { headers }
+        );
+      })
+    ).subscribe({
+      next: (payouts) => {
+        this.payouts = payouts.sort((a, b) =>
+          new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+        );
+        this.payoutsLoading = false;
+        this.payoutsLoaded = true;
+      },
+      error: (err) => {
+        if (err.status === 401) {
+          this.error = 'Your session has expired. Please sign in again.';
+          this.router.navigate(['/']);
         }
-      });
+        this.payoutsLoading = false;
+        this.payoutsLoaded = true;
+      }
+    });
   }
 
   get totalEarnings(): number {

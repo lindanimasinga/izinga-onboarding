@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { AnalyticsService } from '../service/analytics.service';
 import { StorageService } from '../service/storage-service.service';
 
-type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador';
+type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador' | 'referral-partner';
 
 @Component({
   selector: 'app-welcome',
@@ -30,7 +30,7 @@ export class WelcomeIndivisualsComponent {
 
   ngOnInit(): void {
     const storedUserType = this.storageService.userType as UserType | undefined;
-    if (storedUserType === 'driver' || storedUserType === 'individual' || storedUserType === 'shop' || storedUserType === '' || storedUserType === 'ambassador') {
+    if (storedUserType === 'driver' || storedUserType === 'individual' || storedUserType === 'shop' || storedUserType === '' || storedUserType === 'ambassador' || storedUserType === 'referral-partner') {
       this.userType = storedUserType;
     }
 

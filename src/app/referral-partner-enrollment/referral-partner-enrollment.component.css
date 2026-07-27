@@ -14,3 +14,18 @@
 .card:last-of-type {
   margin-bottom: 4rem;
 }
+
+.rpa-alert-draft {
+  border-left: 4px solid var(--btn-pill-color);
+  color: var(--text-color);
+}
+
+.rpa-alert-error {
+  border-left: 4px solid var(--btn-red-color);
+  color: var(--text-color);
+}
+
+.rpa-alert-accepted {
+  border-left: 4px solid var(--btn-green-color);
+  color: var(--text-color);
+}

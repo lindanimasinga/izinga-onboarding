@@ -466,31 +466,71 @@ export class IzingaOrderManagementService {
         );
     }
 
+    // RP-003/RP-002: Assign a referral code to the REFERRAL_PARTNER user identified by userId.
+    // Idempotent — returns the existing code if already assigned. Called immediately after
+    // the partner accepts the ICA in ReferralPartnerEnrollmentComponent.
+    // Backend: POST /user/{userId}/referral-code — requires ADMIN role OR self (#userId == auth.name).
+    assignReferralCode(userId: string): Observable<UserProfile> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.post<UserProfile>(
+            `${environment.izingaUrl}/user/${userId}/referral-code`,
+            null,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
     // RP-010: Referral Partner dashboard endpoints — all REFERRAL_PARTNER-scoped, auth via JWT.
     // Never pass a partnerId param — the backend derives it from the JWT subject.
 
     getReferralPartnerSummary(): Observable<ReferralPartnerSummary> {
-      return this.http.get<ReferralPartnerSummary>(`${environment.izingaUrl}/referral-partner/me/summary`, {headers: this.headers})
-        .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.get<ReferralPartnerSummary>(`${environment.izingaUrl}/referral-partner/me/summary`, { headers });
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
     getReferralPartnerReferrals(page: number = 0, size: number = 20): Observable<ReferralPage> {
-      return this.http.get<ReferralPage>(
-        `${environment.izingaUrl}/referral-partner/me/referrals?page=${page}&size=${size}`,
-        {headers: this.headers}
-      ).pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.get<ReferralPage>(
+            `${environment.izingaUrl}/referral-partner/me/referrals?page=${page}&size=${size}`,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
     getReferralPartnerCommissions(): Observable<ReferralPartnerCommissions> {
-      return this.http.get<ReferralPartnerCommissions>(`${environment.izingaUrl}/referral-partner/me/commissions`, {headers: this.headers})
-        .pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.get<ReferralPartnerCommissions>(`${environment.izingaUrl}/referral-partner/me/commissions`, { headers });
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
     getReferralPartnerPayouts(page: number = 0, size: number = 20): Observable<PayoutPage> {
-      return this.http.get<PayoutPage>(
-        `${environment.izingaUrl}/recon/referral-partner/me/payouts?page=${page}&size=${size}`,
-        {headers: this.headers}
-      ).pipe(catchError((error: HttpErrorResponse) => throwError(error)));
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.get<PayoutPage>(
+            `${environment.izingaUrl}/recon/referral-partner/me/payouts?page=${page}&size=${size}`,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
     }
 
     notifyNewMessage(chatSessionId: string, messageId: string): Observable<any> {

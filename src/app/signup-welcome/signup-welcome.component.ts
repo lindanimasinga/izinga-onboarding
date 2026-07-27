@@ -12,6 +12,9 @@ import { AnalyticsService } from '../service/analytics.service';
 })
 export class SignupWelcomeComponent implements OnInit {
   userId?: string;
+  // Stored after profile resolves so termsRoute and canViewTerms can use the role
+  // without re-reading from storageService on every change-detection cycle.
+  userRole?: UserProfile.RoleEnum;
   firstName = 'there';
   profession = 'professional';
   areaOfWork = 'your selected area';
@@ -73,14 +76,32 @@ export class SignupWelcomeComponent implements OnInit {
     this.firstName = sourceName.split(' ')[0];
     this.profession = profile?.description || this.profession;
     this.areaOfWork = profile?.address || this.areaOfWork;
+    // Capture role so termsRoute and canViewTerms can branch correctly without
+    // re-reading from storageService on every change-detection cycle.
+    this.userRole = profile?.role;
   }
 
   get termsRoute(): string[] {
+    // REFERRAL_PARTNER must go to the purpose-built enrollment screen
+    // (ReferralPartnerEnrollmentComponent), NOT the generic TermsConditionsComponent
+    // which only handles customer/store T&Cs and writes to the wrong field
+    // (termsAccepted instead of icaAccepted).  The enrollment component reads
+    // the current user from storageService.userProfile directly — no userId param
+    // needed.  This mirrors the same branch already applied in dashboard.component.ts.
+    if (this.userRole === UserProfile.RoleEnum.REFERRALPARTNER) {
+      return ['/referral-partner/enroll'];
+    }
     const base = this.router.url.includes('/business/') ? '/business' : '/indivisuals';
     return [base, 'terms', this.userId || ''];
   }
 
   get canViewTerms(): boolean {
+    // For REFERRAL_PARTNER the route doesn't need a userId — the enrollment
+    // component resolves the user itself — so allow navigation as soon as the
+    // role is known, even before userId has resolved from the API response.
+    if (this.userRole === UserProfile.RoleEnum.REFERRALPARTNER) {
+      return true;
+    }
     return !!this.userId;
   }
 }

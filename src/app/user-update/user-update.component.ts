@@ -22,7 +22,18 @@ export class UserUpdateComponent {
   additionalInstructions?: string
   _newAddressLatitude?: number
   _newAddressLongitude?: number
-  roleDescription?: string
+  private _roleDescription?: string;
+  /** Cached result of getUserConfigFields — recomputed only when the role selection changes. */
+  cachedConfigFields: Array<{name: string, label: string, dataType: DataType}> = [];
+
+  get roleDescription(): string | undefined {
+    return this._roleDescription;
+  }
+
+  set roleDescription(value: string | undefined) {
+    this._roleDescription = value;
+    this._refreshConfigFields();
+  }
   city?: string
   bankConfigs: BankConfig[] = [];
   selectedBankConfig?: BankConfig;
@@ -71,6 +82,8 @@ export class UserUpdateComponent {
   ngOnInit() {
     this.analytics.logScreenView('profile_setup');
     console.log(`bank is ${JSON.stringify(this.userProfile.bank)}`)
+    this.loadUserConfig()
+    this.loadBankConfigs()
     this.userProfile.mobileNumber = this.storageService.phoneNumber
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
@@ -90,8 +103,6 @@ export class UserUpdateComponent {
       // Load existing dynamic field data if present
       this.loadExistingDynamicFields(user);
     })
-    this.loadUserConfig()
-    this.loadBankConfigs()
   }
 
   isStoreAdmin(): boolean {
@@ -300,7 +311,10 @@ export class UserUpdateComponent {
     this.izingaOrderManager.getUserConfig()
     .subscribe(config => {
       console.log("Loaded user config: ", config)
-      this.userConfig = config
+      this.userConfig = config;
+      // Refresh cached fields now that config is available — roleDescription may
+      // already be set from a returning user profile loaded in ngOnInit.
+      this._refreshConfigFields();
     }, error => console.error("Error loading user config: ", error))
   }
 
@@ -321,18 +335,27 @@ export class UserUpdateComponent {
     }
   }
 
-  getUserConfigFields(roleDescriptionLabel: string | undefined): Array<{name: string, label: string, dataType: DataType}> {
-    this.config = this.userConfig.find(config => config.label === roleDescriptionLabel)
-    if (!this.config) {
-      console.warn(`No user config found for role description: ${roleDescriptionLabel}`);
+  /**
+   * Recomputes cachedConfigFields and this.config whenever the role selection changes.
+   * Called only from the roleDescription setter and after userConfig loads — never
+   * from the template — so Angular change detection does not trigger repeated
+   * invocations that caused the 6 000+/min logging loop (Bug 3).
+   */
+  private _refreshConfigFields(): void {
+    this.config = this.userConfig.find(c => c.label === this._roleDescription);
+    if (this.config) {
+      console.log(`Found user config for role description ${this._roleDescription}:`, this.config);
+      this.cachedConfigFields = [...this.config.mandatoryFields, ...this.config.optionalFields]
+        .sort((a, b) => b.label.localeCompare(a.label))
+        .sort((a, b) => a.dataType === 'DOCUMENT_URL' ? -1 : 1);
     } else {
-      console.log(`Found user config for role description ${roleDescriptionLabel}:`, this.config);
-      return [...this.config.mandatoryFields, ...this.config.optionalFields]
-        .sort((a, b) =>  b.label.localeCompare(a.label))
-        .sort((a, b) => a.dataType === 'DOCUMENT_URL' ? -1 : 1)
+      this.cachedConfigFields = [];
     }
+  }
 
-    return [] 
+  /** @deprecated Use cachedConfigFields directly — kept only as a named alias for any call sites outside the template. */
+  getUserConfigFields(roleDescriptionLabel: string | undefined): Array<{name: string, label: string, dataType: DataType}> {
+    return this.cachedConfigFields;
   }
 
   /**
