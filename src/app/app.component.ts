@@ -8,7 +8,7 @@ import { environment } from 'src/environments/environment';
 
 const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
 document.body.classList.toggle('dark-theme', prefersDarkScheme.matches);
-type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador';
+type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador' | 'referral-partner';
 
 interface WelcomeHeroCopy {
   heading: string;
@@ -45,6 +45,13 @@ export class AppComponent {
     if (!this.storageService.phoneNumber) return '/';
     if (this.userType === 'shop') return '/business/dashboard';
     if (this.userType === 'driver' || this.userType === 'individual' || this.userType === 'ambassador') return '/indivisuals/dashboard';
+    if (this.userType === 'referral-partner') {
+      // Route enrolled partners to their dashboard; unenrolled to the enrollment page.
+      // Mirrors the REFERRAL_PARTNER branch in welcome-selection.component.ts ngOnInit.
+      return this.storageService.userProfile?.icaAccepted
+        ? '/indivisuals/rp-referral-code'
+        : '/referral-partner/enroll';
+    }
     return '/';
   }
 
@@ -104,7 +111,7 @@ export class AppComponent {
   }
 
   private normalizeUserType(userType?: string): UserType {
-    if (userType === '' || userType === 'shop' || userType === 'individual' || userType === 'driver' || userType === 'ambassador') {
+    if (userType === '' || userType === 'shop' || userType === 'individual' || userType === 'driver' || userType === 'ambassador' || userType === 'referral-partner') {
       return userType;
     }
 
@@ -126,8 +133,9 @@ export class AppComponent {
 
     if (this.userType === 'shop' || this.userType === 'driver' || this.userType === 'individual') {
       document.body.classList.add(environment.userTypeConfig.bodyClassByUserType[this.userType]);
-    } else if (this.userType === 'ambassador') {
-      document.body.classList.add('driver'); // ambassadors share the driver/teal colour theme
+    } else if (this.userType === 'ambassador' || this.userType === 'referral-partner') {
+      // ambassador and referral-partner share the driver/teal colour theme
+      document.body.classList.add('driver');
     }
   }
 
@@ -143,16 +151,18 @@ export class AppComponent {
 
     if (this.userType === 'shop' || this.userType === 'driver' || this.userType === 'individual') {
       manifestLink.href = environment.userTypeConfig.manifestByUserType[this.userType];
-    } else if (this.userType === 'ambassador') {
+    } else if (this.userType === 'ambassador' || this.userType === 'referral-partner') {
+      // ambassador and referral-partner reuse the driver manifest (teal PWA icon)
       manifestLink.href = environment.userTypeConfig.manifestByUserType['driver'];
     }
   }
 
   private updateSeo(): void {
-    if (this.userType !== 'shop' && this.userType !== 'driver' && this.userType !== 'individual' && this.userType !== 'ambassador') {
+    if (this.userType !== 'shop' && this.userType !== 'driver' && this.userType !== 'individual' && this.userType !== 'ambassador' && this.userType !== 'referral-partner') {
       return;
     }
 
+    // ambassador piggybacks on the driver SEO config; referral-partner has its own entry
     const resolvedSeoType = this.userType === 'ambassador' ? 'driver' : this.userType;
     const seo = environment.userTypeConfig.seo[resolvedSeoType] as SeoConfig;
 
