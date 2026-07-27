@@ -5,7 +5,7 @@ import { AnalyticsService } from '../service/analytics.service';
 import { Meta, Title } from '@angular/platform-browser';
 import { environment } from '../../environments/environment';
 
-type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador';
+type UserType = '' | 'shop' | 'individual' | 'driver' | 'ambassador' | 'referral-partner';
 
 interface WelcomeHeroCopy {
   heading: string;
@@ -38,7 +38,7 @@ export class WelcomeSelectionComponent {
 
   userType: UserType = environment.userTypeConfig.defaultUserType as UserType;
   readonly heroCopyConfig = environment.userTypeConfig.heroCopy as Record<UserType, WelcomeHeroCopy>;
-  readonly signupCardConfig = environment.userTypeConfig.signupCards as Record<'shop' | 'individual' | 'driver' | 'ambassador', SignupCardCopy>;
+  readonly signupCardConfig = environment.userTypeConfig.signupCards as Record<'shop' | 'individual' | 'driver' | 'ambassador' | 'referral-partner', SignupCardCopy>;
 
   constructor(
     private storageService: StorageService,
@@ -57,6 +57,10 @@ export class WelcomeSelectionComponent {
     return this.userType === 'ambassador';
   }
 
+  get isReferralPartner(): boolean {
+    return this.userType === 'referral-partner';
+  }
+
   ngOnInit(): void {
     this.analytics.logScreenView('welcome_selection');
 
@@ -73,6 +77,14 @@ export class WelcomeSelectionComponent {
       this.router.navigate(['/indivisuals/dashboard'])
     } else if (this.storageService.userProfile?.role == 'AMBASSADOR') {
       this.router.navigate(['/ambassador/qr'])
+    } else if (this.storageService.userProfile?.role == 'REFERRAL_PARTNER') {
+      // RP-010: route to enrollment if Agreement not yet accepted,
+      // otherwise to the Referral Partner Dashboard.
+      if (this.storageService.userProfile?.icaAccepted) {
+        this.router.navigate(['/indivisuals/rp-referral-code'])
+      } else {
+        this.router.navigate(['/referral-partner/enroll'])
+      }
     }
   }
 

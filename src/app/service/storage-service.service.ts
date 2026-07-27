@@ -16,6 +16,7 @@ export class StorageService {
   STORE_TO_PAY = "nvcaseuhfdkfs"
   PAYOUT = "we434dfsdfsdf"
   AMBASSADOR_REF_KEY = "ambassadorRef"
+  REFERRAL_PARTNER_REF_KEY = "referralPartnerRef"
   RETURN_URL_KEY = "returnUrl"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
@@ -61,14 +62,21 @@ export class StorageService {
 
   get phoneNumber():  string | undefined {
     if (this._phoneNumber == null) {
-      this._phoneNumber = JSON.parse(this.cache.getItem(this.PHONE_KEY)!)
+      const raw = this.cache.getItem(this.PHONE_KEY);
+      if (raw && raw !== 'undefined' && raw !== 'null') {
+        this._phoneNumber = JSON.parse(raw);
+      }
     }
     return this._phoneNumber;
   }
 
   set phoneNumber(phoneNumber: string | undefined) {
-    this._phoneNumber = phoneNumber
-    this.cache.setItem(this.PHONE_KEY, JSON.stringify(this.phoneNumber))
+    this._phoneNumber = phoneNumber;
+    if (phoneNumber === undefined || phoneNumber === null) {
+      this.cache.removeItem(this.PHONE_KEY);
+    } else {
+      this.cache.setItem(this.PHONE_KEY, JSON.stringify(phoneNumber));
+    }
   }
 
   get device():  Device | undefined {
@@ -80,15 +88,22 @@ export class StorageService {
   }
 
   get userProfile():  UserProfile | undefined {
-    if(!this._userProfile && this.cache.getItem(this.USER_PROFILE_KEY)) {
-      this._userProfile = JSON.parse(this.cache.getItem(this.USER_PROFILE_KEY)!)
+    if (!this._userProfile) {
+      const raw = this.cache.getItem(this.USER_PROFILE_KEY);
+      if (raw && raw !== 'undefined' && raw !== 'null') {
+        this._userProfile = JSON.parse(raw);
+      }
     }
     return this._userProfile;
   }
 
   set userProfile(userProfile: UserProfile | undefined) {
-    this._userProfile = userProfile
-    this.cache.setItem(this.USER_PROFILE_KEY, JSON.stringify(this._userProfile))
+    this._userProfile = userProfile;
+    if (userProfile === undefined || userProfile === null) {
+      this.cache.removeItem(this.USER_PROFILE_KEY);
+    } else {
+      this.cache.setItem(this.USER_PROFILE_KEY, JSON.stringify(userProfile));
+    }
   }
 
   get ambassadorRef(): string | null {
@@ -100,6 +115,24 @@ export class StorageService {
       this.sessionCache.setItem(this.AMBASSADOR_REF_KEY, ref);
     } else {
       this.sessionCache.removeItem(this.AMBASSADOR_REF_KEY);
+    }
+  }
+
+  /**
+   * RP-005b: Referral Partner code captured from ?ref= query param on the business
+   * registration entry point. Persisted in sessionStorage so it survives navigation
+   * through the phone-verify → dashboard → store-create flow without surviving
+   * a full browser restart (intentional — stale referral attribution should not persist).
+   */
+  get referralPartnerRef(): string | null {
+    return this.sessionCache.getItem(this.REFERRAL_PARTNER_REF_KEY);
+  }
+
+  set referralPartnerRef(ref: string | null) {
+    if (ref) {
+      this.sessionCache.setItem(this.REFERRAL_PARTNER_REF_KEY, ref);
+    } else {
+      this.sessionCache.removeItem(this.REFERRAL_PARTNER_REF_KEY);
     }
   }
 

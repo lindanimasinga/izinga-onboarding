@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { Subject } from 'rxjs';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 
 import { BusinessUpdateComponent } from './business-update.component';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -44,16 +45,13 @@ function buildComponent(
 
   Object.assign(orderSvc, orderSvcOverrides);
 
-  const storageSvc = jasmine.createSpyObj<StorageService>(
-    'StorageService',
-    [],
-    { userProfile: { id: 'user-1' } as any, errorMessage: '', infoMessage: '' }
-  );
+  const storageSvc = { userProfile: { id: 'user-1' } as any, errorMessage: '', infoMessage: '' } as any;
 
   const analyticsSvc = jasmine.createSpyObj<AnalyticsService>('AnalyticsService', ['logScreenView', 'logEvent']);
 
   TestBed.configureTestingModule({
     declarations: [BusinessUpdateComponent],
+    schemas: [NO_ERRORS_SCHEMA],
     providers: [
       DatePipe,
       { provide: IzingaOrderManagementService, useValue: orderSvc },
@@ -178,6 +176,7 @@ describe('BusinessUpdateComponent — addDeliveryCategory (ONB-11)', () => {
 describe('BusinessUpdateComponent — syncCategoriesToShop (ONB-11)', () => {
   let component: BusinessUpdateComponent;
   let orderSvc: jasmine.SpyObj<IzingaOrderManagementService>;
+  let reloadSpy: jasmine.Spy;
 
   beforeEach(() => {
     ({ component, orderSvc } = buildComponent());
@@ -186,6 +185,9 @@ describe('BusinessUpdateComponent — syncCategoriesToShop (ONB-11)', () => {
     component.shop.id = 'shop-1';
     component.shop.featuredExpiry = new Date();
     component.shop.ownerId = 'user-1';
+    // reloadPage() is a protected wrapper around window.location.reload() that can be
+    // spied on in tests, avoiding the non-configurable window.location.reload limitation.
+    reloadSpy = spyOn(component as any, 'reloadPage').and.callFake(() => {});
   });
 
   // ONB-SYNC-01: deliveryCategories are copied to shop.categories before the PATCH call

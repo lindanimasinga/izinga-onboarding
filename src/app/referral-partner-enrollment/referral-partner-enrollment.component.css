@@ -1,0 +1,31 @@
+.rpa-body {
+  max-height: 55vh;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.rpa-body h5 {
+  margin-top: 1.25rem;
+  font-size: 0.95rem;
+}
+
+/* Ensure fixed-bottom button does not obscure the accept checkbox */
+.card:last-of-type {
+  margin-bottom: 4rem;
+}
+
+.rpa-alert-draft {
+  border-left: 4px solid var(--btn-pill-color);
+  color: var(--text-color);
+}
+
+.rpa-alert-error {
+  border-left: 4px solid var(--btn-red-color);
+  color: var(--text-color);
+}
+
+.rpa-alert-accepted {
+  border-left: 4px solid var(--btn-green-color);
+  color: var(--text-color);
+}

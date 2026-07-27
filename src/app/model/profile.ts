@@ -33,12 +33,15 @@ export interface Profile {
     yearsInService?: number;
 }
 export namespace Profile {
-    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN';
+    export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR' | 'REFERRAL_PARTNER';
     export const RoleEnum = {
         CUSTOMER: 'CUSTOMER' as RoleEnum,
         STOREADMIN: 'STORE_ADMIN' as RoleEnum,
         STORE: 'STORE' as RoleEnum,
         MESSENGER: 'MESSENGER' as RoleEnum,
-        MESSENGERADMIN: 'MESSENGER_ADMIN' as RoleEnum
+        MESSENGERADMIN: 'MESSENGER_ADMIN' as RoleEnum,
+        ADMIN: 'ADMIN' as RoleEnum,
+        AMBASSADOR: 'AMBASSADOR' as RoleEnum,
+        REFERRALPARTNER: 'REFERRAL_PARTNER' as RoleEnum
     };
 }

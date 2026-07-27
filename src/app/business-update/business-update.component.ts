@@ -175,6 +175,15 @@ export class BusinessUpdateComponent {
       console.log(`setting store owner id to ${this.storageService?.userProfile?.id}`);
       this.shop.ownerId = this.storageService.userProfile?.id
       this.shop.shortName = this.replaceSpecialChars(this.shop.name)
+
+      // RP-005b: attach referral code on new store creation only.
+      // The ref value was captured from ?ref= at the /business entry point and
+      // stored in sessionStorage. Clear it after attaching to prevent double-attribution.
+      const rpRef = this.storageService.referralPartnerRef;
+      if (rpRef) {
+        this.shop.referralCode = rpRef;
+        this.storageService.referralPartnerRef = null;
+      }
     }
 
     // Issue #11: always send the full categories array to the backend
@@ -189,7 +198,7 @@ export class BusinessUpdateComponent {
         console.log('Store details updated successfully:', data);
         this.storageService.infoMessage = "Store details updated successfully"
         if(this.shop.id) {
-          window.location.reload()
+          this.reloadPage()
         } else {
           this.router.navigate([data.id], {relativeTo: this.route})
         }
@@ -448,6 +457,11 @@ export class BusinessUpdateComponent {
    */
   private syncCategoriesToShop(): void {
     this.shop.categories = [...this.deliveryCategories];
+  }
+
+  /** Extracted so tests can spy on it without touching window.location directly. */
+  protected reloadPage(): void {
+    window.location.reload();
   }
 
 }

@@ -19,6 +19,7 @@ export class DashboardComponent {
   isMessenger: boolean = false
   isMessengerAdmin: boolean = false
   isAmbassador: boolean = false
+  isReferralPartner: boolean = false
   deferredPrompt: any;
   user?: UserProfile | null
   missingDocuments: string[] = []
@@ -39,24 +40,44 @@ export class DashboardComponent {
       this.isMessengerAdmin = user.role == UserProfile.RoleEnum.MESSENGERADMIN
       this.isAdmin = user.role == UserProfile.RoleEnum.ADMIN
       this.isAmbassador = user.role == UserProfile.RoleEnum.AMBASSADOR
+      this.isReferralPartner = user.role == UserProfile.RoleEnum.REFERRALPARTNER
       this.user = user
       this.storageService.userProfile = user
       this.analytics.logScreenView('dashboard', { user_role: user.role });
 
-      // Check if user has accepted terms and conditions
-      // Ambassadors accept the ICA (icaAccepted) instead of the general T&Cs (termsAccepted)
-      const hasAcceptedTerms = user.role === UserProfile.RoleEnum.AMBASSADOR
+      // Check if user has accepted terms and conditions.
+      // AMBASSADOR and REFERRAL_PARTNER both use the ICA acceptance fields
+      // (icaAccepted / icaAcceptedDate / icaVersion) and have their own
+      // purpose-built enrollment screens — they must never land on the generic
+      // TermsConditionsComponent which only handles customer/store T&Cs and
+      // writes to termsAccepted (wrong field for these roles).
+      const isIcaRole = user.role === UserProfile.RoleEnum.AMBASSADOR
+        || user.role === UserProfile.RoleEnum.REFERRALPARTNER;
+      const hasAcceptedTerms = isIcaRole
         ? !!user.icaAccepted
         : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
-        // Redirect to terms page with user ID, maintaining current route context
+        if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
+          // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).
+          // That component's ngOnInit will redirect already-enrolled partners onward to
+          // /indivisuals/rp-referral-code, so routing every RP through it is safe.
+          this.router.navigate(['/referral-partner/enroll']);
+          return;
+        }
+        if (user.role === UserProfile.RoleEnum.AMBASSADOR) {
+          // Ambassadors have their own ICA screen — not yet a dedicated route in this
+          // build, so fall through to the indivisuals/terms route which the ICA
+          // gate in TermsConditionsComponent handles via the isAmbassador path.
+          this.router.navigate(['/indivisuals/terms', user.id]);
+          return;
+        }
+        // Generic customer / store T&Cs route, maintaining current route context.
         const currentUrl = this.router.url;
         if (currentUrl.includes('/indivisuals/')) {
           this.router.navigate(['/indivisuals/terms', user.id]);
         } else if (currentUrl.includes('/business/')) {
           this.router.navigate(['/business/terms', user.id]);
         } else {
-          // Default fallback
           this.router.navigate(['/indivisuals/terms', user.id]);
         }
         return;
