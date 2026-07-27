@@ -45,7 +45,13 @@ export class AppComponent {
     if (!this.storageService.phoneNumber) return '/';
     if (this.userType === 'shop') return '/business/dashboard';
     if (this.userType === 'driver' || this.userType === 'individual' || this.userType === 'ambassador') return '/indivisuals/dashboard';
-    if (this.userType === 'referral-partner') return '/referral-partner/enroll';
+    if (this.userType === 'referral-partner') {
+      // Route enrolled partners to their dashboard; unenrolled to the enrollment page.
+      // Mirrors the REFERRAL_PARTNER branch in welcome-selection.component.ts ngOnInit.
+      return this.storageService.userProfile?.icaAccepted
+        ? '/indivisuals/rp-referral-code'
+        : '/referral-partner/enroll';
+    }
     return '/';
   }
 
