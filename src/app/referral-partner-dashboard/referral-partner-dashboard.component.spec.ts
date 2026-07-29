@@ -315,6 +315,7 @@ describe('ReferralPartnerDashboardComponent', () => {
     it('referralTypeLabel() should return human-readable labels', () => {
       expect(component.referralTypeLabel('FOOD_CUSTOMER')).toBe('Food Customer');
       expect(component.referralTypeLabel('STORE_PARTNER')).toBe('Store Partner');
+      expect(component.referralTypeLabel('FURNITURE_CUSTOMER')).toBe('Furniture Customer');
     });
 
     it('unconverted referrals should be marked REGISTERED', () => {

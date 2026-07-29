@@ -212,8 +212,12 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
   }
 
   /** Human-readable label for referral type (AC-010-03). */
-  referralTypeLabel(type: 'FOOD_CUSTOMER' | 'STORE_PARTNER'): string {
-    return type === 'FOOD_CUSTOMER' ? 'Food Customer' : 'Store Partner';
+  referralTypeLabel(type: 'FOOD_CUSTOMER' | 'STORE_PARTNER' | 'FURNITURE_CUSTOMER'): string {
+    switch (type) {
+      case 'FOOD_CUSTOMER': return 'Food Customer';
+      case 'FURNITURE_CUSTOMER': return 'Furniture Customer';
+      default: return 'Store Partner';
+    }
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────
