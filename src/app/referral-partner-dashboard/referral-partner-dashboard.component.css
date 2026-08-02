@@ -10,6 +10,12 @@
   color: var(--btn-bg-color);
 }
 
+.rp-link-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
 .rp-link-text {
   font-size: 0.85rem;
   word-break: break-all;

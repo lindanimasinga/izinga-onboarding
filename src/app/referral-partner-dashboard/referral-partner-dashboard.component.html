@@ -29,14 +29,30 @@
           </div>
 
           <div *ngIf="!summaryLoading && !summaryError && summary">
-            <div class="mb-2">
+            <div class="mb-3">
               <span class="fw-bold rp-code">{{ summary.referralCode }}</span>
             </div>
-            <div class="d-flex align-items-center flex-wrap gap-2">
-              <span class="text-muted rp-link-text">{{ shareableLink }}</span>
-              <button type="button" class="btn btn-dark btn-sm" (click)="copyLink()">
-                {{ linkCopied ? 'Copied!' : 'Copy Link' }}
-              </button>
+
+            <!-- Food customers link -->
+            <div class="mb-3">
+              <div class="rp-link-label mb-1">Share with food customers</div>
+              <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="text-muted rp-link-text">{{ shareableLink }}</span>
+                <button type="button" class="btn btn-dark btn-sm" (click)="copyLink()">
+                  {{ linkCopied ? 'Copied!' : 'Copy Link' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Furniture / delivery customers link (ADR-018) -->
+            <div class="pt-3 border-top">
+              <div class="rp-link-label mb-1">Share with furniture &amp; delivery customers</div>
+              <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="text-muted rp-link-text">{{ deliveryShareableLink }}</span>
+                <button type="button" class="btn btn-dark btn-sm" (click)="copyDeliveryLink()">
+                  {{ deliveryLinkCopied ? 'Copied!' : 'Copy Link' }}
+                </button>
+              </div>
             </div>
           </div>
         </div>

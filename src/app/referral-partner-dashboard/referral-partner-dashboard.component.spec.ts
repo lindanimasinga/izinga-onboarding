@@ -262,6 +262,95 @@ describe('ReferralPartnerDashboardComponent', () => {
     }));
   });
 
+  // ── ADR-018: Delivery shareable link ────────────────────────────────────
+
+  describe('ADR-018: deliveryShareableLink', () => {
+    it('should expose deliveryShareableLink pointing at delivery.izinga.co.za with the referral code', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      expect(component.deliveryShareableLink).toBe('https://delivery.izinga.co.za/?ref=THABO01');
+    });
+
+    it('deliveryShareableLink should use the same referral code as shareableLink', () => {
+      setupHappyPath();
+      fixture.detectChanges();
+      const code = component.summary!.referralCode;
+      expect(component.deliveryShareableLink).toContain(code);
+      expect(component.shareableLink).toContain(code);
+    });
+
+    it('deliveryShareableLink should return a URL with an empty ref when summary is not yet loaded', () => {
+      setupHappyPath();
+      // Do not call fixture.detectChanges() — summary is not yet populated
+      expect(component.deliveryShareableLink).toBe('https://delivery.izinga.co.za/?ref=');
+    });
+
+    it('copyDeliveryLink() should set deliveryLinkCopied to true and reset after 2 s', fakeAsync(() => {
+      setupHappyPath();
+      fixture.detectChanges();
+
+      const clipboardStub = { writeText: jasmine.createSpy('writeText').and.returnValue(Promise.resolve()) };
+      Object.defineProperty(navigator, 'clipboard', { value: clipboardStub, configurable: true });
+
+      component.copyDeliveryLink();
+      tick(0);
+      expect(component.deliveryLinkCopied).toBeTrue();
+
+      tick(2000);
+      expect(component.deliveryLinkCopied).toBeFalse();
+
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    }));
+
+    it('copyDeliveryLink() should write deliveryShareableLink to the clipboard', fakeAsync(() => {
+      setupHappyPath();
+      fixture.detectChanges();
+
+      const writeTextSpy = jasmine.createSpy('writeText').and.returnValue(Promise.resolve());
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: writeTextSpy }, configurable: true });
+
+      component.copyDeliveryLink();
+      tick(0);
+      expect(writeTextSpy).toHaveBeenCalledWith('https://delivery.izinga.co.za/?ref=THABO01');
+
+      // Drain the 2 s reset timer to leave the zone clean
+      tick(2000);
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    }));
+
+    it('copyDeliveryLink() should not throw and deliveryLinkCopied should remain false when clipboard is undefined', fakeAsync(() => {
+      setupHappyPath();
+      fixture.detectChanges();
+
+      const originalDescriptor = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+
+      expect(() => component.copyDeliveryLink()).not.toThrow();
+      tick(2000);
+      expect(component.deliveryLinkCopied).toBeFalse();
+
+      if (originalDescriptor) {
+        Object.defineProperty(navigator, 'clipboard', originalDescriptor);
+      }
+    }));
+
+    it('copyDeliveryLink() should not affect linkCopied state', fakeAsync(() => {
+      setupHappyPath();
+      fixture.detectChanges();
+
+      const clipboardStub = { writeText: jasmine.createSpy('writeText').and.returnValue(Promise.resolve()) };
+      Object.defineProperty(navigator, 'clipboard', { value: clipboardStub, configurable: true });
+
+      component.copyDeliveryLink();
+      tick(0);
+      expect(component.deliveryLinkCopied).toBeTrue();
+      expect(component.linkCopied).toBeFalse();
+
+      tick(2000);
+      Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
+    }));
+  });
+
   // ── AC-010-02: Referral summary counts ──────────────────────────────────
 
   describe('AC-010-02: referral summary counts', () => {
