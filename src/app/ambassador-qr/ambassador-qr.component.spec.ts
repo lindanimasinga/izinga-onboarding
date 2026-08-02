@@ -221,7 +221,7 @@ describe('AmbassadorQrComponent', () => {
       configurable: true
     });
 
-    component.referralUrl = 'https://onboarding.izinga.co.za/indivisuals?ref=amb-001';
+    component.referralUrl = 'https://driver.izinga.co.za/indivisuals?ref=amb-001';
 
     component.copyReferralLink();
     tick();
@@ -262,7 +262,7 @@ describe('AmbassadorQrComponent', () => {
     req.flush(new Blob(), { status: 200, statusText: 'OK' });
     tick();
 
-    expect(component.referralUrl).toBe('https://onboarding.izinga.co.za/indivisuals?ref=amb-001');
+    expect(component.referralUrl).toBe('https://driver.izinga.co.za/indivisuals?ref=amb-001');
   }));
 
   // -----------------------------------------------------------------------
