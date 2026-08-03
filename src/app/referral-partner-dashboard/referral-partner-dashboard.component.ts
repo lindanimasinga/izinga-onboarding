@@ -55,6 +55,7 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
 
   // --- Copy-to-clipboard feedback ---
   linkCopied = false;
+  deliveryLinkCopied = false;
 
   private routeDataSub: Subscription | undefined;
 
@@ -172,10 +173,16 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
 
   // ── Computed properties ──────────────────────────────────────────────────
 
-  /** Shareable referral link (AC-010-01). */
+  /** Shareable referral link for food customers (AC-010-01). */
   get shareableLink(): string {
     const code = this.summary?.referralCode ?? '';
     return `https://shop.izinga.co.za/?ref=${code}`;
+  }
+
+  /** Shareable referral link for furniture/delivery customers (ADR-018). */
+  get deliveryShareableLink(): string {
+    const code = this.summary?.referralCode ?? '';
+    return `https://delivery.izinga.co.za/?ref=${code}`;
   }
 
   /** Total referrals across all types (AC-010-02). */
@@ -212,13 +219,17 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
   }
 
   /** Human-readable label for referral type (AC-010-03). */
-  referralTypeLabel(type: 'FOOD_CUSTOMER' | 'STORE_PARTNER'): string {
-    return type === 'FOOD_CUSTOMER' ? 'Food Customer' : 'Store Partner';
+  referralTypeLabel(type: 'FOOD_CUSTOMER' | 'STORE_PARTNER' | 'FURNITURE_CUSTOMER'): string {
+    switch (type) {
+      case 'FOOD_CUSTOMER': return 'Food Customer';
+      case 'FURNITURE_CUSTOMER': return 'Furniture Customer';
+      default: return 'Store Partner';
+    }
   }
 
   // ── Actions ──────────────────────────────────────────────────────────────
 
-  /** One-click copy of the shareable link (AC-010-01). */
+  /** One-click copy of the food-customer shareable link (AC-010-01). */
   copyLink(): void {
     if (!navigator.clipboard) {
       return;
@@ -226,6 +237,19 @@ export class ReferralPartnerDashboardComponent implements OnInit, OnDestroy {
     navigator.clipboard.writeText(this.shareableLink).then(() => {
       this.linkCopied = true;
       setTimeout(() => { this.linkCopied = false; }, 2000);
+    }).catch(() => {
+      // Silently ignore write errors (e.g. permission denied).
+    });
+  }
+
+  /** One-click copy of the furniture/delivery-customer shareable link (ADR-018). */
+  copyDeliveryLink(): void {
+    if (!navigator.clipboard) {
+      return;
+    }
+    navigator.clipboard.writeText(this.deliveryShareableLink).then(() => {
+      this.deliveryLinkCopied = true;
+      setTimeout(() => { this.deliveryLinkCopied = false; }, 2000);
     }).catch(() => {
       // Silently ignore write errors (e.g. permission denied).
     });

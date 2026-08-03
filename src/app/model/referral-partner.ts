@@ -27,7 +27,7 @@ export interface ReferralItem {
   customerId: string;
   name: string;
   referredAt: string;
-  type: 'FOOD_CUSTOMER' | 'STORE_PARTNER';
+  type: 'FOOD_CUSTOMER' | 'STORE_PARTNER' | 'FURNITURE_CUSTOMER';
   converted: boolean;
 }
 

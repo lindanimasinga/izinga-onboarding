@@ -80,7 +80,7 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.referralUrl = `https://onboarding.izinga.co.za/indivisuals?ref=${user.id}`;
+    this.referralUrl = `https://driver.izinga.co.za/indivisuals?ref=${user.id}`;
     this.loadQrCode(user.id);
   }
 
