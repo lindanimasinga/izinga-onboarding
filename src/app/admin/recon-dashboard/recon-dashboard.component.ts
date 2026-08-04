@@ -49,11 +49,15 @@ export class ReconDashboardComponent implements OnInit {
   /** Tracks whether a CSV download/PATCH is in progress to prevent double-clicks. */
   shopCsvInProgress = false;
   messengerCsvInProgress = false;
+  ambassadorCsvInProgress = false;
+  referralCsvInProgress = false;
   shopSubmitInProgress = false;
   messengerSubmitInProgress = false;
+  ambassadorSubmitInProgress = false;
+  referralSubmitInProgress = false;
 
   /** Pending CSV confirmation dialog state. */
-  pendingCsvType: 'shop' | 'messenger' | null = null;
+  pendingCsvType: 'shop' | 'messenger' | 'ambassador' | 'referral' | null = null;
 
   constructor(private reconService: ReconPayoutService) {}
 
@@ -108,10 +112,9 @@ export class ReconDashboardComponent implements OnInit {
   loadAmbassadorPayouts(): void {
     this.isLoadingAmbassador = true;
     this.ambassadorError = '';
-    const { fromDate, toDate } = this.dateRange();
-    this.reconService.getPayoutBundles('AMBASSADOR', fromDate, toDate).subscribe({
-      next: payouts => {
-        this.ambassadorGroupedPayouts = this.groupByStage(payouts);
+    this.reconService.getAmbassadorPayoutBundle().subscribe({
+      next: bundle => {
+        this.ambassadorGroupedPayouts = this.groupByStage(bundle.payouts ?? []);
         this.isLoadingAmbassador = false;
       },
       error: err => {
@@ -125,10 +128,9 @@ export class ReconDashboardComponent implements OnInit {
   loadReferralPayouts(): void {
     this.isLoadingReferral = true;
     this.referralError = '';
-    const { fromDate, toDate } = this.dateRange();
-    this.reconService.getPayoutBundles('REFERRAL_PARTNER', fromDate, toDate).subscribe({
-      next: payouts => {
-        this.referralGroupedPayouts = this.groupByStage(payouts);
+    this.reconService.getReferralPartnerPayoutBundle().subscribe({
+      next: bundle => {
+        this.referralGroupedPayouts = this.groupByStage(bundle.payouts ?? []);
         this.isLoadingReferral = false;
       },
       error: err => {
@@ -167,7 +169,7 @@ export class ReconDashboardComponent implements OnInit {
   // CSV download — DESTRUCTIVE: confirm before calling
   // ---------------------------------------------------------------------------
 
-  requestCsvDownload(type: 'shop' | 'messenger'): void {
+  requestCsvDownload(type: 'shop' | 'messenger' | 'ambassador' | 'referral'): void {
     this.pendingCsvType = type;
   }
 
@@ -180,6 +182,10 @@ export class ReconDashboardComponent implements OnInit {
       this.downloadShopCsv();
     } else if (this.pendingCsvType === 'messenger') {
       this.downloadMessengerCsv();
+    } else if (this.pendingCsvType === 'ambassador') {
+      this.downloadAmbassadorCsv();
+    } else if (this.pendingCsvType === 'referral') {
+      this.downloadReferralCsv();
     }
     this.pendingCsvType = null;
   }
@@ -214,6 +220,38 @@ export class ReconDashboardComponent implements OnInit {
         this.messengerCsvInProgress = false;
         alert('CSV download failed. Please try again.');
         console.error('Messenger CSV error:', err);
+      }
+    });
+  }
+
+  private downloadAmbassadorCsv(): void {
+    if (this.ambassadorCsvInProgress) { return; }
+    this.ambassadorCsvInProgress = true;
+    this.reconService.triggerAmbassadorCsvDownload().subscribe({
+      next: () => {
+        this.ambassadorCsvInProgress = false;
+        this.loadAmbassadorPayouts();
+      },
+      error: err => {
+        this.ambassadorCsvInProgress = false;
+        alert('CSV download failed. Please try again.');
+        console.error('Ambassador CSV error:', err);
+      }
+    });
+  }
+
+  private downloadReferralCsv(): void {
+    if (this.referralCsvInProgress) { return; }
+    this.referralCsvInProgress = true;
+    this.reconService.triggerReferralPartnerCsvDownload().subscribe({
+      next: () => {
+        this.referralCsvInProgress = false;
+        this.loadReferralPayouts();
+      },
+      error: err => {
+        this.referralCsvInProgress = false;
+        alert('CSV download failed. Please try again.');
+        console.error('Referral CSV error:', err);
       }
     });
   }
@@ -271,6 +309,58 @@ export class ReconDashboardComponent implements OnInit {
         this.messengerSubmitInProgress = false;
         alert('Failed to submit messenger payout results. Please try again.');
         console.error('Messenger payout PATCH error:', err);
+      }
+    });
+  }
+
+  updateAmbassadorPayouts(payouts: ReconPayout[]): void {
+    if (this.ambassadorSubmitInProgress) { return; }
+    this.ambassadorSubmitInProgress = true;
+
+    const bundleId = payouts[0]?.bundleId ?? '';
+    const results = {
+      bundleId,
+      payoutItemResults: payouts.map(p => ({
+        toId: p.toId,
+        paid: p.paid,
+        type: 'AMBASSADOR' as PayoutType
+      }))
+    };
+    this.reconService.patchAmbassadorPayoutBundle(results).subscribe({
+      next: () => {
+        this.ambassadorSubmitInProgress = false;
+        this.loadAmbassadorPayouts();
+      },
+      error: err => {
+        this.ambassadorSubmitInProgress = false;
+        alert('Failed to submit ambassador payout results. Please try again.');
+        console.error('Ambassador payout PATCH error:', err);
+      }
+    });
+  }
+
+  updateReferralPayouts(payouts: ReconPayout[]): void {
+    if (this.referralSubmitInProgress) { return; }
+    this.referralSubmitInProgress = true;
+
+    const bundleId = payouts[0]?.bundleId ?? '';
+    const results = {
+      bundleId,
+      payoutItemResults: payouts.map(p => ({
+        toId: p.toId,
+        paid: p.paid,
+        type: 'REFERRAL_PARTNER' as PayoutType
+      }))
+    };
+    this.reconService.patchReferralPartnerPayoutBundle(results).subscribe({
+      next: () => {
+        this.referralSubmitInProgress = false;
+        this.loadReferralPayouts();
+      },
+      error: err => {
+        this.referralSubmitInProgress = false;
+        alert('Failed to submit referral partner payout results. Please try again.');
+        console.error('Referral Partner payout PATCH error:', err);
       }
     });
   }

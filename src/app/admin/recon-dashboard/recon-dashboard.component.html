@@ -30,7 +30,12 @@
     <div class="card shadow p-4 recon-confirm-card">
       <h5 class="fw-bold mb-2">Confirm CSV Download</h5>
       <p class="text-muted mb-3">
-        Downloading the <strong>{{ pendingCsvType === 'shop' ? 'Shop' : 'Messenger' }}</strong> CSV
+        Downloading the
+        <strong>
+          {{ pendingCsvType === 'shop' ? 'Shop' :
+             pendingCsvType === 'messenger' ? 'Messenger' :
+             pendingCsvType === 'ambassador' ? 'Ambassador' : 'Referral Partner' }}
+        </strong> CSV
         will advance all <strong>PENDING</strong> payouts in this bundle to
         <strong>PROCESSING</strong>. This cannot be undone for this bundle cycle.
       </p>
@@ -221,7 +226,7 @@
     </div>
   </div>
 
-  <!-- Ambassador payouts section (read-only) -->
+  <!-- Ambassador payouts section -->
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center"
          style="cursor:pointer;" (click)="toggleAmbassadorSection()">
@@ -236,16 +241,6 @@
     </div>
 
     <div *ngIf="!ambassadorSectionCollapsed" class="card-body p-0">
-      <!-- Read-only notice -->
-      <div class="recon-readonly-notice d-flex align-items-start p-3">
-        <span class="recon-readonly-icon me-2" aria-hidden="true">&#9432;</span>
-        <span>
-          <strong>View only.</strong>
-          Settlement actions (mark paid, CSV download) are not yet available for Ambassador payouts.
-          These records are read-only — contact the backend team to enable settlement for this payout type.
-        </span>
-      </div>
-
       <div *ngIf="isLoadingAmbassador" class="p-3 text-muted">Loading ambassador payouts...</div>
       <div *ngIf="ambassadorError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
         {{ ambassadorError }}
@@ -259,6 +254,25 @@
               {{ commissionTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
             </span>
           </div>
+          <div>
+            <button *ngIf="group.key === 'PENDING'"
+              class="btn btn-outline-dark btn-sm"
+              [disabled]="ambassadorCsvInProgress"
+              (click)="requestCsvDownload('ambassador')">
+              {{ ambassadorCsvInProgress ? 'Downloading...' : 'Download CSV' }}
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-outline-dark btn-sm me-2"
+              (click)="markAllPayments(group.value)">
+              Mark All Paid
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-dark btn-sm"
+              [disabled]="ambassadorSubmitInProgress"
+              (click)="updateAmbassadorPayouts(group.value)">
+              {{ ambassadorSubmitInProgress ? 'Submitting...' : 'Submit Results' }}
+            </button>
+          </div>
         </div>
 
         <div class="table-responsive">
@@ -269,6 +283,7 @@
                 <th>Commission</th>
                 <th>Stage</th>
                 <th>Date</th>
+                <th *ngIf="group.key === 'PROCESSING'">Paid</th>
               </tr>
             </thead>
             <tbody>
@@ -284,6 +299,10 @@
                 <td>{{ payout.commissionAmount | currency:'R' }}</td>
                 <td><span [class]="getStatusBadgeClass(payout.payoutStage)">{{ payout.payoutStage }}</span></td>
                 <td>{{ payout.date | date:'d MMM y' }}</td>
+                <td *ngIf="group.key === 'PROCESSING'">
+                  <input type="checkbox" [checked]="payout.paid"
+                    (change)="payout.paid = !payout.paid">
+                </td>
               </tr>
             </tbody>
           </table>
@@ -297,7 +316,7 @@
     </div>
   </div>
 
-  <!-- Referral Partner payouts section (read-only) -->
+  <!-- Referral Partner payouts section -->
   <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center"
          style="cursor:pointer;" (click)="toggleReferralSection()">
@@ -312,16 +331,6 @@
     </div>
 
     <div *ngIf="!referralSectionCollapsed" class="card-body p-0">
-      <!-- Read-only notice -->
-      <div class="recon-readonly-notice d-flex align-items-start p-3">
-        <span class="recon-readonly-icon me-2" aria-hidden="true">&#9432;</span>
-        <span>
-          <strong>View only.</strong>
-          Settlement actions (mark paid, CSV download) are not yet available for Referral Partner payouts.
-          These records are read-only — contact the backend team to enable settlement for this payout type.
-        </span>
-      </div>
-
       <div *ngIf="isLoadingReferral" class="p-3 text-muted">Loading referral partner payouts...</div>
       <div *ngIf="referralError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
         {{ referralError }}
@@ -335,6 +344,25 @@
               {{ commissionTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
             </span>
           </div>
+          <div>
+            <button *ngIf="group.key === 'PENDING'"
+              class="btn btn-outline-dark btn-sm"
+              [disabled]="referralCsvInProgress"
+              (click)="requestCsvDownload('referral')">
+              {{ referralCsvInProgress ? 'Downloading...' : 'Download CSV' }}
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-outline-dark btn-sm me-2"
+              (click)="markAllPayments(group.value)">
+              Mark All Paid
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-dark btn-sm"
+              [disabled]="referralSubmitInProgress"
+              (click)="updateReferralPayouts(group.value)">
+              {{ referralSubmitInProgress ? 'Submitting...' : 'Submit Results' }}
+            </button>
+          </div>
         </div>
 
         <div class="table-responsive">
@@ -345,6 +373,7 @@
                 <th>Commission</th>
                 <th>Stage</th>
                 <th>Date</th>
+                <th *ngIf="group.key === 'PROCESSING'">Paid</th>
               </tr>
             </thead>
             <tbody>
@@ -360,6 +389,10 @@
                 <td>{{ payout.commissionAmount | currency:'R' }}</td>
                 <td><span [class]="getStatusBadgeClass(payout.payoutStage)">{{ payout.payoutStage }}</span></td>
                 <td>{{ payout.date | date:'d MMM y' }}</td>
+                <td *ngIf="group.key === 'PROCESSING'">
+                  <input type="checkbox" [checked]="payout.paid"
+                    (change)="payout.paid = !payout.paid">
+                </td>
               </tr>
             </tbody>
           </table>

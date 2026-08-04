@@ -186,6 +186,58 @@ export class ReconPayoutService {
   }
 
   // ---------------------------------------------------------------------------
+  // Endpoint: GET /recon/ambassadorPayoutBundle
+  // ---------------------------------------------------------------------------
+
+  getAmbassadorPayoutBundle(): Observable<PayoutBundle> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.get<PayoutBundle>(`${this.baseUrl}/recon/ambassadorPayoutBundle`, { headers })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Endpoint: PATCH /recon/ambassadorPayoutBundle
+  // ---------------------------------------------------------------------------
+
+  patchAmbassadorPayoutBundle(results: PayoutBundleResults): Observable<void> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.patch<void>(`${this.baseUrl}/recon/ambassadorPayoutBundle`, results, { headers })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Endpoint: GET /recon/referralPartnerPayoutBundle
+  // ---------------------------------------------------------------------------
+
+  getReferralPartnerPayoutBundle(): Observable<PayoutBundle> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.get<PayoutBundle>(`${this.baseUrl}/recon/referralPartnerPayoutBundle`, { headers })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Endpoint: PATCH /recon/referralPartnerPayoutBundle
+  // ---------------------------------------------------------------------------
+
+  patchReferralPartnerPayoutBundle(results: PayoutBundleResults): Observable<void> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.patch<void>(`${this.baseUrl}/recon/referralPartnerPayoutBundle`, results, { headers })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Endpoint 8: GET /reconcsv/shop-payout-bundle  (DESTRUCTIVE)
   //
   // Side-effect: advances ALL payouts in the current bundle to PROCESSING.
@@ -254,6 +306,69 @@ export class ReconPayoutService {
             .toISOString()
             .slice(0, 10); // YYYY-MM-DD
           ReconPayoutService.saveBlobAsFile(blob, `messenger-payout-bundle-${dateStr}.csv`);
+          observer.next();
+          observer.complete();
+        },
+        error: err => observer.error(err)
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Endpoint: GET /reconcsv/ambassador-payout-bundle  (DESTRUCTIVE)
+  //
+  // Side-effect: advances ALL payouts in the current bundle to PROCESSING.
+  // Call ONLY on explicit confirmed user action. Never call on page load.
+  // ---------------------------------------------------------------------------
+
+  downloadAmbassadorPayoutBundleCsv(): Observable<Blob> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.get(`${this.baseUrl}/reconcsv/ambassador-payout-bundle`, {
+          headers,
+          responseType: 'blob'
+        })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  triggerAmbassadorCsvDownload(): Observable<void> {
+    return new Observable(observer => {
+      this.downloadAmbassadorPayoutBundleCsv().subscribe({
+        next: blob => {
+          ReconPayoutService.saveBlobAsFile(blob, 'ambassador-payout-bundle.csv');
+          observer.next();
+          observer.complete();
+        },
+        error: err => observer.error(err)
+      });
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Endpoint: GET /reconcsv/referral-partner-payout-bundle  (DESTRUCTIVE)
+  //
+  // Same side-effect as above.
+  // ---------------------------------------------------------------------------
+
+  downloadReferralPartnerPayoutBundleCsv(): Observable<Blob> {
+    return this.authHeaders().pipe(
+      switchMap(headers =>
+        this.http.get(`${this.baseUrl}/reconcsv/referral-partner-payout-bundle`, {
+          headers,
+          responseType: 'blob'
+        })
+      ),
+      catchError(err => throwError(err))
+    );
+  }
+
+  triggerReferralPartnerCsvDownload(): Observable<void> {
+    return new Observable(observer => {
+      this.downloadReferralPartnerPayoutBundleCsv().subscribe({
+        next: blob => {
+          ReconPayoutService.saveBlobAsFile(blob, 'referral-partner-payout-bundle.csv');
           observer.next();
           observer.complete();
         },
