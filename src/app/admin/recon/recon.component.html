@@ -81,7 +81,7 @@
             <tr *ngFor="let payout of shopSortedPayouts">
               <td>
                 <a [routerLink]="['../payout']"
-                   [queryParams]="{bundle: shopBundle?.id, payout: payout.id}">
+                   [queryParams]="{bundle: shopBundle!.id, payout: payout.id}">
                   {{ payout.toName }}
                 </a>
               </td>
@@ -163,7 +163,7 @@
             <tr *ngFor="let payout of messengerSortedPayouts">
               <td>
                 <a [routerLink]="['../payout']"
-                   [queryParams]="{bundle: messengerBundle?.id, payout: payout.id}">
+                   [queryParams]="{bundle: messengerBundle!.id, payout: payout.id}">
                   {{ payout.toName }}
                 </a>
               </td>
