@@ -1,0 +1,231 @@
+<div class="container mt-4">
+
+  <!-- Page title -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Reconciliation Dashboard</h2>
+    <p class="text-muted">Manage shop and messenger payout reconciliation</p>
+  </div>
+
+  <!-- Period selector -->
+  <div class="mb-4">
+    <label class="form-label">Look-back period</label>
+    <div class="btn-group d-block d-sm-flex" role="group">
+      <button type="button" class="btn"
+        [class.btn-dark]="days === 31" [class.btn-outline-dark]="days !== 31"
+        (click)="days = 31; onDayChange()">1 Month</button>
+      <button type="button" class="btn"
+        [class.btn-dark]="days === 91" [class.btn-outline-dark]="days !== 91"
+        (click)="days = 91; onDayChange()">3 Months</button>
+      <button type="button" class="btn"
+        [class.btn-dark]="days === 183" [class.btn-outline-dark]="days !== 183"
+        (click)="days = 183; onDayChange()">6 Months</button>
+      <button type="button" class="btn"
+        [class.btn-dark]="days === 365" [class.btn-outline-dark]="days !== 365"
+        (click)="days = 365; onDayChange()">12 Months</button>
+    </div>
+  </div>
+
+  <!-- CSV confirm modal overlay -->
+  <div *ngIf="pendingCsvType" class="recon-modal-backdrop">
+    <div class="card shadow p-4 recon-confirm-card">
+      <h5 class="fw-bold mb-2">Confirm CSV Download</h5>
+      <p class="text-muted mb-3">
+        Downloading the <strong>{{ pendingCsvType === 'shop' ? 'Shop' : 'Messenger' }}</strong> CSV
+        will advance all <strong>PENDING</strong> payouts in this bundle to
+        <strong>PROCESSING</strong>. This cannot be undone for this bundle cycle.
+      </p>
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-outline-dark me-2" (click)="cancelCsvDownload()">Cancel</button>
+        <button class="btn btn-dark" (click)="confirmCsvDownload()">Download &amp; Advance</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop payouts section -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="cursor:pointer;" (click)="toggleShopSection()">
+      <div>
+        <strong>Shop Payouts</strong>
+        <span class="text-muted ms-2 small">
+          {{ getTotalAmount(shopGroupedPayouts) | currency:'R' }} &bull;
+          {{ getTotalPayouts(shopGroupedPayouts) }} payouts
+          <span *ngIf="getPendingAmount(shopGroupedPayouts) > 0">
+            &bull; Pending: {{ getPendingAmount(shopGroupedPayouts) | currency:'R' }}
+          </span>
+        </span>
+      </div>
+      <span>{{ shopSectionCollapsed ? '+' : '-' }}</span>
+    </div>
+
+    <div *ngIf="!shopSectionCollapsed" class="card-body p-0">
+      <div *ngIf="isLoadingShop" class="p-3 text-muted">Loading shop payouts...</div>
+      <div *ngIf="shopError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
+        {{ shopError }}
+      </div>
+
+      <div *ngFor="let group of shopGroupedPayouts | keyvalue" class="border-top">
+        <div class="d-flex justify-content-between align-items-center p-3">
+          <div>
+            <span [class]="getStatusBadgeClass(group.key)">{{ group.key }}</span>
+            <span class="ms-2 text-muted small">
+              {{ payoutTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
+            </span>
+          </div>
+          <div>
+            <button *ngIf="group.key === 'PENDING'"
+              class="btn btn-outline-dark btn-sm"
+              [disabled]="shopCsvInProgress"
+              (click)="requestCsvDownload('shop')">
+              {{ shopCsvInProgress ? 'Downloading...' : 'Download CSV' }}
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-outline-dark btn-sm me-2"
+              (click)="markAllPayments(group.value)">
+              Mark All Paid
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-dark btn-sm"
+              [disabled]="shopSubmitInProgress"
+              (click)="updateShopPayouts(group.value)">
+              {{ shopSubmitInProgress ? 'Submitting...' : 'Submit Results' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="thead-dark">
+              <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th *ngIf="group.key === 'COMPLETED'">Paid Date</th>
+                <th *ngIf="group.key === 'PROCESSING'">Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payout of group.value">
+                <td>
+                  <a [routerLink]="['/indivisuals/recon/payout']"
+                     [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
+                    {{ payout.toName }}
+                  </a>
+                  <div class="text-muted small">{{ payout.toBankName }} &bull; {{ payout.toAccountNumber }}</div>
+                </td>
+                <td>{{ payout.total | currency:'R' }}</td>
+                <td *ngIf="group.key === 'COMPLETED'">{{ payout.modifiedDate | date:'d MMM y' }}</td>
+                <td *ngIf="group.key === 'PROCESSING'">
+                  <input type="checkbox" [checked]="payout.paid"
+                    (change)="payout.paid = !payout.paid">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingShop && !shopError && (shopGroupedPayouts | keyvalue).length === 0"
+           class="p-3 text-muted">
+        No shop payouts found for this period.
+      </div>
+    </div>
+  </div>
+
+  <!-- Messenger payouts section -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="cursor:pointer;" (click)="toggleUserSection()">
+      <div>
+        <strong>Messenger / Driver Payouts</strong>
+        <span class="text-muted ms-2 small">
+          {{ getTotalAmount(userGroupedPayouts) | currency:'R' }} &bull;
+          {{ getTotalPayouts(userGroupedPayouts) }} payouts
+          <span *ngIf="getPendingAmount(userGroupedPayouts) > 0">
+            &bull; Pending: {{ getPendingAmount(userGroupedPayouts) | currency:'R' }}
+          </span>
+        </span>
+      </div>
+      <span>{{ userSectionCollapsed ? '+' : '-' }}</span>
+    </div>
+
+    <div *ngIf="!userSectionCollapsed" class="card-body p-0">
+      <div *ngIf="isLoadingUser" class="p-3 text-muted">Loading messenger payouts...</div>
+      <div *ngIf="userError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
+        {{ userError }}
+      </div>
+
+      <div *ngFor="let group of userGroupedPayouts | keyvalue" class="border-top">
+        <div class="d-flex justify-content-between align-items-center p-3">
+          <div>
+            <span [class]="getStatusBadgeClass(group.key)">{{ group.key }}</span>
+            <span class="ms-2 text-muted small">
+              {{ payoutTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
+            </span>
+          </div>
+          <div>
+            <button *ngIf="group.key === 'PENDING'"
+              class="btn btn-outline-dark btn-sm"
+              [disabled]="messengerCsvInProgress"
+              (click)="requestCsvDownload('messenger')">
+              {{ messengerCsvInProgress ? 'Downloading...' : 'Download CSV' }}
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-outline-dark btn-sm me-2"
+              (click)="markAllPayments(group.value)">
+              Mark All Paid
+            </button>
+            <button *ngIf="group.key === 'PROCESSING'"
+              class="btn btn-dark btn-sm"
+              [disabled]="messengerSubmitInProgress"
+              (click)="updateMessengerPayouts(group.value)">
+              {{ messengerSubmitInProgress ? 'Submitting...' : 'Submit Results' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="thead-dark">
+              <tr>
+                <th>Name</th>
+                <th>Amount</th>
+                <th *ngIf="group.key === 'COMPLETED'">Paid Date</th>
+                <th *ngIf="group.key === 'PROCESSING'">Paid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payout of group.value">
+                <td>
+                  <a [routerLink]="['/indivisuals/recon/payout']"
+                     [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
+                    {{ payout.toName }}
+                  </a>
+                  <div class="text-muted small">{{ payout.toBankName }} &bull; {{ payout.toAccountNumber }}</div>
+                </td>
+                <td>{{ payout.total | currency:'R' }}</td>
+                <td *ngIf="group.key === 'COMPLETED'">{{ payout.modifiedDate | date:'d MMM y' }}</td>
+                <td *ngIf="group.key === 'PROCESSING'">
+                  <input type="checkbox" [checked]="payout.paid"
+                    (change)="payout.paid = !payout.paid">
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingUser && !userError && (userGroupedPayouts | keyvalue).length === 0"
+           class="p-3 text-muted">
+        No messenger payouts found for this period.
+      </div>
+    </div>
+  </div>
+
+  <!-- Link to bundle detail view -->
+  <div class="text-center mb-5">
+    <a [routerLink]="['/indivisuals/recon/detail']" class="btn btn-outline-dark">
+      View Current Payout Bundle Detail
+    </a>
+  </div>
+
+</div>

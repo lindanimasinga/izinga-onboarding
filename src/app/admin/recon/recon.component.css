@@ -1,0 +1,25 @@
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-header:hover {
+  filter: brightness(0.9);
+}
+
+.recon-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.recon-confirm-card {
+  max-width: 480px;
+  width: 90%;
+  background: var(--bkg-card-color, #f3f2f2);
+}
