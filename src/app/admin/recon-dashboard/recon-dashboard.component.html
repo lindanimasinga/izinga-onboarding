@@ -221,6 +221,158 @@
     </div>
   </div>
 
+  <!-- Ambassador payouts section (read-only) -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="cursor:pointer;" (click)="toggleAmbassadorSection()">
+      <div>
+        <strong>Ambassador Payouts</strong>
+        <span class="text-muted ms-2 small">
+          {{ getTotalCommission(ambassadorGroupedPayouts) | currency:'R' }} &bull;
+          {{ getTotalPayouts(ambassadorGroupedPayouts) }} payouts
+        </span>
+      </div>
+      <span>{{ ambassadorSectionCollapsed ? '+' : '-' }}</span>
+    </div>
+
+    <div *ngIf="!ambassadorSectionCollapsed" class="card-body p-0">
+      <!-- Read-only notice -->
+      <div class="recon-readonly-notice d-flex align-items-start p-3">
+        <span class="recon-readonly-icon me-2" aria-hidden="true">&#9432;</span>
+        <span>
+          <strong>View only.</strong>
+          Settlement actions (mark paid, CSV download) are not yet available for Ambassador payouts.
+          These records are read-only — contact the backend team to enable settlement for this payout type.
+        </span>
+      </div>
+
+      <div *ngIf="isLoadingAmbassador" class="p-3 text-muted">Loading ambassador payouts...</div>
+      <div *ngIf="ambassadorError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
+        {{ ambassadorError }}
+      </div>
+
+      <div *ngFor="let group of ambassadorGroupedPayouts | keyvalue" class="border-top">
+        <div class="d-flex justify-content-between align-items-center p-3">
+          <div>
+            <span [class]="getStatusBadgeClass(group.key)">{{ group.key }}</span>
+            <span class="ms-2 text-muted small">
+              {{ commissionTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
+            </span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="thead-dark">
+              <tr>
+                <th>Recipient</th>
+                <th>Commission</th>
+                <th>Stage</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payout of group.value">
+                <td>
+                  <a [routerLink]="['/admin/recon/payout']"
+                     [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
+                    {{ payout.toName }}
+                  </a>
+                  <div class="text-muted small">{{ payout.toBankName }} &bull; {{ payout.toAccountNumber }}</div>
+                  <div *ngIf="payout.triggerDriverId" class="text-muted small">Driver: {{ payout.triggerDriverId }}</div>
+                </td>
+                <td>{{ payout.commissionAmount | currency:'R' }}</td>
+                <td><span [class]="getStatusBadgeClass(payout.payoutStage)">{{ payout.payoutStage }}</span></td>
+                <td>{{ payout.date | date:'d MMM y' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingAmbassador && !ambassadorError && (ambassadorGroupedPayouts | keyvalue).length === 0"
+           class="p-3 text-muted">
+        No ambassador payouts found for this period.
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral Partner payouts section (read-only) -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center"
+         style="cursor:pointer;" (click)="toggleReferralSection()">
+      <div>
+        <strong>Referral Partner Payouts</strong>
+        <span class="text-muted ms-2 small">
+          {{ getTotalCommission(referralGroupedPayouts) | currency:'R' }} &bull;
+          {{ getTotalPayouts(referralGroupedPayouts) }} payouts
+        </span>
+      </div>
+      <span>{{ referralSectionCollapsed ? '+' : '-' }}</span>
+    </div>
+
+    <div *ngIf="!referralSectionCollapsed" class="card-body p-0">
+      <!-- Read-only notice -->
+      <div class="recon-readonly-notice d-flex align-items-start p-3">
+        <span class="recon-readonly-icon me-2" aria-hidden="true">&#9432;</span>
+        <span>
+          <strong>View only.</strong>
+          Settlement actions (mark paid, CSV download) are not yet available for Referral Partner payouts.
+          These records are read-only — contact the backend team to enable settlement for this payout type.
+        </span>
+      </div>
+
+      <div *ngIf="isLoadingReferral" class="p-3 text-muted">Loading referral partner payouts...</div>
+      <div *ngIf="referralError" class="alert m-3" style="border-left: 4px solid var(--btn-red-color); color: var(--text-color);">
+        {{ referralError }}
+      </div>
+
+      <div *ngFor="let group of referralGroupedPayouts | keyvalue" class="border-top">
+        <div class="d-flex justify-content-between align-items-center p-3">
+          <div>
+            <span [class]="getStatusBadgeClass(group.key)">{{ group.key }}</span>
+            <span class="ms-2 text-muted small">
+              {{ commissionTotal(group.value) | currency:'R' }} &bull; {{ group.value.length }} payouts
+            </span>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="thead-dark">
+              <tr>
+                <th>Recipient</th>
+                <th>Commission</th>
+                <th>Stage</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let payout of group.value">
+                <td>
+                  <a [routerLink]="['/admin/recon/payout']"
+                     [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
+                    {{ payout.toName }}
+                  </a>
+                  <div class="text-muted small">{{ payout.toBankName }} &bull; {{ payout.toAccountNumber }}</div>
+                  <div *ngIf="payout.triggerReferenceId" class="text-muted small">Ref: {{ payout.triggerReferenceId }}</div>
+                </td>
+                <td>{{ payout.commissionAmount | currency:'R' }}</td>
+                <td><span [class]="getStatusBadgeClass(payout.payoutStage)">{{ payout.payoutStage }}</span></td>
+                <td>{{ payout.date | date:'d MMM y' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingReferral && !referralError && (referralGroupedPayouts | keyvalue).length === 0"
+           class="p-3 text-muted">
+        No referral partner payouts found for this period.
+      </div>
+    </div>
+  </div>
+
   <!-- Link to bundle detail view -->
   <div class="text-center mb-5">
     <a [routerLink]="['/admin/recon/detail']" class="btn btn-outline-dark">

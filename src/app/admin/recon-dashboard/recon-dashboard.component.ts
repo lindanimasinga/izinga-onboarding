@@ -26,17 +26,25 @@ export class ReconDashboardComponent implements OnInit {
   days = 31;
   shopGroupedPayouts: { [stage: string]: ReconPayout[] } = {};
   userGroupedPayouts: { [stage: string]: ReconPayout[] } = {};
+  ambassadorGroupedPayouts: { [stage: string]: ReconPayout[] } = {};
+  referralGroupedPayouts: { [stage: string]: ReconPayout[] } = {};
 
   shopSectionCollapsed = false;
   userSectionCollapsed = false;
+  ambassadorSectionCollapsed = false;
+  referralSectionCollapsed = false;
 
   /** Held so the messenger CSV filename can include bundle.date. */
   messengerBundleDate?: Date;
 
   isLoadingShop = false;
   isLoadingUser = false;
+  isLoadingAmbassador = false;
+  isLoadingReferral = false;
   shopError = '';
   userError = '';
+  ambassadorError = '';
+  referralError = '';
 
   /** Tracks whether a CSV download/PATCH is in progress to prevent double-clicks. */
   shopCsvInProgress = false;
@@ -56,6 +64,8 @@ export class ReconDashboardComponent implements OnInit {
   loadData(): void {
     this.loadShopPayouts();
     this.loadMessengerPayouts();
+    this.loadAmbassadorPayouts();
+    this.loadReferralPayouts();
   }
 
   loadShopPayouts(): void {
@@ -95,6 +105,40 @@ export class ReconDashboardComponent implements OnInit {
     });
   }
 
+  loadAmbassadorPayouts(): void {
+    this.isLoadingAmbassador = true;
+    this.ambassadorError = '';
+    const { fromDate, toDate } = this.dateRange();
+    this.reconService.getPayoutBundles('AMBASSADOR', fromDate, toDate).subscribe({
+      next: payouts => {
+        this.ambassadorGroupedPayouts = this.groupByStage(payouts);
+        this.isLoadingAmbassador = false;
+      },
+      error: err => {
+        this.ambassadorError = 'Failed to load ambassador payouts. Please try again.';
+        this.isLoadingAmbassador = false;
+        console.error('Ambassador payout load error:', err);
+      }
+    });
+  }
+
+  loadReferralPayouts(): void {
+    this.isLoadingReferral = true;
+    this.referralError = '';
+    const { fromDate, toDate } = this.dateRange();
+    this.reconService.getPayoutBundles('REFERRAL_PARTNER', fromDate, toDate).subscribe({
+      next: payouts => {
+        this.referralGroupedPayouts = this.groupByStage(payouts);
+        this.isLoadingReferral = false;
+      },
+      error: err => {
+        this.referralError = 'Failed to load referral partner payouts. Please try again.';
+        this.isLoadingReferral = false;
+        console.error('Referral Partner payout load error:', err);
+      }
+    });
+  }
+
   onDayChange(): void {
     this.loadData();
   }
@@ -105,6 +149,14 @@ export class ReconDashboardComponent implements OnInit {
 
   toggleUserSection(): void {
     this.userSectionCollapsed = !this.userSectionCollapsed;
+  }
+
+  toggleAmbassadorSection(): void {
+    this.ambassadorSectionCollapsed = !this.ambassadorSectionCollapsed;
+  }
+
+  toggleReferralSection(): void {
+    this.referralSectionCollapsed = !this.referralSectionCollapsed;
   }
 
   markAllPayments(payouts: ReconPayout[]): void {
@@ -245,6 +297,15 @@ export class ReconDashboardComponent implements OnInit {
 
   payoutTotal(payouts: ReconPayout[]): number {
     return payouts.reduce((sum, p) => sum + (p.total ?? 0), 0);
+  }
+
+  /** For Ambassador / Referral Partner sections — sum commissionAmount. */
+  commissionTotal(payouts: ReconPayout[]): number {
+    return payouts.reduce((sum, p) => sum + (p.commissionAmount ?? 0), 0);
+  }
+
+  getTotalCommission(grouped: { [stage: string]: ReconPayout[] }): number {
+    return Object.values(grouped).flat().reduce((sum, p) => sum + (p.commissionAmount ?? 0), 0);
   }
 
   getTotalAmount(grouped: { [stage: string]: ReconPayout[] }): number {

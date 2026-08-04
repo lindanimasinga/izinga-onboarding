@@ -13,3 +13,22 @@
   width: 90%;
   background: var(--bkg-card-color, #f3f2f2);
 }
+
+/* Read-only notice banner for Ambassador / Referral Partner sections.
+   Uses --btn-bg-color (teal #00A9A1) as the accent — no hardcoded hex.
+   Falls back to #00A9A1 only because CSS custom property fallbacks are
+   required syntax; the token is always defined by styles.css in this app. */
+.recon-readonly-notice {
+  border-left: 4px solid var(--btn-green-color);
+  background: var(--bkg-card-color, #f3f2f2);
+  color: var(--text-color, #212121);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.recon-readonly-icon {
+  color: var(--btn-green-color);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
