@@ -106,7 +106,7 @@
             <tbody>
               <tr *ngFor="let payout of group.value">
                 <td>
-                  <a [routerLink]="['/indivisuals/recon/payout']"
+                  <a [routerLink]="['/admin/recon/payout']"
                      [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
                     {{ payout.toName }}
                   </a>
@@ -196,7 +196,7 @@
             <tbody>
               <tr *ngFor="let payout of group.value">
                 <td>
-                  <a [routerLink]="['/indivisuals/recon/payout']"
+                  <a [routerLink]="['/admin/recon/payout']"
                      [queryParams]="{bundle: payout.bundleId, payout: payout.id}">
                     {{ payout.toName }}
                   </a>
@@ -223,7 +223,7 @@
 
   <!-- Link to bundle detail view -->
   <div class="text-center mb-5">
-    <a [routerLink]="['/indivisuals/recon/detail']" class="btn btn-outline-dark">
+    <a [routerLink]="['/admin/recon/detail']" class="btn btn-outline-dark">
       View Current Payout Bundle Detail
     </a>
   </div>

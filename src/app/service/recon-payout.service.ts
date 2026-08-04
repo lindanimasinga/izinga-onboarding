@@ -47,8 +47,9 @@ export class ReconPayoutService {
 
   /**
    * Returns an Observable that emits an HttpHeaders instance with the Firebase
-   * Bearer token attached. Refreshes the token if needed (getIdToken(true) is
-   * handled by FirebaseService when the token is close to expiry).
+   * Bearer token attached. Firebase's SDK automatically returns a valid cached
+   * token or silently refreshes it when it has expired — no force-refresh flag
+   * is passed; the SDK manages token lifecycle internally.
    */
   private authHeaders(): Observable<HttpHeaders> {
     return this.firebaseService.getFirebaseIdToken().pipe(
