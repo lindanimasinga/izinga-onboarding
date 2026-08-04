@@ -1,0 +1,9 @@
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sortable-header:hover {
+  filter: brightness(0.9);
+}

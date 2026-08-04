@@ -37,6 +37,10 @@ import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
 import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
 import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/referral-partner-dashboard.component';
+import { ReconDashboardComponent } from './admin/recon-dashboard/recon-dashboard.component';
+import { ReconComponent } from './admin/recon/recon.component';
+import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
+import { AdminRoleGuard } from './guards/admin-role.guard';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
@@ -74,6 +78,12 @@ const routes: Routes = [
       { path: 'rp-referrals', component: ReferralPartnerDashboardComponent, data: { tab: 'referrals', title: 'My Referrals' } },
       { path: 'rp-commissions', component: ReferralPartnerDashboardComponent, data: { tab: 'commissions', title: 'My Commissions' } }
     ]},
+  // Admin recon routes — #65. Guarded by AdminRoleGuard (requires ADMIN role).
+  { path: 'admin', children: [
+    { path: 'recon', component: ReconDashboardComponent, canActivate: [AdminRoleGuard] },
+    { path: 'recon/detail', component: ReconComponent, canActivate: [AdminRoleGuard] },
+    { path: 'recon/payout', component: ReconPayoutOrdersComponent, canActivate: [AdminRoleGuard] }
+  ]},
   { path: 'business',
     children : [
       { path: '', component: WelcomeBusinessComponent}, 

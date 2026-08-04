@@ -51,6 +51,9 @@ import { QuotesComponent } from './quotes/quotes.component';
 import { AmbassadorQrComponent } from './ambassador-qr/ambassador-qr.component';
 import { ReferralPartnerEnrollmentComponent } from './referral-partner-enrollment/referral-partner-enrollment.component';
 import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/referral-partner-dashboard.component';
+import { ReconDashboardComponent } from './admin/recon-dashboard/recon-dashboard.component';
+import { ReconComponent } from './admin/recon/recon.component';
+import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
 
 @NgModule({
   declarations: [
@@ -95,6 +98,9 @@ import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/
     AmbassadorQrComponent,
     ReferralPartnerEnrollmentComponent,
     ReferralPartnerDashboardComponent,
+    ReconDashboardComponent,
+    ReconComponent,
+    ReconPayoutOrdersComponent,
   ],
   imports: [
     BrowserModule,
