@@ -498,6 +498,36 @@ describe('ReconDashboardComponent — Ambassador and Referral Partner action sec
   });
 
   // -----------------------------------------------------------------------
+  // getStatusBadgeClass() — iZinga token-based badge classes
+  // -----------------------------------------------------------------------
+
+  describe('getStatusBadgeClass()', () => {
+    it('returns badge-status-pending for PENDING', () => {
+      expect(component.getStatusBadgeClass('PENDING')).toBe('badge badge-status-pending');
+    });
+
+    it('returns badge-status-processing for PROCESSING', () => {
+      expect(component.getStatusBadgeClass('PROCESSING')).toBe('badge badge-status-processing');
+    });
+
+    it('returns badge-status-completed for COMPLETED', () => {
+      expect(component.getStatusBadgeClass('COMPLETED')).toBe('badge badge-status-completed');
+    });
+
+    it('returns badge-status-voided for VOIDED', () => {
+      expect(component.getStatusBadgeClass('VOIDED')).toBe('badge badge-status-voided');
+    });
+
+    it('returns badge-status-default for unknown stage', () => {
+      expect(component.getStatusBadgeClass('UNKNOWN')).toBe('badge badge-status-default');
+    });
+
+    it('returns badge-status-default for empty string', () => {
+      expect(component.getStatusBadgeClass('')).toBe('badge badge-status-default');
+    });
+  });
+
+  // -----------------------------------------------------------------------
   // markAllPayments() — shared helper
   // -----------------------------------------------------------------------
 
