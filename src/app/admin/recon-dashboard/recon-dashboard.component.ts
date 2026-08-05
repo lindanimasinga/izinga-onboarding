@@ -412,11 +412,11 @@ export class ReconDashboardComponent implements OnInit {
 
   getStatusBadgeClass(stage: string): string {
     const map: Record<string, string> = {
-      PENDING: 'badge badge-warning',
-      PROCESSING: 'badge badge-primary',
-      COMPLETED: 'badge badge-success',
-      VOIDED: 'badge badge-secondary'
+      PENDING: 'badge badge-status-pending',
+      PROCESSING: 'badge badge-status-processing',
+      COMPLETED: 'badge badge-status-completed',
+      VOIDED: 'badge badge-status-voided'
     };
-    return map[stage] ?? 'badge badge-light';
+    return map[stage] ?? 'badge badge-status-default';
   }
 }
