@@ -33,8 +33,10 @@
     color: var(--text-color);
 }
 
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: #f8f9fa;
+.card-header {
+    background-color: var(--bkg-card-color);
+    color: var(--text-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 #main-content {
@@ -62,7 +64,7 @@
 }
 
 .bg-light {
-    color: #494949 !important;
+    color: var(--text-color) !important;
 }
 
 .bg-clear {
@@ -180,6 +182,8 @@ body {
     --btn-pill-color: #1083A5;
     --btn-red-color: #D66247;
     --btn-green-color: #00a9a1;
+    --btn-amber-color: #c8860a;   /* pending/warning */
+    --btn-muted-color: #6c757d;   /* voided/inactive */
   }
 
 body.dark-theme {
@@ -190,6 +194,7 @@ body.dark-theme {
     --footer-text-color: #eee;
     --btn-txt-color: #2e2b2b;
     --btn-pill-color: #1083A5;
+    --btn-muted-color: #767676;   /* white badge text 4.54:1, badge vs #2D2D2D card 3.03:1 */
   }
 
 body.shop {

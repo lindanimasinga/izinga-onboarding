@@ -1,0 +1,21 @@
+.recon-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.recon-confirm-card {
+  max-width: 480px;
+  width: 90%;
+  background: var(--bkg-card-color, #f3f2f2);
+}
+
+.badge-status-pending    { background-color: var(--btn-amber-color); color: white; }
+.badge-status-processing { background-color: var(--btn-pill-color); color: white; }
+.badge-status-completed  { background-color: var(--btn-green-color); color: white; }
+.badge-status-voided     { background-color: var(--btn-muted-color); color: white; }
+.badge-status-default    { background-color: var(--bkg-card-color); color: var(--text-color); border: 1px solid currentColor; }

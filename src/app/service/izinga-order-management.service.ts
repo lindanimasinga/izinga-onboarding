@@ -568,5 +568,17 @@ export class IzingaOrderManagementService {
       );
     }
 
+    // #64 recon support — ADMIN-scoped: fetch all stores without an ownerId filter.
+    // Requires ADMIN role; auth via Firebase Bearer token.
+    fetchAllStores(): Observable<Array<StoreProfile>> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.get<Array<StoreProfile>>(`${environment.izingaUrl}/store`, { headers });
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
 
 }
