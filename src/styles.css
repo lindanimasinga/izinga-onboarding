@@ -194,7 +194,7 @@ body.dark-theme {
     --footer-text-color: #eee;
     --btn-txt-color: #2e2b2b;
     --btn-pill-color: #1083A5;
-    --btn-muted-color: #9ca3af;   /* boosted for WCAG AA on dark surface */
+    --btn-muted-color: #767676;   /* white badge text 4.54:1, badge vs #2D2D2D card 3.03:1 */
   }
 
 body.shop {
