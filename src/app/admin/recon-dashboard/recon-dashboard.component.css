@@ -14,8 +14,8 @@
   background: var(--bkg-card-color, #f3f2f2);
 }
 
-.badge-status-pending    { background-color: #c8860a; color: white; }
+.badge-status-pending    { background-color: var(--btn-amber-color); color: white; }
 .badge-status-processing { background-color: var(--btn-pill-color); color: white; }
 .badge-status-completed  { background-color: var(--btn-green-color); color: white; }
-.badge-status-voided     { background-color: #6c757d; color: white; }
+.badge-status-voided     { background-color: var(--btn-muted-color); color: white; }
 .badge-status-default    { background-color: var(--bkg-card-color); color: var(--text-color); border: 1px solid currentColor; }
