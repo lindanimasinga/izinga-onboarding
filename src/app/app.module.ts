@@ -54,6 +54,7 @@ import { ReferralPartnerDashboardComponent } from './referral-partner-dashboard/
 import { ReconDashboardComponent } from './admin/recon-dashboard/recon-dashboard.component';
 import { ReconComponent } from './admin/recon/recon.component';
 import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
+import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.component';
 
 @NgModule({
   declarations: [
@@ -101,6 +102,7 @@ import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/rec
     ReconDashboardComponent,
     ReconComponent,
     ReconPayoutOrdersComponent,
+    PostIcaTrainingComponent,
   ],
   imports: [
     BrowserModule,

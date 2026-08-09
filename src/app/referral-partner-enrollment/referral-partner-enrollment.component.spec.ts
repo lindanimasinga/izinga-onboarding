@@ -186,7 +186,8 @@ describe('ReferralPartnerEnrollmentComponent', () => {
 
     // Storage must hold the profile from step 2, which carries referralCode
     expect(mockStorage.userProfile).toEqual(profileWithCode);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
+    // ONB-post-ica-training: enrollment now routes to the training guide, not directly to the RP dashboard
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/training-guide']);
   });
 
   // RP-ENR-06
