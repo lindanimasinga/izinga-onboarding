@@ -120,7 +120,7 @@ export class ReferralPartnerEnrollmentComponent implements OnInit {
           userId: profileWithCode.id,
           icaVersion: this.RPA_VERSION
         });
-        this.router.navigate(['/indivisuals/rp-referral-code']);
+        this.router.navigate(['/indivisuals/training-guide']);
       },
       error: () => {
         // Either step failed — surface the error so the user can retry.

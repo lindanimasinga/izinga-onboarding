@@ -50,7 +50,7 @@ export class TermsConditionsComponent implements OnInit {
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('ica_accepted', { userId: this.userId });
-            this.router.navigate(['/indivisuals/dashboard']);
+            this.router.navigate(['/indivisuals/training-guide']);
           },
           error: () => { this.acceptError = true; }
         });
