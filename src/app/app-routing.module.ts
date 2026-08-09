@@ -41,6 +41,7 @@ import { ReconDashboardComponent } from './admin/recon-dashboard/recon-dashboard
 import { ReconComponent } from './admin/recon/recon.component';
 import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
 import { AdminRoleGuard } from './guards/admin-role.guard';
+import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
@@ -76,7 +77,8 @@ const routes: Routes = [
       { path: 'info', component: UserInfoComponent},
       { path: 'rp-referral-code', component: ReferralPartnerDashboardComponent, data: { tab: 'code', title: 'My Referral Code' } },
       { path: 'rp-referrals', component: ReferralPartnerDashboardComponent, data: { tab: 'referrals', title: 'My Referrals' } },
-      { path: 'rp-commissions', component: ReferralPartnerDashboardComponent, data: { tab: 'commissions', title: 'My Commissions' } }
+      { path: 'rp-commissions', component: ReferralPartnerDashboardComponent, data: { tab: 'commissions', title: 'My Commissions' } },
+      { path: 'training-guide', component: PostIcaTrainingComponent, canActivate: [PhoneVerifiedGuard] }
     ]},
   // Admin recon routes — #65. Guarded by AdminRoleGuard (requires ADMIN role).
   { path: 'admin', children: [

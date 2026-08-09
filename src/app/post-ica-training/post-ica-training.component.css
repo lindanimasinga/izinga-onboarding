@@ -1,0 +1,7 @@
+/* PostIcaTrainingComponent — no custom rules needed beyond Bootstrap utilities and brand tokens */
+
+a[download]:hover,
+a[download]:focus {
+  filter: brightness(0.9);
+  color: #fff;
+}
