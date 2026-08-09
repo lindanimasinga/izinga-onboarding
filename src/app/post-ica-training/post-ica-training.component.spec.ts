@@ -139,7 +139,21 @@ describe('PostIcaTrainingComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/rp-referral-code']);
   });
 
-  // TRAIN-10
+  // TRAIN-10 (continueLabel)
+  it('TRAIN-10a: continueLabel returns "Continue to Dashboard" for AMBASSADOR', () => {
+    setup(ambassadorProfile);
+    fixture.detectChanges();
+    expect(component.continueLabel).toBe('Continue to Dashboard');
+  });
+
+  // TRAIN-10b
+  it('TRAIN-10b: continueLabel returns "Continue" for REFERRALPARTNER', () => {
+    setup(rpProfile);
+    fixture.detectChanges();
+    expect(component.continueLabel).toBe('Continue');
+  });
+
+  // TRAIN-11
   it('TRAIN-10: renders without error on direct/repeat navigation when profile already in storage (REQ-12)', () => {
     // Simulate a returning user who navigates directly to /indivisuals/training-guide
     setup({ ...ambassadorProfile, icaAccepted: true, icaVersion: 'v1' });

@@ -54,7 +54,7 @@ export class PostIcaTrainingComponent implements OnInit {
         'track your referred drivers, and start earning your ambassador rewards.';
     }
     if (this.isReferralPartner) {
-      return 'This guide covers how to refer shops and stores to iZinga using your referral code, ' +
+      return 'This guide covers how to refer merchants to iZinga using your referral code, ' +
         'track your referred merchants, and earn your referral commissions.';
     }
     return '';
@@ -68,6 +68,13 @@ export class PostIcaTrainingComponent implements OnInit {
       return 'assets/docs/referral-partner-training-pack-v1.pdf';
     }
     return '';
+  }
+
+  get continueLabel(): string {
+    if (this.isReferralPartner) {
+      return 'Continue';
+    }
+    return 'Continue to Dashboard';
   }
 
   get continueRoute(): string[] {

@@ -3,22 +3,20 @@
   <!-- Page title -->
   <div class="text-center mb-4">
     <h2 class="fw-bold">{{ heading }}</h2>
-    <p class="text-muted">{{ description }}</p>
+    <p>{{ description }}</p>
   </div>
 
   <!-- Training guide download -->
   <div class="mb-4" *ngIf="pdfPath">
-    <a [href]="pdfPath" download class="btn btn-outline-dark btn-sm" (click)="onDownloadClicked()">
-      <i class="fa fa-download me-1"></i> Download Training Guide
+    <a [href]="pdfPath" download class="btn btn-outline-dark" (click)="onDownloadClicked()">
+      <i class="fa fa-download me-1" aria-hidden="true"></i> Download Training Guide
     </a>
   </div>
 
-  <hr class="mb-4">
-
   <!-- Continue to dashboard — not gated on download -->
-  <div class="d-flex justify-content-end">
+  <div class="border-top mt-4 pt-4 d-flex justify-content-end">
     <button type="button" class="btn btn-dark" (click)="continueToDashboard()">
-      Continue to Dashboard
+      {{ continueLabel }}
     </button>
   </div>
 
