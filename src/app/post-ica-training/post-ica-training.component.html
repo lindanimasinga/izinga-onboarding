@@ -7,15 +7,22 @@
   </div>
 
   <!-- Training guide download -->
-  <div class="mb-4" *ngIf="pdfPath">
-    <a [href]="pdfPath" download class="btn btn-outline-dark" (click)="onDownloadClicked()">
-      <i class="fa fa-download me-1" aria-hidden="true"></i> Download Training Guide
+  <div class="mb-4 pt-2" *ngIf="pdfPath">
+    <p class="mb-3" style="color: var(--text-color);">
+      Download your guide before continuing — you will need it to get started.
+    </p>
+    <a [href]="pdfPath"
+       download
+       class="btn btn-lg btn-block fw-bold"
+       style="background-color: var(--btn-bg-color); color: #fff;"
+       (click)="onDownloadClicked()">
+      <i class="fa fa-download me-2" aria-hidden="true"></i> Download Training Guide
     </a>
   </div>
 
   <!-- Continue to dashboard — not gated on download -->
   <div class="border-top mt-4 pt-4 d-flex justify-content-end">
-    <button type="button" class="btn btn-dark" (click)="continueToDashboard()">
+    <button type="button" class="btn btn-outline-dark" (click)="continueToDashboard()">
       {{ continueLabel }}
     </button>
   </div>
