@@ -5,6 +5,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
 import { TermsConditionsComponent } from './terms-conditions.component';
+const CURRENT_ICA_VERSION = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
@@ -72,7 +73,7 @@ describe('TermsConditionsComponent', () => {
 
   // TC-03: Ambassador acceptTerms() sets ICA fields on the user object
   describe('TC-03: Ambassador acceptTerms() sets ICA fields', () => {
-    it('should call updateCustomer with icaAccepted true, icaAcceptedDate set, icaVersion v1', () => {
+    it('should call updateCustomer with icaAccepted true, icaAcceptedDate set, and current icaVersion', () => {
       const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
       setupComponent(user);
       fixture.detectChanges();
@@ -86,7 +87,7 @@ describe('TermsConditionsComponent', () => {
       expect(orderManagerSpy.updateCustomer).toHaveBeenCalledOnceWith(
         jasmine.objectContaining({
           icaAccepted: true,
-          icaVersion: 'v1',
+          icaVersion: TermsConditionsComponent.AMBASSADOR_ICA_VERSION,
           icaAcceptedDate: jasmine.any(Date)
         })
       );
@@ -149,7 +150,7 @@ describe('TermsConditionsComponent', () => {
       component.termsAccepted = true;
       component.acceptTerms();
 
-      expect(analyticsSpy.logEvent).toHaveBeenCalledWith('ica_accepted', { userId: 'user-001' });
+      expect(analyticsSpy.logEvent).toHaveBeenCalledWith('ica_accepted', jasmine.objectContaining({ userId: 'user-001' }));
       expect(analyticsSpy.logEvent).not.toHaveBeenCalledWith('terms_accepted', jasmine.anything());
     });
 
@@ -219,6 +220,78 @@ describe('TermsConditionsComponent', () => {
       component.acceptTerms();
 
       expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-09: needsIcaAcceptance — v1 ambassador must re-accept v2
+  describe('TC-09: needsIcaAcceptance — ambassador with v1 requires re-acceptance', () => {
+    it('should return true when ambassador has icaAccepted=true but icaVersion is the previous version', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        icaAccepted: true,
+        icaVersion: 'v1'   // previous version — not current
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsIcaAcceptance).toBeTrue();
+    });
+  });
+
+  // TC-10: needsIcaAcceptance — current-version ambassador must NOT be prompted again
+  describe('TC-10: needsIcaAcceptance — ambassador with current version does not require re-acceptance', () => {
+    it('should return false when ambassador has icaAccepted=true and icaVersion matches current', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        icaAccepted: true,
+        icaVersion: CURRENT_ICA_VERSION
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsIcaAcceptance).toBeFalse();
+    });
+  });
+
+  // TC-11: needsIcaAcceptance — new ambassador (no icaAccepted) returns true
+  describe('TC-11: needsIcaAcceptance — brand-new ambassador returns true', () => {
+    it('should return true when ambassador has never accepted the ICA', () => {
+      const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsIcaAcceptance).toBeTrue();
+    });
+  });
+
+  // TC-12: needsIcaAcceptance — non-ambassador always returns false
+  describe('TC-12: needsIcaAcceptance — non-ambassador role returns false', () => {
+    it('should return false for MESSENGER role regardless of ICA fields', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsIcaAcceptance).toBeFalse();
+    });
+  });
+
+  // TC-13: analytics event carries icaVersion on ambassador acceptance
+  describe('TC-13: ica_accepted event includes icaVersion', () => {
+    it('should log ica_accepted with icaVersion matching the current version constant', () => {
+      const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(analyticsSpy.logEvent).toHaveBeenCalledWith(
+        'ica_accepted',
+        jasmine.objectContaining({ icaVersion: CURRENT_ICA_VERSION })
+      );
     });
   });
 });

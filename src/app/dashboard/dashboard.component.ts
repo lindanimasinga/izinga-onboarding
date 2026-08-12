@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { FirebaseService } from '../service/firebase.service';
 import { Device } from '../model/device';
 import { AnalyticsService } from '../service/analytics.service';
+import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,10 +52,19 @@ export class DashboardComponent {
       // purpose-built enrollment screens — they must never land on the generic
       // TermsConditionsComponent which only handles customer/store T&Cs and
       // writes to termsAccepted (wrong field for these roles).
+      //
+      // Ambassador version gate: icaAccepted=true is not sufficient — the stored
+      // icaVersion must match TermsConditionsComponent.AMBASSADOR_ICA_VERSION.
+      // An ambassador who accepted v1 (icaVersion='v1') is redirected back to
+      // the ICA screen to accept v2. The TermsConditionsComponent.needsIcaAcceptance
+      // getter handles the same check on the ICA screen side.
       const isIcaRole = user.role === UserProfile.RoleEnum.AMBASSADOR
         || user.role === UserProfile.RoleEnum.REFERRALPARTNER;
+      const ambassadorIcaCurrentVersion = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
       const hasAcceptedTerms = isIcaRole
-        ? !!user.icaAccepted
+        ? (user.role === UserProfile.RoleEnum.AMBASSADOR
+            ? !!user.icaAccepted && user.icaVersion === ambassadorIcaCurrentVersion
+            : !!user.icaAccepted)
         : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
