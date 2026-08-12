@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { IzingaOrderManagementService } from './izinga-order-management.service';
 import { FirebaseService } from './firebase.service';
@@ -110,6 +110,19 @@ describe('IzingaOrderManagementService', () => {
 
       req.flush({ ...baseStoreProfile });
     });
+
+    // AC-3 (ADR-018 QA): getFirebaseIdToken() failure must propagate to the caller — no silent swallow.
+    it('Test case 4: propagates getFirebaseIdToken() error to the caller without making an HTTP request', (done) => {
+      spyOn(firebaseServiceStub, 'getFirebaseIdToken').and.returnValue(throwError(() => new Error('auth/no-user')));
+
+      service.createStore(baseStoreProfile).subscribe({
+        next: () => fail('expected an error, not a success response'),
+        error: (err: Error) => {
+          expect(err.message).toBe('auth/no-user');
+          done();
+        }
+      });
+    });
   });
 
   // ADR-018: updateStore() now requires Firebase JWT — full coverage below.
@@ -166,6 +179,19 @@ describe('IzingaOrderManagementService', () => {
       expect(req.request.method).toBe('PATCH');
 
       req.flush({ ...differentStore });
+    });
+
+    // AC-3 (ADR-018 QA): getFirebaseIdToken() failure must propagate to the caller — no silent swallow.
+    it('Test case 4: propagates getFirebaseIdToken() error to the caller without making an HTTP request', (done) => {
+      spyOn(firebaseServiceStub, 'getFirebaseIdToken').and.returnValue(throwError(() => new Error('auth/no-user')));
+
+      service.updateStore(storeProfile).subscribe({
+        next: () => fail('expected an error, not a success response'),
+        error: (err: Error) => {
+          expect(err.message).toBe('auth/no-user');
+          done();
+        }
+      });
     });
   });
 });
