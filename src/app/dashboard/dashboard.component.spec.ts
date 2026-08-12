@@ -9,16 +9,21 @@ import { StorageService } from '../service/storage-service.service';
 import { FirebaseService } from '../service/firebase.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { UserProfile } from '../model/userProfile';
+import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
+
+const CURRENT_AMBASSADOR_ICA_VERSION = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
 
 /**
  * TC-DASH-01  REFERRAL_PARTNER without icaAccepted: redirected to /referral-partner/enroll.
  * TC-DASH-02  REFERRAL_PARTNER without icaAccepted: NOT redirected to /indivisuals/terms.
  * TC-DASH-03  REFERRAL_PARTNER with icaAccepted=true: NOT redirected (proceeds normally, no nav call).
  * TC-DASH-04  AMBASSADOR without icaAccepted: redirected to /indivisuals/terms (regression guard).
- * TC-DASH-05  AMBASSADOR with icaAccepted=true: NOT redirected (proceeds normally).
+ * TC-DASH-05  AMBASSADOR with icaAccepted=true and current icaVersion: NOT redirected (proceeds normally).
  * TC-DASH-06  MESSENGER without termsAccepted: redirected to /indivisuals/terms.
  * TC-DASH-07  MESSENGER with termsAccepted=true: NOT redirected (proceeds normally).
  * TC-DASH-08  API 404: redirected to /indivisuals/user (existing error path, regression guard).
+ * TC-DASH-10  AMBASSADOR with icaAccepted=true but PREVIOUS icaVersion ('v1'): redirected to re-accept.
+ * TC-DASH-11  AMBASSADOR with icaAccepted=true and CURRENT icaVersion: NOT redirected.
  */
 describe('DashboardComponent — terms routing', () => {
   let component: DashboardComponent;
@@ -153,8 +158,11 @@ describe('DashboardComponent — terms routing', () => {
   }));
 
   // TC-DASH-05
-  it('TC-DASH-05: AMBASSADOR with icaAccepted=true proceeds normally (no redirect)', fakeAsync(() => {
-    const user = buildUser(UserProfile.RoleEnum.AMBASSADOR, { icaAccepted: true });
+  it('TC-DASH-05: AMBASSADOR with icaAccepted=true and current icaVersion proceeds normally (no redirect)', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.AMBASSADOR, {
+      icaAccepted: true,
+      icaVersion: CURRENT_AMBASSADOR_ICA_VERSION
+    });
     mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
     mockService.getUserConfig.and.returnValue(of([]));
 
@@ -178,6 +186,35 @@ describe('DashboardComponent — terms routing', () => {
   // TC-DASH-07
   it('TC-DASH-07: MESSENGER with termsAccepted=true proceeds normally (no redirect)', fakeAsync(() => {
     const user = buildUser(UserProfile.RoleEnum.MESSENGER, { termsAccepted: true });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+  }));
+
+  // TC-DASH-10: Ambassador with previous ICA version must be redirected to re-accept
+  it('TC-DASH-10: AMBASSADOR with icaAccepted=true but previous icaVersion is redirected to re-accept ICA', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.AMBASSADOR, {
+      icaAccepted: true,
+      icaVersion: 'v1'   // previous version — pre-dates the v2 requirement
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/terms', user.id]);
+  }));
+
+  // TC-DASH-11: Ambassador with current ICA version must NOT be redirected
+  it('TC-DASH-11: AMBASSADOR with icaAccepted=true and current icaVersion is NOT redirected', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.AMBASSADOR, {
+      icaAccepted: true,
+      icaVersion: CURRENT_AMBASSADOR_ICA_VERSION
+    });
     mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
     mockService.getUserConfig.and.returnValue(of([]));
 
