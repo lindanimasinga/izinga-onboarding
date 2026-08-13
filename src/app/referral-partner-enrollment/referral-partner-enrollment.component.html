@@ -12,12 +12,6 @@
     <p class="text-muted" *ngIf="readOnlyMode">Your accepted agreement — read only</p>
   </div>
 
-  <!-- POPIA disclosure: pre-registration, before any personal data is collected -->
-  <p *ngIf="!readOnlyMode" class="text-muted small mb-4">
-    iZinga collects and processes your personal information in accordance with our
-    <a routerLink="/privacy-policy">Privacy Policy</a>.
-  </p>
-
   <!-- DRAFT notice — visible until attorney-approved version replaces this content -->
   <div class="alert mb-4 rpa-alert-draft">
     <strong>Notice:</strong> This agreement is in DRAFT status and is pending final review by iZinga's attorney.
