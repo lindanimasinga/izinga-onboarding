@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { FirebaseService } from '../service/firebase.service';
 import { Device } from '../model/device';
 import { AnalyticsService } from '../service/analytics.service';
+import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,11 +52,31 @@ export class DashboardComponent {
       // purpose-built enrollment screens — they must never land on the generic
       // TermsConditionsComponent which only handles customer/store T&Cs and
       // writes to termsAccepted (wrong field for these roles).
+      //
+      // Ambassador version gate: icaAccepted=true is not sufficient — the stored
+      // icaVersion must match TermsConditionsComponent.AMBASSADOR_ICA_VERSION.
+      // An ambassador who accepted v1 (icaVersion='v1') is redirected back to
+      // the ICA screen to accept v2. The TermsConditionsComponent.needsIcaAcceptance
+      // getter handles the same check on the ICA screen side.
+      //
+      // Driver ICA gate (MESSENGER role): same version-aware logic. The 346 existing
+      // drivers who have termsAccepted=true but icaAccepted falsy are blocked here
+      // and routed to TermsConditionsComponent which shows them the Driver ICA.
+      // A driver who accepted an earlier version (icaVersion !== DRIVER_ICA_VERSION)
+      // is also re-gated. TermsConditionsComponent.needsDriverIcaAcceptance mirrors
+      // this check on the ICA screen side.
       const isIcaRole = user.role === UserProfile.RoleEnum.AMBASSADOR
         || user.role === UserProfile.RoleEnum.REFERRALPARTNER;
-      const hasAcceptedTerms = isIcaRole
-        ? !!user.icaAccepted
-        : !!user.termsAccepted;
+      const isDriverRole = user.role === UserProfile.RoleEnum.MESSENGER;
+      const ambassadorIcaCurrentVersion = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
+      const driverIcaCurrentVersion = TermsConditionsComponent.DRIVER_ICA_VERSION;
+      const hasAcceptedTerms = isDriverRole
+        ? (!!user.icaAccepted && user.icaVersion === driverIcaCurrentVersion)
+        : isIcaRole
+          ? (user.role === UserProfile.RoleEnum.AMBASSADOR
+              ? !!user.icaAccepted && user.icaVersion === ambassadorIcaCurrentVersion
+              : !!user.icaAccepted)
+          : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
           // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).

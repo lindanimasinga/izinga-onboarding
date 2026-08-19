@@ -1,5 +1,5 @@
 <!-- Ambassador ICA branch -->
-<ng-container *ngIf="isAmbassador; else generalTerms">
+<ng-container *ngIf="isAmbassador; else driverOrGeneral">
   <div class="container py-4">
     <div class="text-center mb-4">
       <h2 class="fw-bold">Ambassador Independent Contractor Agreement</h2>
@@ -16,6 +16,7 @@
         <p>1.2 The Ambassador is not an employee of iZinga for any purpose, including the Labour Relations Act 66 of 1995, the Basic Conditions of Employment Act 75 of 1997, the Unemployment Insurance Act 63 of 2001, and the Income Tax Act 58 of 1962.</p>
         <p>1.3 iZinga does not control the manner, method, time, place, or means by which the Ambassador performs the Services. The Ambassador is free to determine their own working hours, methods, and geographic focus.</p>
         <p>1.4 This Agreement does not create exclusivity. The Ambassador may engage in other business activities, including referral activities for third parties.</p>
+        <p>1.5 The Ambassador is under no obligation to perform any minimum quantity of services under this Agreement. iZinga is under no obligation to provide any minimum volume of referral opportunities to the Ambassador. Neither Party makes any guarantee as to the volume of activity that will arise under this Agreement.</p>
 
         <h5>2. Services</h5>
         <p>2.1 The Ambassador agrees to promote iZinga's driver and messenger onboarding programme and to introduce prospective delivery drivers and messengers (<strong>"Referred Drivers"</strong>) to iZinga's registration platform.</p>
@@ -56,6 +57,7 @@
         <p>6.3 The Ambassador's personal information will not be sold or disclosed to third parties except to payment service providers (including Yoco) for commission payouts, or as required by law.</p>
         <p>6.4 The Ambassador has the right to access, correct, delete, or object to the processing of their personal information, and to lodge a complaint with the Information Regulator of South Africa. Contact iZinga's Information Officer via the iZinga website.</p>
         <p>6.5 This clause constitutes iZinga's POPIA disclosure for the purposes of section 18 of the Protection of Personal Information Act 4 of 2013.</p>
+        <p>6.8 Certain personal information provided by the Ambassador under this Agreement may be processed or stored using cloud service providers or infrastructure located outside the Republic of South Africa, including but not limited to Google LLC (operating Firebase and Google Cloud Platform), which iZinga uses for its platform infrastructure, database, and authentication services. Where such transfers of personal information outside South Africa occur, iZinga will implement the appropriate safeguards required by section 72 of the Protection of Personal Information Act 4 of 2013, including ensuring that the recipient provides a level of protection for the personal information that is substantially similar to the protections required under POPIA.</p>
 
         <h5>7. Confidentiality</h5>
         <p>7.1 The Ambassador must keep confidential all non-public information about iZinga's business, commission rates, driver approval criteria, platform technology, and partner relationships. This obligation survives termination for 2 years.</p>
@@ -86,7 +88,7 @@
       Something went wrong saving your agreement. Please try again.
     </div>
 
-    <div class="card mt-4" *ngIf="!user?.icaAccepted">
+    <div class="card mt-4" *ngIf="needsIcaAcceptance">
       <div class="card-body">
         <div class="form-check">
           <input class="form-check-input" type="checkbox" [(ngModel)]="termsAccepted" id="icaCheck">
@@ -98,7 +100,7 @@
     </div>
   </div>
 
-  <div class="row fixed-bottom" *ngIf="!user?.icaAccepted">
+  <div class="row fixed-bottom" *ngIf="needsIcaAcceptance">
     <button
       class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
       type="submit"
@@ -108,6 +110,187 @@
     </button>
   </div>
 </ng-container>
+
+<!-- Driver ICA or General T&Cs -->
+<ng-template #driverOrGeneral>
+<ng-container *ngIf="isDriver; else generalTerms">
+  <div class="container py-4">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Driver Independent Contractor Agreement</h2>
+      <p class="text-muted">Please read and accept this agreement to access your Driver dashboard</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body ica-body">
+
+        <p><strong>Curiousoft (Pty) Ltd t/a iZinga</strong>, registration number <strong>2016/429327/07</strong>, a private company incorporated in the Republic of South Africa, with its registered address at 68 Jacaranda Avenue, Olivedale, Randburg, 2188 (<strong>"iZinga"</strong>); and the Driver as identified and registered through the iZinga onboarding application (<strong>"Driver"</strong>). iZinga and the Driver are referred to individually as <strong>"a Party"</strong> and collectively as <strong>"the Parties."</strong></p>
+
+        <h5>1. NATURE OF THE RELATIONSHIP</h5>
+        <p><strong>1.1 Independent Contractor Status</strong></p>
+        <p>The Driver is engaged as an independent contractor. The Driver acknowledges and agrees that:</p>
+        <ul>
+          <li>Nothing in this Agreement creates a relationship of employment, partnership, agency, joint venture, or franchise between the Parties.</li>
+          <li>The Driver is not entitled to employee benefits, including paid leave, overtime, severance pay, pension fund contributions, medical aid contributions, unemployment insurance contributions, or any benefits applicable to employees.</li>
+          <li>The Driver is responsible for all taxes, levies, statutory contributions, registrations, licences and regulatory requirements applicable to the Driver's business.</li>
+        </ul>
+        <p><strong>1.2 Operational Independence</strong></p>
+        <p>The Driver:</p>
+        <ul>
+          <li>Determines whether and when to make themselves available for deliveries.</li>
+          <li>Is under no obligation to accept any delivery opportunity made available through the Platform.</li>
+          <li>May provide services to other businesses, platforms, customers and competitors.</li>
+          <li>Supplies and maintains their own vehicle, fuel, mobile device, insurance and equipment.</li>
+          <li>Bears all operating expenses associated with performing delivery services.</li>
+        </ul>
+        <p>Nothing in this Agreement shall be construed as granting iZinga the right to control the manner in which the Driver performs the delivery services, save to the extent necessary to maintain platform standards, legal compliance, customer safety and service quality.</p>
+
+        <h5>2. PLATFORM SERVICES</h5>
+        <p>iZinga operates a digital platform which connects customers requiring delivery services with independent delivery drivers. The Driver acknowledges that:</p>
+        <ul>
+          <li>iZinga is primarily a technology and logistics coordination platform.</li>
+          <li>Delivery services are performed by the Driver in their own capacity as an independent contractor.</li>
+          <li>iZinga does not guarantee any minimum number of delivery opportunities.</li>
+          <li>The Driver is under no obligation to accept any minimum volume of work.</li>
+        </ul>
+
+        <h5>3. COMMISSION AND PAYMENT</h5>
+        <p><strong>3.1 Revenue Split</strong></p>
+        <p>For each completed delivery:</p>
+        <ul>
+          <li>(a) iZinga shall retain <strong>10% (ten percent)</strong> of the delivery fee as platform commission.</li>
+          <li>(b) The Driver shall receive <strong>90% (ninety percent)</strong> of the delivery fee as earnings for that delivery.</li>
+        </ul>
+        <p>iZinga's platform calculates the Driver's entitlement automatically upon successful completion and confirmation of delivery through the Platform. <strong>The Driver is not required to submit invoices.</strong> iZinga shall initiate payment without any action required from the Driver.</p>
+        <p>Payment shall be made by EFT transfer to the Driver's registered bank account, or by payout to the Driver's registered mobile wallet or e-wallet.</p>
+        <p>iZinga shall process payout batches on each business day. Earnings confirmed as at the end of the preceding business day shall be included in the following business day's payout batch, subject to standard banking and payment processing times. Payouts are not processed on weekends or South African public holidays. Earnings confirmed on a Saturday, Sunday, or public holiday shall be included in the payout batch processed on the next business day.</p>
+        <p>Where a payout is to be made to a mobile wallet or e-wallet, the maximum payout per payout cycle is <strong>R3 000 (three thousand Rand)</strong>. Any amount exceeding R3 000 in a single payout cycle shall carry over and be included in the following business day's payout batch.</p>
+        <p>Unless otherwise stated, all amounts are: (a) exclusive of VAT; and (b) payable in South African Rand (ZAR).</p>
+        <p><strong>3.2 Payment</strong></p>
+        <p>Payments shall be processed in accordance with iZinga's payment policies as updated from time to time and communicated through the Platform. The Driver acknowledges that:</p>
+        <ul>
+          <li>Payment is earned only upon successful completion of delivery.</li>
+          <li>iZinga may deduct agreed commissions, chargebacks, refunds attributable to the Driver, and amounts recoverable under this Agreement.</li>
+        </ul>
+
+        <h5>4. DRIVER INSURANCE REQUIREMENTS</h5>
+        <p><strong>4.1 Goods-in-Transit Insurance</strong></p>
+        <p>The Driver shall maintain valid Goods-in-Transit ("GIT") insurance throughout the duration of this Agreement. The insurance must:</p>
+        <ul>
+          <li>Be maintained at the Driver's sole cost.</li>
+          <li>Cover goods transported by the Driver while performing deliveries through iZinga.</li>
+          <li>Remain valid and enforceable at all times.</li>
+        </ul>
+        <p><strong>4.2 Proof of Insurance</strong></p>
+        <p>The Driver shall:</p>
+        <ul>
+          <li>Upload proof of GIT insurance before conducting deliveries.</li>
+          <li>Re-upload updated proof of cover annually.</li>
+          <li>Immediately notify iZinga if cover is cancelled, suspended, reduced or expires.</li>
+        </ul>
+        <p><strong>4.3 Suspension</strong></p>
+        <p>iZinga may immediately suspend the Driver's access to the Platform if insurance expires, is cancelled, or proof of insurance is not provided when requested. Access may remain suspended until valid proof of cover is provided.</p>
+
+        <h5>5. DRIVER OBLIGATIONS</h5>
+        <p>The Driver shall:</p>
+        <ul>
+          <li>Hold all licences legally required to operate the vehicle used.</li>
+          <li>Comply with applicable road traffic laws.</li>
+          <li>Handle all goods with reasonable care.</li>
+          <li>Deliver goods only to the intended recipient or authorised person.</li>
+          <li>Maintain professional conduct when interacting with customers.</li>
+        </ul>
+
+        <h5>6. CANCELLATION OF DELIVERIES</h5>
+        <p><strong>6.1 Driver-Initiated Cancellation</strong></p>
+        <p>A Driver may cancel an accepted delivery where reasonably necessary, including vehicle breakdown, personal emergency, safety concerns, or incorrect delivery information. Repeated cancellations may result in reduced platform ratings, temporary suspension, or permanent deactivation where the pattern demonstrates abuse of the platform.</p>
+        <p><strong>6.2 Customer Impact</strong></p>
+        <p>Where a Driver cancels an accepted delivery without reasonable cause, iZinga may recover direct costs incurred as a result of arranging replacement delivery services.</p>
+
+        <h5>7. LIABILITY FOR GOODS</h5>
+        <p><strong>7.1 Custody of Goods</strong></p>
+        <p>The Driver assumes responsibility for goods from the moment they are collected until delivery is confirmed through the Platform.</p>
+        <p><strong>7.2 Driver Liability</strong></p>
+        <p>The Driver shall be liable for losses arising from theft attributable to the Driver, fraud, gross negligence, wilful misconduct, or unauthorised disposal, transfer or abandonment of goods.</p>
+        <p><strong>7.3 Recovery by iZinga</strong></p>
+        <p>Where iZinga compensates a customer for losses caused by the Driver's conduct, iZinga may recover such amounts from the Driver to the extent permitted by law and subject to proof of liability.</p>
+
+        <h5>8. CONFIDENTIALITY</h5>
+        <p>The Driver shall keep confidential all customer information, pricing information, business processes, technical information, and platform operations. This obligation survives termination for five (5) years.</p>
+
+        <h5>9. POPIA COMPLIANCE</h5>
+        <p>The Driver shall comply with the Protection of Personal Information Act, 2013. The Driver may only use personal information obtained through the Platform for purposes directly connected to completing deliveries. The Driver shall not retain customer data unnecessarily, share customer data with any third parties, or use customer information for marketing purposes.</p>
+
+        <h5>10. NON-COMPETE AND NON-SOLICITATION</h5>
+        <p>Nothing in this Agreement prevents the Driver from working for competing delivery services. However, for a period of twelve (12) months following termination, the Driver shall not solicit iZinga's corporate clients for competing delivery arrangements using confidential information acquired through the Platform, or misappropriate customer lists, pricing structures or business opportunities belonging to iZinga. This clause is intended solely to protect iZinga's legitimate proprietary interests and shall not restrict the Driver's right to earn a livelihood.</p>
+
+        <h5>11. SUSPENSION AND DEACTIVATION</h5>
+        <p>iZinga may suspend or deactivate a Driver account where required insurance has lapsed, fraud is suspected, misconduct occurs, the Driver breaches this Agreement, repeated customer complaints demonstrate unsafe or unacceptable conduct, or the Driver provides false information during onboarding. Where reasonably practicable, iZinga shall provide notice of the reason for suspension.</p>
+
+        <h5>12. TERM AND TERMINATION</h5>
+        <p><strong>12.1 Term.</strong> This Agreement commences upon electronic acceptance by the Driver and remains in force until terminated.</p>
+        <p><strong>12.2 Termination by Driver.</strong> The Driver may terminate this Agreement at any time by providing written notice through the Platform or by email.</p>
+        <p><strong>12.3 Termination by iZinga.</strong> iZinga may terminate this Agreement on 30 days' written notice, or immediately for material breach, fraud, criminal conduct, insurance lapses, or conduct causing material reputational harm.</p>
+
+        <h5>13. ELECTRONIC ACCEPTANCE</h5>
+        <p>The Parties agree that this Agreement may be concluded electronically. Acceptance by selecting "I Accept", ticking a consent checkbox, or any substantially similar electronic action within the onboarding application constitutes a valid electronic signature and agreement under the <strong>Electronic Communications and Transactions Act, 25 of 2002</strong>. Electronic records maintained by iZinga shall constitute prima facie proof of acceptance.</p>
+
+        <h5>14. EXISTING DRIVER ACCEPTANCE</h5>
+        <p>All drivers registered on the iZinga platform prior to the implementation of this Agreement shall be required to accept this Agreement before accepting further delivery opportunities. Continued use of the Platform following acceptance constitutes agreement to be bound by its terms.</p>
+
+        <h5>15. DISPUTE RESOLUTION</h5>
+        <p>Any dispute arising from this Agreement shall first be referred to senior management for resolution. If unresolved within 10 days, be referred to mediation. If still unresolved, be referred to arbitration administered by AFSA. The arbitration shall take place in Johannesburg or Durban, at iZinga's election. Any arbitration award may be made an order of court.</p>
+
+        <h5>16. WARRANTIES</h5>
+        <p>The Driver warrants that: it has the necessary skill, expertise, licences, and authority to perform the services; the services will be performed professionally and competently; and the services and deliverables will not knowingly infringe the intellectual property rights of any third party.</p>
+
+        <h5>17. INDEMNITY</h5>
+        <p>The Driver indemnifies and holds harmless iZinga against any claims, losses, liabilities, damages, costs, or expenses arising from the Driver's breach of this Agreement, negligence or misconduct by the Driver, or any claim by a third party relating to the Driver's activities.</p>
+
+        <h5>18. LIABILITY</h5>
+        <p>Neither Party shall be liable to the other for any indirect, special, consequential, or incidental damages arising from this Agreement. The total liability of either Party shall not exceed the total fees paid under this Agreement, except in cases of fraud, gross negligence, wilful misconduct, breach of confidentiality, or infringement of intellectual property rights.</p>
+
+        <h5>19. NOTICES</h5>
+        <p>Any notice under this Agreement shall be in writing and sent to the addresses or email addresses set out above. A notice shall be deemed received on the date of delivery if delivered by hand, or on the date of transmission if sent by email and no delivery failure notice is received.</p>
+
+        <h5>20. GENERAL</h5>
+        <p>20.1 This Agreement constitutes the entire agreement between the Parties.</p>
+        <p>20.2 No amendment shall be valid unless reduced to writing and signed by both Parties.</p>
+        <p>20.3 If any provision is found invalid or unenforceable, the remaining provisions shall remain in full force and effect.</p>
+        <p>20.4 This Agreement shall be governed by and construed in accordance with the laws of the Republic of South Africa.</p>
+
+        <h5>21. DOMICILIUM</h5>
+        <p>For purposes of notices and legal process: <strong>iZinga / Curiousoft (Pty) Ltd</strong>, 68 Jacaranda Avenue, Olivedale, Randburg, 2188. The Driver's domicilium shall be the address provided during onboarding, as updated from time to time through the Platform.</p>
+
+      </div>
+    </div>
+
+    <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Something went wrong saving your agreement. Please try again.
+    </div>
+
+    <div class="card mt-4" *ngIf="needsDriverIcaAcceptance">
+      <div class="card-body">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="termsAccepted" id="driverIcaCheck">
+          <label class="form-check-label" for="driverIcaCheck">
+            I have read and agree to the iZinga Driver Independent Contractor Agreement. I understand that I am an independent contractor and not an employee of iZinga. I acknowledge that I must maintain valid Goods-in-Transit insurance at all times.
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row fixed-bottom" *ngIf="needsDriverIcaAcceptance">
+    <button
+      class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
+      type="submit"
+      [disabled]="!termsAccepted"
+      (click)="acceptTerms()">
+      Accept Agreement &amp; Continue
+    </button>
+  </div>
+</ng-container>
+</ng-template>
 
 <!-- General T&Cs for all other roles -->
 <ng-template #generalTerms>
@@ -211,8 +394,8 @@
             <h5 class="mt-4 mb-3">4. Payment Terms</h5>
             <ul>
                 <li>iZinga will process payments securely</li>
-                <li>Daily payouts to registered bank accounts or mobile wallets</li>
-                <li>R3000 daily limit for mobile wallet withdrawals</li>
+                <li>Payouts are batched each business day and funds arrive the next business day. Earnings from Fridays, weekends, or public holidays are paid out on the following Monday or next available business day.</li>
+                <li>R3000 daily limit for mobile wallet withdrawals; any amount exceeding this limit is carried over and paid on the next business day</li>
                 <li>Service fees may apply as disclosed</li>
                 <li><strong>Drivers will be charged a commission fee of 10% on each delivery completed.</strong></li>
             </ul>

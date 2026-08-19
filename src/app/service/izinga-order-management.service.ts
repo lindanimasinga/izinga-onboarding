@@ -217,32 +217,42 @@ export class IzingaOrderManagementService {
       }));
   }
 
-  updateStore(storeProfile : StoreProfile): Observable<StoreProfile> {
-    return this.http.patch<StoreProfile>(`${environment.izingaUrl}/store/${storeProfile.id}`, storeProfile, {headers: this.headers})
-    .pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(error)
-      }));
+  // ADR-018: store write endpoints now require Firebase JWT. Both createStore()
+  // and updateStore() attach an Authorization Bearer header so that once the
+  // backend (ijudi-api) enables the Spring Security filter on POST/PATCH /store,
+  // these calls will not 401. Pattern mirrors assignReferralCode() / fetchAllStores().
+  updateStore(storeProfile: StoreProfile): Observable<StoreProfile> {
+    return this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+        return this.http.patch<StoreProfile>(
+          `${environment.izingaUrl}/store/${storeProfile.id}`,
+          storeProfile,
+          { headers }
+        );
+      }),
+      catchError((error: HttpErrorResponse) => throwError(error))
+    );
   }
 
   createStore(storeProfile: StoreProfile): Observable<StoreProfile> {
     // FIX-01 (RP-005b): backend StoreController.create() reads referralCode via
     // @RequestParam (URL query param), NOT from the request body. Strip it from
     // the body and send as a query param so attribution is not silently dropped.
+    // ADR-018: requires Firebase JWT — Bearer token attached via getFirebaseIdToken().
     const params: Record<string, string> = {};
     if (storeProfile.referralCode) {
       params['referralCode'] = storeProfile.referralCode;
     }
     const body = { ...storeProfile };
     delete body.referralCode;
-    return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, body, {
-      headers: this.headers,
-      params
-    })
-    .pipe(
-      catchError((error: HttpErrorResponse) => {
-        return throwError(error)
-      }));
+    return this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+        return this.http.post<StoreProfile>(`${environment.izingaUrl}/store`, body, { headers, params });
+      }),
+      catchError((error: HttpErrorResponse) => throwError(error))
+    );
   }
 
   updateDeviceToUser(device: Device, id: string)  : Observable<Device> {
