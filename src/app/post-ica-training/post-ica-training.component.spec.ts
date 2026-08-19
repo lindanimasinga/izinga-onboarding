@@ -153,12 +153,26 @@ describe('PostIcaTrainingComponent', () => {
     expect(component.continueLabel).toBe('Continue');
   });
 
-  // TRAIN-11
+  // TRAIN-11 (was mislabelled TRAIN-10 in the original suite)
   it('TRAIN-10: renders without error on direct/repeat navigation when profile already in storage (REQ-12)', () => {
     // Simulate a returning user who navigates directly to /indivisuals/training-guide
     setup({ ...ambassadorProfile, icaAccepted: true, icaVersion: 'v1' });
     expect(() => fixture.detectChanges()).not.toThrow();
     expect(component.heading).toBe('Your Ambassador Training Guide');
     expect(mockRouter.navigate).not.toHaveBeenCalledWith(['/']);
+  });
+
+  // TRAIN-12: icaPdfPath returns ambassador ICA PDF for AMBASSADOR
+  it('TRAIN-12: AMBASSADOR role icaPdfPath points to ambassador-ica-v2.pdf', () => {
+    setup(ambassadorProfile);
+    fixture.detectChanges();
+    expect(component.icaPdfPath).toContain('ambassador-ica-v2.pdf');
+  });
+
+  // TRAIN-13: icaPdfPath returns empty string for REFERRALPARTNER (no ICA PDF on training screen)
+  it('TRAIN-13: REFERRALPARTNER role icaPdfPath is empty string', () => {
+    setup(rpProfile);
+    fixture.detectChanges();
+    expect(component.icaPdfPath).toBe('');
   });
 });

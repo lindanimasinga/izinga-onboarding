@@ -70,6 +70,18 @@ export class PostIcaTrainingComponent implements OnInit {
     return '';
   }
 
+  /**
+   * Path to the signed ICA agreement PDF for the current user's role.
+   * Ambassadors can view the agreement they just accepted; Referral Partners
+   * use a separate enrollment contract and have no ICA PDF here.
+   */
+  get icaPdfPath(): string {
+    if (this.isAmbassador) {
+      return 'assets/docs/ica/ambassador-ica-v2.pdf';
+    }
+    return '';
+  }
+
   get continueLabel(): string {
     if (this.isReferralPartner) {
       return 'Continue';
