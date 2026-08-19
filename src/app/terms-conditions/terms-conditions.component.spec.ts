@@ -112,10 +112,11 @@ describe('TermsConditionsComponent', () => {
     });
   });
 
-  // TC-05: Non-ambassador acceptTerms() sets termsAccepted and does NOT set icaAccepted
-  describe('TC-05: Non-ambassador acceptTerms() sets termsAccepted', () => {
-    it('should set user.termsAccepted true and termsAcceptedDate, and not set icaAccepted', () => {
-      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+  // TC-05: Non-ambassador, non-driver (STOREADMIN) acceptTerms() sets termsAccepted only — not icaAccepted.
+  // Uses STOREADMIN because MESSENGER now routes through the Driver ICA path, not general terms.
+  describe('TC-05: Non-ambassador/non-driver (STOREADMIN) acceptTerms() sets termsAccepted', () => {
+    it('should set user.termsAccepted true and termsAcceptedDate, and not set icaAccepted (STOREADMIN)', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
       setupComponent(user);
       fixture.detectChanges();
 
@@ -154,8 +155,8 @@ describe('TermsConditionsComponent', () => {
       expect(analyticsSpy.logEvent).not.toHaveBeenCalledWith('terms_accepted', jasmine.anything());
     });
 
-    it('should log terms_accepted event for non-ambassador and not ica_accepted', () => {
-      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+    it('should log terms_accepted event for non-ambassador/non-driver (STOREADMIN) and not ica_accepted', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
       setupComponent(user);
       fixture.detectChanges();
 
@@ -186,8 +187,8 @@ describe('TermsConditionsComponent', () => {
       expect(component.acceptError).toBeTrue();
     });
 
-    it('should set acceptError to true when updateCustomer errors (non-ambassador)', () => {
-      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+    it('should set acceptError to true when updateCustomer errors (non-ambassador/non-driver — STOREADMIN)', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
       setupComponent(user);
       fixture.detectChanges();
 
@@ -201,10 +202,10 @@ describe('TermsConditionsComponent', () => {
     });
   });
 
-  // TC-08: acceptError is reset to false at the start of each acceptTerms() call
+  // TC-08: acceptError is reset to false at the start of each acceptTerms() call (STOREADMIN — general terms path)
   describe('TC-08: acceptError reset on each acceptTerms() call', () => {
-    it('should reset acceptError to false at the start of acceptTerms()', () => {
-      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+    it('should reset acceptError to false at the start of acceptTerms() (STOREADMIN)', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
       setupComponent(user);
       fixture.detectChanges();
 
@@ -292,6 +293,207 @@ describe('TermsConditionsComponent', () => {
         'ica_accepted',
         jasmine.objectContaining({ icaVersion: CURRENT_ICA_VERSION })
       );
+    });
+  });
+
+  // ── Driver ICA v2 tests ────────────────────────────────────────────────────
+
+  const CURRENT_DRIVER_ICA_VERSION = TermsConditionsComponent.DRIVER_ICA_VERSION;
+
+  // TC-14: MESSENGER role — isDriver returns true
+  describe('TC-14: MESSENGER role — isDriver returns true', () => {
+    it('should return true for MESSENGER role', () => {
+      setupComponent(makeUser(UserProfile.RoleEnum.MESSENGER));
+      fixture.detectChanges();
+
+      expect(component.isDriver).toBeTrue();
+    });
+  });
+
+  // TC-15: Non-MESSENGER role — isDriver returns false
+  describe('TC-15: Non-MESSENGER role — isDriver returns false', () => {
+    it('should return false for AMBASSADOR role', () => {
+      setupComponent(makeUser(UserProfile.RoleEnum.AMBASSADOR));
+      fixture.detectChanges();
+
+      expect(component.isDriver).toBeFalse();
+    });
+  });
+
+  // TC-16: needsDriverIcaAcceptance — brand-new driver (no icaAccepted) returns true
+  describe('TC-16: needsDriverIcaAcceptance — brand-new driver returns true', () => {
+    it('should return true when MESSENGER has never accepted the Driver ICA', () => {
+      setupComponent(makeUser(UserProfile.RoleEnum.MESSENGER));
+      fixture.detectChanges();
+
+      expect(component.needsDriverIcaAcceptance).toBeTrue();
+    });
+  });
+
+  // TC-17: needsDriverIcaAcceptance — driver with current version returns false
+  describe('TC-17: needsDriverIcaAcceptance — driver with current version does not require re-acceptance', () => {
+    it('should return false when MESSENGER has icaAccepted=true and icaVersion matches current', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.MESSENGER),
+        icaAccepted: true,
+        icaVersion: CURRENT_DRIVER_ICA_VERSION
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsDriverIcaAcceptance).toBeFalse();
+    });
+  });
+
+  // TC-18: needsDriverIcaAcceptance — driver with previous version returns true (re-gate)
+  describe('TC-18: needsDriverIcaAcceptance — driver with previous version requires re-acceptance', () => {
+    it('should return true when MESSENGER has icaAccepted=true but icaVersion is the previous version', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.MESSENGER),
+        icaAccepted: true,
+        icaVersion: 'driver-v1'   // previous version — not current
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsDriverIcaAcceptance).toBeTrue();
+    });
+  });
+
+  // TC-19: MESSENGER acceptTerms() sets both ICA fields and termsAccepted with correct version
+  describe('TC-19: MESSENGER acceptTerms() sets ICA fields and termsAccepted in one PATCH', () => {
+    it('should call updateCustomer with icaAccepted, icaVersion driver-v2, icaAcceptedDate, termsAccepted, termsAcceptedDate', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(orderManagerSpy.updateCustomer).toHaveBeenCalledOnceWith(
+        jasmine.objectContaining({
+          icaAccepted: true,
+          icaVersion: CURRENT_DRIVER_ICA_VERSION,
+          icaAcceptedDate: jasmine.any(Date),
+          termsAccepted: true,
+          termsAcceptedDate: jasmine.any(Date)
+        })
+      );
+    });
+  });
+
+  // TC-20: MESSENGER acceptTerms() logs driver_ica_accepted event with icaVersion
+  describe('TC-20: MESSENGER acceptTerms() logs driver_ica_accepted analytics event', () => {
+    it('should log driver_ica_accepted with icaVersion and not log ica_accepted or terms_accepted', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(analyticsSpy.logEvent).toHaveBeenCalledWith(
+        'driver_ica_accepted',
+        jasmine.objectContaining({ userId: 'user-001', icaVersion: CURRENT_DRIVER_ICA_VERSION })
+      );
+      expect(analyticsSpy.logEvent).not.toHaveBeenCalledWith('ica_accepted', jasmine.anything());
+      expect(analyticsSpy.logEvent).not.toHaveBeenCalledWith('terms_accepted', jasmine.anything());
+    });
+  });
+
+  // TC-21: MESSENGER acceptTerms() navigates to /indivisuals/dashboard on success
+  describe('TC-21: MESSENGER acceptTerms() navigates to dashboard', () => {
+    it('should navigate to /indivisuals/dashboard after successful Driver ICA acceptance', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/indivisuals/dashboard']);
+    });
+  });
+
+  // TC-22: MESSENGER acceptTerms() error sets acceptError to true
+  describe('TC-22: MESSENGER acceptTerms() error state', () => {
+    it('should set acceptError to true when updateCustomer fails for MESSENGER', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => new Error('network error')));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.acceptError).toBeTrue();
+    });
+  });
+
+  // TC-23: needsDriverIcaAcceptance — non-driver role (AMBASSADOR) returns false
+  // Directly exercises the `if (!this.isDriver) return false` branch in needsDriverIcaAcceptance.
+  describe('TC-23: needsDriverIcaAcceptance — non-MESSENGER role returns false (regression guard)', () => {
+    it('should return false for AMBASSADOR role — AMBASSADOR must not be gated by the driver ICA', () => {
+      setupComponent(makeUser(UserProfile.RoleEnum.AMBASSADOR));
+      fixture.detectChanges();
+
+      expect(component.needsDriverIcaAcceptance).toBeFalse();
+    });
+  });
+
+  // TC-24: MESSENGER acceptTerms() on /business/ URL navigates to /business/dashboard
+  // Exercises the currentUrl.includes('/business/') branch inside the driver ICA success callback.
+  describe('TC-24: MESSENGER acceptTerms() on /business/ URL navigates to /business/dashboard', () => {
+    it('should navigate to /business/dashboard when currentUrl contains /business/', () => {
+      // Re-configure the router spy with a business URL to exercise the other navigation branch.
+      const businessRouterSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/terms/user-001' });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [FormsModule],
+        declarations: [TermsConditionsComponent],
+        schemas: [NO_ERRORS_SCHEMA],
+        providers: [
+          { provide: IzingaOrderManagementService, useValue: orderManagerSpy },
+          { provide: StorageService, useValue: storageServiceMock },
+          { provide: AnalyticsService, useValue: analyticsSpy },
+          { provide: Router, useValue: businessRouterSpy },
+          { provide: ActivatedRoute, useValue: { params: of({ id: 'user-001' }) } }
+        ]
+      }).compileComponents();
+
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      storageServiceMock.userProfile = user;
+      fixture = TestBed.createComponent(TermsConditionsComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(businessRouterSpy.navigate).toHaveBeenCalledWith(['/business/dashboard']);
     });
   });
 });
