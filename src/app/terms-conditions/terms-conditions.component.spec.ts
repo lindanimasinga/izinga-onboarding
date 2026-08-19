@@ -446,4 +446,54 @@ describe('TermsConditionsComponent', () => {
       expect(component.acceptError).toBeTrue();
     });
   });
+
+  // TC-23: needsDriverIcaAcceptance — non-driver role (AMBASSADOR) returns false
+  // Directly exercises the `if (!this.isDriver) return false` branch in needsDriverIcaAcceptance.
+  describe('TC-23: needsDriverIcaAcceptance — non-MESSENGER role returns false (regression guard)', () => {
+    it('should return false for AMBASSADOR role — AMBASSADOR must not be gated by the driver ICA', () => {
+      setupComponent(makeUser(UserProfile.RoleEnum.AMBASSADOR));
+      fixture.detectChanges();
+
+      expect(component.needsDriverIcaAcceptance).toBeFalse();
+    });
+  });
+
+  // TC-24: MESSENGER acceptTerms() on /business/ URL navigates to /business/dashboard
+  // Exercises the currentUrl.includes('/business/') branch inside the driver ICA success callback.
+  describe('TC-24: MESSENGER acceptTerms() on /business/ URL navigates to /business/dashboard', () => {
+    it('should navigate to /business/dashboard when currentUrl contains /business/', () => {
+      // Re-configure the router spy with a business URL to exercise the other navigation branch.
+      const businessRouterSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/terms/user-001' });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [FormsModule],
+        declarations: [TermsConditionsComponent],
+        schemas: [NO_ERRORS_SCHEMA],
+        providers: [
+          { provide: IzingaOrderManagementService, useValue: orderManagerSpy },
+          { provide: StorageService, useValue: storageServiceMock },
+          { provide: AnalyticsService, useValue: analyticsSpy },
+          { provide: Router, useValue: businessRouterSpy },
+          { provide: ActivatedRoute, useValue: { params: of({ id: 'user-001' }) } }
+        ]
+      }).compileComponents();
+
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      storageServiceMock.userProfile = user;
+      fixture = TestBed.createComponent(TermsConditionsComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(businessRouterSpy.navigate).toHaveBeenCalledWith(['/business/dashboard']);
+    });
+  });
 });
