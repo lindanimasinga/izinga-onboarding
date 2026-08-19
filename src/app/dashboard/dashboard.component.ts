@@ -58,14 +58,25 @@ export class DashboardComponent {
       // An ambassador who accepted v1 (icaVersion='v1') is redirected back to
       // the ICA screen to accept v2. The TermsConditionsComponent.needsIcaAcceptance
       // getter handles the same check on the ICA screen side.
+      //
+      // Driver ICA gate (MESSENGER role): same version-aware logic. The 346 existing
+      // drivers who have termsAccepted=true but icaAccepted falsy are blocked here
+      // and routed to TermsConditionsComponent which shows them the Driver ICA.
+      // A driver who accepted an earlier version (icaVersion !== DRIVER_ICA_VERSION)
+      // is also re-gated. TermsConditionsComponent.needsDriverIcaAcceptance mirrors
+      // this check on the ICA screen side.
       const isIcaRole = user.role === UserProfile.RoleEnum.AMBASSADOR
         || user.role === UserProfile.RoleEnum.REFERRALPARTNER;
+      const isDriverRole = user.role === UserProfile.RoleEnum.MESSENGER;
       const ambassadorIcaCurrentVersion = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
-      const hasAcceptedTerms = isIcaRole
-        ? (user.role === UserProfile.RoleEnum.AMBASSADOR
-            ? !!user.icaAccepted && user.icaVersion === ambassadorIcaCurrentVersion
-            : !!user.icaAccepted)
-        : !!user.termsAccepted;
+      const driverIcaCurrentVersion = TermsConditionsComponent.DRIVER_ICA_VERSION;
+      const hasAcceptedTerms = isDriverRole
+        ? (!!user.icaAccepted && user.icaVersion === driverIcaCurrentVersion)
+        : isIcaRole
+          ? (user.role === UserProfile.RoleEnum.AMBASSADOR
+              ? !!user.icaAccepted && user.icaVersion === ambassadorIcaCurrentVersion
+              : !!user.icaAccepted)
+          : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
           // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).
