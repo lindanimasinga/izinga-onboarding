@@ -66,6 +66,18 @@ describe('AppComponent', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('router-outlet')).toBeTruthy();
   });
 
+  it('should render a footer anchor linking to /privacy-policy', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeEl = fixture.nativeElement as HTMLElement;
+    // RouterTestingModule processes routerLink="/privacy-policy" and sets href;
+    // fall back to the raw routerLink attribute if href is not yet resolved.
+    const link =
+      nativeEl.querySelector('a[href="/privacy-policy"]') ??
+      nativeEl.querySelector('a[routerLink="/privacy-policy"]');
+    expect(link).withContext('Expected a footer anchor for /privacy-policy').toBeTruthy();
+  });
+
   // ── getUserTypeFromHostname ────────────────────────────────────────────────
 
   it('getUserTypeFromHostname: refer.izinga.co.za → referral-partner', () => {

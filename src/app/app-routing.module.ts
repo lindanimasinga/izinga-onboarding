@@ -45,6 +45,7 @@ import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
+  { path: 'privacy-policy', component: PrivacyPolicyComponent },
   { path: 'ambassador/qr', component: AmbassadorQrComponent },
   { path: 'referral-partner/enroll', component: ReferralPartnerEnrollmentComponent },
   { path: 'indivisuals', 
