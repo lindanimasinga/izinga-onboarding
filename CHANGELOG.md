@@ -4,6 +4,42 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.7.0] — 2026-08-21
+
+**Release type:** Feature / Legal Compliance
+
+**Summary:** Delivers a POPIA-compliant Privacy Policy page across the izinga-onboarding platform and replaces all stale external privacy.html links with the new in-app route.
+
+### Changes
+
+- [NEW] **Privacy Policy page** — Full POPIA-compliant privacy policy page at `/privacy-policy`. Covers all user roles (customers, drivers, driver managers, store owners, business partners). Information Officer: Lindani Masinga, privacy@izinga.co.za, +27 81 281 5707, 68 Jacaranda Avenue, Olivedale, Randburg, 2188. Registration with the Information Regulator completed 20 August 2026.
+- [FIX] **Stale privacy links replaced** — All components that previously linked to an external `privacy.html` file (business-update, phone-verification, stock-update, user-update, welcome) now route to the in-app `/privacy-policy` page.
+- [FIX] **Footer privacy link** — Footer now includes a working routerLink to `/privacy-policy`.
+- [IMPROVED] **Test coverage** — Three new specs added: `privacy-policy.component.spec.ts` (TC-PP-01/02/03 guarding Information Officer name and email), `app.component.spec.ts` footer anchor test. 324/324 tests pass on release branch.
+
+### Breaking changes
+
+None.
+
+### Test coverage
+
+324/324 tests pass (full unscoped suite) on `release/1.7.0`.
+
+### Deployment
+
+- **Repo:** izinga-onboarding
+- **Deploy type:** Firebase Hosting (site: `onboarding-izinga`, project: `ijudi-d19bd`) — instant
+- **Sequence:** standalone (no backend release dependency)
+
+### Rollback steps
+
+1. Identify the previous Firebase Hosting release in the Firebase console under `onboarding-izinga` → Hosting → Release history.
+2. Click "Rollback" on the v1.6.0 release to revert hosting to the previous build instantly.
+3. Alternatively: `git checkout 1.6.0 && npm run build -- --configuration production && firebase deploy --only hosting:onboarding-izinga`.
+4. Notify Lindani that rollback is complete.
+
+---
+
 ## [1.6.0] — 2026-08-19
 
 **Release type:** Feature / Legal Compliance
