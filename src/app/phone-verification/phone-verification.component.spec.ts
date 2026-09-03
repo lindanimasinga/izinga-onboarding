@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { of, throwError } from 'rxjs';
 
@@ -16,6 +16,8 @@ describe('PhoneVerificationComponent', () => {
   let firebaseSvc: jasmine.SpyObj<FirebaseService>;
   let storageSvc: any;
   let analyticsSvc: any;
+  let routerSvc: any;
+  let routeSvc: any;
 
   beforeEach(() => {
     orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', [
@@ -26,16 +28,20 @@ describe('PhoneVerificationComponent', () => {
     ]);
     storageSvc = { phoneNumber: '', returnUrl: null } as any;
     analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    routerSvc = { navigate: jasmine.createSpy('navigate').and.returnValue(Promise.resolve(true)),
+                  navigateByUrl: jasmine.createSpy('navigateByUrl').and.returnValue(Promise.resolve(true)) } as any;
+    routeSvc = {} as any;
 
     TestBed.configureTestingModule({
       declarations: [PhoneVerificationComponent],
-      imports: [RouterTestingModule],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
         { provide: IzingaOrderManagementService, useValue: orderSvc },
         { provide: StorageService, useValue: storageSvc },
         { provide: FirebaseService, useValue: firebaseSvc },
-        { provide: AnalyticsService, useValue: analyticsSvc }
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: ActivatedRoute, useValue: routeSvc }
       ]
     });
     fixture = TestBed.createComponent(PhoneVerificationComponent);
@@ -117,12 +123,23 @@ describe('PhoneVerificationComponent', () => {
       expect(orderSvc.verifyWhatsAppOtp).not.toHaveBeenCalled();
       expect(firebaseSvc.signInWithWhatsAppToken).not.toHaveBeenCalled();
     });
+
+    it('navigates on successful SMS confirmation', () => {
+      firebaseSvc.confirmCode.and.returnValue(of({} as any));
+      storageSvc.returnUrl = null;
+      component.loginMethod = 'sms';
+      component.phoneNumber = '+27815551234';
+      component.code = '123456';
+      component.confirmCode();
+      expect(routerSvc.navigate).toHaveBeenCalledWith(['../dashboard'], { relativeTo: routeSvc });
+    });
   });
 
   describe('confirmCode() — WhatsApp path', () => {
     it('calls verifyWhatsAppOtp then signInWithWhatsAppToken when loginMethod is whatsapp', () => {
       orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok123' }));
       firebaseSvc.signInWithWhatsAppToken.and.returnValue(of({} as any));
+      storageSvc.returnUrl = null;
       component.loginMethod = 'whatsapp';
       component.phoneNumber = '+27815551234';
       component.code = '654321';
@@ -130,6 +147,7 @@ describe('PhoneVerificationComponent', () => {
       expect(orderSvc.verifyWhatsAppOtp).toHaveBeenCalledWith('+27815551234', '654321');
       expect(firebaseSvc.signInWithWhatsAppToken).toHaveBeenCalledWith('tok123');
       expect(firebaseSvc.confirmCode).not.toHaveBeenCalled();
+      expect(routerSvc.navigate).toHaveBeenCalledWith(['../dashboard'], { relativeTo: routeSvc });
     });
 
     it('sets hasError when verifyWhatsAppOtp fails', () => {
