@@ -20,7 +20,6 @@ export class PhoneVerificationComponent {
   isVerificationRequested = false
   code?: string
   phoneNumber?: string
-  loginMethod: 'sms' | 'whatsapp' = 'sms';
 
   userAlreadyRegistered?: boolean;
   hasError?: boolean;
@@ -41,21 +40,7 @@ export class PhoneVerificationComponent {
   }
 
   ngAfterViewInit() {
-    console.log("Capture created")
-    if (this.loginMethod === 'sms') {
-      this.firebaseService.createCapture();
-    }
-  }
-
-  setLoginMethod(method: 'sms' | 'whatsapp') {
-    this.loginMethod = method;
-    this.isVerificationRequested = false;
-    this.hasError = false;
-    this.errorMessage = undefined;
-    if (method === 'sms') {
-      // Re-render reCAPTCHA when switching back to SMS
-      setTimeout(() => this.firebaseService.createCapture(), 0);
-    }
+    // WhatsApp-only: no reCAPTCHA setup required
   }
 
   resend() {
@@ -66,28 +51,15 @@ export class PhoneVerificationComponent {
     this.phoneNumber = this.phoneNumber?.startsWith("+27")? this.phoneNumber : this.phoneNumber?.startsWith("0") ?
       this.phoneNumber.replace("0", "+27") : this.phoneNumber?.startsWith("27") ? "+" + this.phoneNumber : "+27" +this.phoneNumber;
 
-    if (this.loginMethod === 'whatsapp') {
-      this.izingaOrderManager.sendWhatsAppOtp(this.phoneNumber!)
-        .subscribe(() => {
-          this.isVerificationRequested = true;
-          this.hasError = false;
-          this.analytics.logEvent('verification_code_sent_whatsapp');
-        }, (error) => {
-          this.hasError = true;
-          this.errorMessage = error.message || 'Failed to send WhatsApp OTP. Please try again.';
-        });
-      return;
-    }
-
-    this.firebaseService.requestVerification(this.phoneNumber)
+    this.izingaOrderManager.sendWhatsAppOtp(this.phoneNumber!)
       .subscribe(() => {
-        this.isVerificationRequested = true
+        this.isVerificationRequested = true;
         this.hasError = false;
-        this.analytics.logEvent('verification_code_sent');
+        this.analytics.logEvent('verification_code_sent_whatsapp');
       }, (error) => {
         this.hasError = true;
-        this.errorMessage = error.message;
-      })
+        this.errorMessage = error.message || 'Failed to send WhatsApp OTP. Please try again.';
+      });
   }
 
   private onVerified() {
@@ -108,29 +80,19 @@ export class PhoneVerificationComponent {
   }
 
   confirmCode() {
-    if (this.loginMethod === 'whatsapp') {
-      this.izingaOrderManager.verifyWhatsAppOtp(this.phoneNumber!, this.code!)
-        .subscribe(response => {
-          this.firebaseService.signInWithWhatsAppToken(response.customToken)
-            .subscribe(() => {
-              this.onVerified();
-            }, (error) => {
-              this.hasError = true;
-              this.errorMessage = error.message || 'Firebase sign-in failed after WhatsApp verification.';
-            });
-        }, (error) => {
-          this.hasError = true;
-          this.errorMessage = error.message || 'Invalid verification code. Please try again.';
-        });
-      return;
-    }
-
-    this.firebaseService.confirmCode(this.code!)
-      .subscribe(cred => {
-        this.onVerified();
+    this.izingaOrderManager.verifyWhatsAppOtp(this.phoneNumber!, this.code!)
+      .subscribe(response => {
+        this.firebaseService.signInWithWhatsAppToken(response.customToken)
+          .subscribe(() => {
+            this.onVerified();
+          }, (error) => {
+            this.hasError = true;
+            this.errorMessage = error.message || 'Firebase sign-in failed after WhatsApp verification.';
+          });
       }, (error) => {
-        console.log(error)
-      })
+        this.hasError = true;
+        this.errorMessage = error.message || 'Invalid verification code. Please try again.';
+      });
   }
 
 }

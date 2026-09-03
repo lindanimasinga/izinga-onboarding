@@ -28,8 +28,8 @@ describe('PhoneVerificationComponent', () => {
     ]);
     storageSvc = { phoneNumber: '', returnUrl: null } as any;
     analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
-    routerSvc = { navigate: jasmine.createSpy('navigate').and.returnValue(Promise.resolve(true)),
-                  navigateByUrl: jasmine.createSpy('navigateByUrl').and.returnValue(Promise.resolve(true)) } as any;
+    routerSvc = { navigate: jasmine.createSpy('navigate').and.stub(),
+                  navigateByUrl: jasmine.createSpy('navigateByUrl').and.stub() } as any;
     routeSvc = {} as any;
 
     TestBed.configureTestingModule({
@@ -53,42 +53,9 @@ describe('PhoneVerificationComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should default loginMethod to sms', () => {
-    expect(component.loginMethod).toBe('sms');
-  });
-
-  describe('verify() — SMS path', () => {
-    it('calls firebaseService.requestVerification when loginMethod is sms', () => {
-      firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      component.loginMethod = 'sms';
-      component.phoneNumber = '0815551234';
-      component.verify();
-      expect(firebaseSvc.requestVerification).toHaveBeenCalledWith('+27815551234');
-      expect(orderSvc.sendWhatsAppOtp).not.toHaveBeenCalled();
-    });
-
-    it('sets isVerificationRequested on success', () => {
-      firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      component.loginMethod = 'sms';
-      component.phoneNumber = '0815551234';
-      component.verify();
-      expect(component.isVerificationRequested).toBeTrue();
-    });
-
-    it('sets hasError on failure', () => {
-      firebaseSvc.requestVerification.and.returnValue(throwError({ message: 'SMS error' }));
-      component.loginMethod = 'sms';
-      component.phoneNumber = '0815551234';
-      component.verify();
-      expect(component.hasError).toBeTrue();
-      expect(component.errorMessage).toBe('SMS error');
-    });
-  });
-
-  describe('verify() — WhatsApp path', () => {
-    it('calls orderManager.sendWhatsAppOtp when loginMethod is whatsapp', () => {
+  describe('verify()', () => {
+    it('calls orderManager.sendWhatsAppOtp with normalised number', () => {
       orderSvc.sendWhatsAppOtp.and.returnValue(of(undefined as any));
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '0815551234';
       component.verify();
       expect(orderSvc.sendWhatsAppOtp).toHaveBeenCalledWith('+27815551234');
@@ -97,7 +64,6 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets isVerificationRequested on success', () => {
       orderSvc.sendWhatsAppOtp.and.returnValue(of(undefined as any));
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '0815551234';
       component.verify();
       expect(component.isVerificationRequested).toBeTrue();
@@ -105,42 +71,17 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets hasError on failure', () => {
       orderSvc.sendWhatsAppOtp.and.returnValue(throwError({ message: 'WA error' }));
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '0815551234';
       component.verify();
       expect(component.hasError).toBeTrue();
     });
   });
 
-  describe('confirmCode() — SMS path', () => {
-    it('calls firebaseService.confirmCode when loginMethod is sms', () => {
-      firebaseSvc.confirmCode.and.returnValue(of({} as any));
-      component.loginMethod = 'sms';
-      component.phoneNumber = '+27815551234';
-      component.code = '123456';
-      component.confirmCode();
-      expect(firebaseSvc.confirmCode).toHaveBeenCalledWith('123456');
-      expect(orderSvc.verifyWhatsAppOtp).not.toHaveBeenCalled();
-      expect(firebaseSvc.signInWithWhatsAppToken).not.toHaveBeenCalled();
-    });
-
-    it('navigates on successful SMS confirmation', () => {
-      firebaseSvc.confirmCode.and.returnValue(of({} as any));
-      storageSvc.returnUrl = null;
-      component.loginMethod = 'sms';
-      component.phoneNumber = '+27815551234';
-      component.code = '123456';
-      component.confirmCode();
-      expect(routerSvc.navigate).toHaveBeenCalledWith(['../dashboard'], { relativeTo: routeSvc });
-    });
-  });
-
-  describe('confirmCode() — WhatsApp path', () => {
-    it('calls verifyWhatsAppOtp then signInWithWhatsAppToken when loginMethod is whatsapp', () => {
+  describe('confirmCode()', () => {
+    it('calls verifyWhatsAppOtp then signInWithWhatsAppToken', () => {
       orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok123' }));
       firebaseSvc.signInWithWhatsAppToken.and.returnValue(of({} as any));
       storageSvc.returnUrl = null;
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '+27815551234';
       component.code = '654321';
       component.confirmCode();
@@ -152,7 +93,6 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets hasError when verifyWhatsAppOtp fails', () => {
       orderSvc.verifyWhatsAppOtp.and.returnValue(throwError({ message: 'Bad code' }));
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '+27815551234';
       component.code = '000000';
       component.confirmCode();
@@ -163,33 +103,21 @@ describe('PhoneVerificationComponent', () => {
     it('sets hasError when signInWithWhatsAppToken fails', () => {
       orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok123' }));
       firebaseSvc.signInWithWhatsAppToken.and.returnValue(throwError({ message: 'Firebase error' }));
-      component.loginMethod = 'whatsapp';
       component.phoneNumber = '+27815551234';
       component.code = '654321';
       component.confirmCode();
       expect(component.hasError).toBeTrue();
       expect(component.errorMessage).toBeTruthy();
     });
-  });
 
-  describe('setLoginMethod()', () => {
-    it('updates loginMethod and resets state', () => {
-      component.loginMethod = 'sms';
-      component.isVerificationRequested = true;
-      component.hasError = true;
-      component.setLoginMethod('whatsapp');
-      expect(component.loginMethod).toBe('whatsapp');
-      expect(component.isVerificationRequested).toBeFalse();
-      expect(component.hasError).toBeFalse();
-    });
-
-    it('re-creates reCAPTCHA capture when switching back to sms', (done) => {
-      component.loginMethod = 'whatsapp';
-      component.setLoginMethod('sms');
-      setTimeout(() => {
-        expect(firebaseSvc.createCapture).toHaveBeenCalled();
-        done();
-      }, 10);
+    it('navigates to returnUrl when one is stored', () => {
+      orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok123' }));
+      firebaseSvc.signInWithWhatsAppToken.and.returnValue(of({} as any));
+      storageSvc.returnUrl = '/indivisuals/some-deep-route';
+      component.phoneNumber = '+27815551234';
+      component.code = '654321';
+      component.confirmCode();
+      expect(routerSvc.navigateByUrl).toHaveBeenCalledWith('/indivisuals/some-deep-route');
     });
   });
 });
