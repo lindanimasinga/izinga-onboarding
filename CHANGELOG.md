@@ -4,6 +4,34 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.8.0] — 2026-09-04
+
+**Release type:** Feature
+
+**Summary:** Replaces SMS OTP login with WhatsApp OTP as the sole login method, with a hidden triple-tap gesture to activate the legacy SMS/Firebase Phone Auth fallback for support use.
+
+### Changes
+
+- [NEW] **WhatsApp OTP login** — Users enter their phone number and receive a 6-digit code via WhatsApp. The backend mints a Firebase custom token on verify, producing a real Firebase session identical to SMS login. All authenticated endpoints (store, referral, ambassador) work correctly for WhatsApp-originated sessions.
+- [REMOVED] **SMS login removed from primary flow** — WhatsApp is now the sole login method presented to users. The SMS/Firebase Phone Auth path is retained as a hidden fallback activated by triple-tapping the login method area (for support and edge-case recovery). This is a UX-visible change, not a breaking API change.
+- [IMPROVED] **Test coverage** — 342/342 tests pass on release branch (up from 324 at 1.7.0).
+
+### Breaking changes
+
+None. The backend WhatsApp OTP endpoints (`POST /auth/whatsapp/otp/send`, `POST /auth/whatsapp/otp/verify`) are additive. Existing Firebase sessions are unaffected.
+
+### Test coverage
+
+342/342 tests pass (full unscoped suite) on `release/1.8.0`. Lindani Masinga manual end-to-end test confirmed on 2026-09-04.
+
+### Deployment
+
+- **Repo:** izinga-onboarding
+- **Trigger:** push to `main` → GitHub Actions (`deploy.yml`) → Firebase Hosting (target: `onboarding-izinga`, project: `ijudi-d19bd`)
+- **Prerequisite:** `ijudi-api` backend (WhatsApp OTP endpoints) must be live before this frontend is accessed by users.
+
+---
+
 ## [1.7.0] — 2026-08-21
 
 **Release type:** Feature / Legal Compliance

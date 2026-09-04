@@ -590,5 +590,22 @@ export class IzingaOrderManagementService {
       );
     }
 
+    // WhatsApp OTP — unauthenticated login flow (no Bearer token required).
+    sendWhatsAppOtp(mobileNumber: string): Observable<void> {
+      return this.http
+        .post<void>(`${environment.izingaUrl}/auth/whatsapp/otp/send`, { mobileNumber }, { headers: this.headers })
+        .pipe(
+          catchError((error: HttpErrorResponse) => throwError(error))
+        );
+    }
+
+    verifyWhatsAppOtp(mobileNumber: string, code: string): Observable<{ customToken: string }> {
+      return this.http
+        .post<{ customToken: string }>(`${environment.izingaUrl}/auth/whatsapp/otp/verify`, { mobileNumber, code }, { headers: this.headers })
+        .pipe(
+          catchError((error: HttpErrorResponse) => throwError(error))
+        );
+    }
+
 
 }

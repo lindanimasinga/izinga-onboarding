@@ -3,7 +3,7 @@
         <strong>Note:</strong> The phone number you provide must be registered on <span style="color:#25D366">WhatsApp</span>.<br>
         We send delivery notifications and updates using WhatsApp.
     </div>
-    <h3 class="mb-4">Registation</h3>
+    <h3 class="mb-4" (click)="onHeadingTap()">Registration</h3>
     <div class="business-details-section mb-5">
 
         <div class="mb-4">
@@ -21,12 +21,16 @@
             </div>
         </div>
 
-        <div id="recaptcha-container" [style.visibility]="isVerificationRequested? 'hidden': 'visible'"></div>
+        <div id="recaptcha-container" *ngIf="loginMethod === 'sms'"
+            [style.visibility]="isVerificationRequested ? 'hidden' : 'visible'"></div>
 
         <div *ngIf="hasError" class="error my-3">{{errorMessage}}</div>
 
         <div *ngIf="isVerificationRequested" class="mb-3">
-            <div class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
+            <div *ngIf="loginMethod === 'whatsapp'" class="mb-3">
+                We have sent you a verification code via <strong style="color:#25D366">WhatsApp</strong>. Tap the <em>Copy Code</em> button in the message, then paste the code below.
+            </div>
+            <div *ngIf="loginMethod === 'sms'" class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
             <label class="mb-2" for="cellphone">Verification Code</label>
             <div class="input-group mb-3">
                 <input type="text" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { initializeApp, FirebaseApp } from "firebase/app";
 // Add the Firebase services that you want to use
-import { getAuth, Auth, RecaptchaVerifier, ConfirmationResult, signInWithPhoneNumber } from "firebase/auth";
+import { getAuth, Auth, RecaptchaVerifier, ConfirmationResult, signInWithPhoneNumber, signInWithCustomToken, UserCredential } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 import { Analytics, getAnalytics } from "firebase/analytics";
@@ -65,6 +65,15 @@ export class FirebaseService {
 
   confirmCode(code: string) {
     return from(this.confirmResults!.confirm(code))
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        })
+      )
+  }
+
+  signInWithWhatsAppToken(token: string): Observable<UserCredential> {
+    return from(signInWithCustomToken(this.auth, token))
       .pipe(
         catchError((error: HttpErrorResponse) => {
           return throwError(error)
