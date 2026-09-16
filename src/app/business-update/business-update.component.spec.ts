@@ -494,6 +494,15 @@ describe('BusinessUpdateComponent — REQ-01 accordion unique ids', () => {
 describe('BusinessUpdateComponent — ONB-UX-02', () => {
   afterEach(() => TestBed.resetTestingModule());
 
+  // FIX-01: has-fixed-bar toggled on body
+  it('FIX-01 — ngOnInit adds has-fixed-bar to body; ngOnDestroy removes it', () => {
+    const { component, fixture } = buildComponent();
+    fixture.detectChanges();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(true);
+    component.ngOnDestroy();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(false);
+  });
+
   // REQ-01: izinga-form-container class is present in the template
   it('REQ-01 — template contains .izinga-form-container wrapper', () => {
     const { fixture } = buildComponent();
@@ -524,28 +533,93 @@ describe('BusinessUpdateComponent — ONB-UX-02', () => {
     expect(mon.open).toBe(monday);
   });
 
-  // REQ-07: toggleDayClosed clears times when day is toggled to closed
-  it('REQ-07 — toggleDayClosed clears open/close when day becomes closed', () => {
+  // FIX-02: toggleDayClosed marks day closed but does NOT mutate open/close to undefined
+  it('FIX-02 — toggleDayClosed marks day closed without clearing open/close', () => {
     const { component } = buildComponent();
+    const open = new Date('2024-01-01T09:00:00');
+    const close = new Date('2024-01-01T17:00:00');
     component.shop.businessHours = [
-      { day: 'MONDAY' as any, open: new Date(), close: new Date() }
+      { day: 'MONDAY' as any, open, close },
+      { day: 'TUESDAY' as any, open: new Date(), close: new Date() }
     ];
     component.businessHoursClosed['MONDAY'] = false;
     component.toggleDayClosed('MONDAY');
     expect(component.businessHoursClosed['MONDAY']).toBe(true);
+    // open/close must remain valid Dates — never undefined — so buildPayloadHours can safely omit them
     const mon = component.shop.businessHours!.find(h => h.day === 'MONDAY')!;
-    expect(mon.open).toBeUndefined();
-    expect(mon.close).toBeUndefined();
+    expect(mon.open).toBeTruthy();
+    expect(mon.close).toBeTruthy();
   });
 
-  // REQ-07: toggleDayClosed re-enables inputs when unchecked (closed → open)
-  it('REQ-07 — toggleDayClosed sets closed to false when toggled off', () => {
+  // FIX-02: toggleDayClosed re-enables when unchecked
+  it('FIX-02 — toggleDayClosed sets closed to false when toggled off', () => {
     const { component } = buildComponent();
     component.businessHoursClosed['TUESDAY'] = true;
     component.shop.businessHours = [
-      { day: 'TUESDAY' as any, open: undefined, close: undefined }
+      { day: 'TUESDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) }
     ];
     component.toggleDayClosed('TUESDAY');
     expect(component.businessHoursClosed['TUESDAY']).toBe(false);
+  });
+
+  // FIX-02: buildPayloadHours omits closed days from the PATCH payload
+  it('FIX-02 — buildPayloadHours excludes closed days from the update payload', () => {
+    const { component } = buildComponent();
+    const open09 = new Date(new Date().setHours(9, 0, 0, 0));
+    const close17 = new Date(new Date().setHours(17, 0, 0, 0));
+    component.shop.businessHours = [
+      { day: 'MONDAY' as any, open: open09, close: close17 },
+      { day: 'TUESDAY' as any, open: open09, close: close17 },
+      { day: 'WEDNESDAY' as any, open: open09, close: close17 }
+    ];
+    component.businessHoursClosed['TUESDAY'] = true;
+    const payload = component.buildPayloadHours();
+    expect(payload.length).toBe(2);
+    expect(payload.find(h => h.day === 'TUESDAY')).toBeUndefined();
+    // Every remaining entry must have valid (non-null) open and close
+    payload.forEach(h => {
+      expect(h.open).toBeTruthy();
+      expect(h.close).toBeTruthy();
+    });
+  });
+
+  // FIX-02: loading a profile missing a day shows it as Closed
+  it('FIX-02 — initBusinessHoursClosed marks absent days as closed and adds placeholder entry', () => {
+    const { component } = buildComponent();
+    // Only MONDAY present in backend response
+    component.shop.businessHours = [
+      { day: 'MONDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) }
+    ];
+    component.initBusinessHoursClosed();
+    expect(component.businessHoursClosed['TUESDAY']).toBe(true);
+    expect(component.businessHoursClosed['SUNDAY']).toBe(true);
+    expect(component.businessHoursClosed['MONDAY']).toBeFalsy(); // MONDAY was present — not closed
+    // Placeholder entries added so template can render disabled rows
+    expect(component.shop.businessHours!.find(h => h.day === 'TUESDAY')).toBeTruthy();
+    expect(component.shop.businessHours!.find(h => h.day === 'SUNDAY')).toBeTruthy();
+  });
+
+  // FIX-02: last-open-day guard prevents closing the only remaining open day
+  it('FIX-02 — toggleDayClosed does not close the last remaining open day', () => {
+    const { component } = buildComponent();
+    component.shop.businessHours = [
+      { day: 'MONDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'TUESDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'WEDNESDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'THURSDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'FRIDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'SATURDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) },
+      { day: 'SUNDAY' as any, open: new Date(new Date().setHours(9,0,0,0)), close: new Date(new Date().setHours(17,0,0,0)) }
+    ];
+    // Close 6 days — leaving only MONDAY open
+    ['TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'].forEach(d => {
+      component.businessHoursClosed[d] = false;
+      component.toggleDayClosed(d);
+    });
+    expect(['TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'].every(d => component.businessHoursClosed[d])).toBe(true);
+    // Attempt to close the last day — must be blocked
+    component.businessHoursClosed['MONDAY'] = false;
+    component.toggleDayClosed('MONDAY');
+    expect(component.businessHoursClosed['MONDAY']).toBe(false); // unchanged
   });
 });

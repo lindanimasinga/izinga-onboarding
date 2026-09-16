@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -12,12 +12,15 @@ import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 
+// FIX-02: canonical day order used to initialise closed state and guard last-open-day
+const ALL_DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+
 @Component({
   selector: 'app-business-update',
   templateUrl: './business-update.component.html',
   styleUrls: ['./business-update.component.css']
 })
-export class BusinessUpdateComponent {
+export class BusinessUpdateComponent implements OnDestroy {
 
   previewVehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK' = 'CAR';
   shop: StoreProfile = {
@@ -84,6 +87,8 @@ export class BusinessUpdateComponent {
   ) {}
 
   ngOnInit(): void {
+    // FIX-01: gate bottom padding only while this page's fixed bar is present
+    document.body.classList.add('has-fixed-bar');
     this.analytics.logScreenView('store_menu');
     // Get the store ID from the route parameters
     this.route.params.subscribe(params => {
@@ -92,6 +97,11 @@ export class BusinessUpdateComponent {
         this.shop = store
         this.categories = new Set(this.shop?.stockList?.sort((a, b) => this.isPromotion(a) ? -1 : 1).map(stk => stk.group))
         this.stockList = this.shop.stockList!
+        // FIX-02: initialise closed state from days absent in the backend response.
+        // Any DayOfWeek absent from businessHours is treated as closed by the backend
+        // (StoreProfile.isStoreOffline). We add a placeholder entry (disabled in UI)
+        // so the row is always rendered; buildPayloadHours() excludes closed days.
+        this.initBusinessHoursClosed();
         // Issue #11: initialise delivery categories — treat missing as empty
         this.deliveryCategories = this.shop.categories ? [...this.shop.categories] : [];
         console.log('Store details fetched successfully:', this.shop);
@@ -142,14 +152,50 @@ export class BusinessUpdateComponent {
     });
   }
 
-  // REQ-07: toggle closed state per day; clear times when closed
+  ngOnDestroy(): void {
+    // FIX-01: remove bottom-padding gate when leaving this page
+    document.body.classList.remove('has-fixed-bar');
+  }
+
+  // FIX-02: mark days absent from the backend response as closed; add placeholder entries
+  // so the template can render a disabled row for each of the 7 canonical days.
+  initBusinessHoursClosed(): void {
+    const presentDays = new Set((this.shop.businessHours ?? []).map(h => h.day as string));
+    ALL_DAYS.forEach(day => {
+      if (!presentDays.has(day)) {
+        this.businessHoursClosed[day] = true;
+        // Add a placeholder entry with default times (will be excluded from payload)
+        const d09 = new Date(); d09.setHours(9, 0, 0, 0);
+        const d17 = new Date(); d17.setHours(17, 0, 0, 0);
+        this.shop.businessHours = [...(this.shop.businessHours ?? []), { day: day as any, open: d09, close: d17 }];
+      }
+    });
+  }
+
+  // FIX-02: build the outgoing businessHours payload — omit closed days entirely.
+  // Backend contract: BusinessHours(day: DayOfWeek, open: Date, close: Date) — non-nullable.
+  // A day absent from the array is treated as closed by isStoreOffline().
+  buildPayloadHours(): BusinessHours[] {
+    return (this.shop.businessHours ?? []).filter(h => !this.businessHoursClosed[h.day as string]);
+  }
+
+  // REQ-07: toggle closed state per day.
+  // FIX-02: never mutate open/close to undefined — buildPayloadHours() excludes closed days.
+  // Last-open-day guard: prevent the user from closing all 7 days (@NotEmpty on backend).
   toggleDayClosed(day: string): void {
-    this.businessHoursClosed[day] = !this.businessHoursClosed[day];
-    if (this.businessHoursClosed[day]) {
-      const hours = this.shop.businessHours?.find(h => h.day === day);
-      if (hours) {
-        hours.open = undefined;
-        hours.close = undefined;
+    const willClose = !this.businessHoursClosed[day];
+    if (willClose) {
+      const openCount = ALL_DAYS.filter(d => !this.businessHoursClosed[d]).length;
+      if (openCount <= 1) { return; } // guard: at least one day must remain open
+    }
+    this.businessHoursClosed[day] = willClose;
+    if (!willClose) {
+      // Re-opening: ensure the entry has valid Date values (never undefined).
+      const existing = this.shop.businessHours?.find(h => h.day === day);
+      if (existing && (!existing.open || !existing.close)) {
+        const monday = this.shop.businessHours?.find(h => h.day === 'MONDAY' && !this.businessHoursClosed['MONDAY']);
+        existing.open = monday?.open ?? new Date(new Date().setHours(9, 0, 0, 0));
+        existing.close = monday?.close ?? new Date(new Date().setHours(17, 0, 0, 0));
       }
     }
   }
@@ -217,6 +263,11 @@ export class BusinessUpdateComponent {
     // Issue #11: always send the full categories array to the backend
     this.syncCategoriesToShop();
 
+    // FIX-02: omit closed days from payload — backend contract requires non-nullable open/close;
+    // absent days are treated as closed by isStoreOffline(). Restore on error so UI is consistent.
+    const originalHours = this.shop.businessHours;
+    this.shop.businessHours = this.buildPayloadHours();
+
     var call = this.selectedFile ? this.uploadImage() : of("")
       call.pipe(
         mergeMap(() => this.shop.id ? this.izingaOrderManagementService.updateStore(this.shop) : this.izingaOrderManagementService.createStore(this.shop))
@@ -233,12 +284,13 @@ export class BusinessUpdateComponent {
         
       },
       (error) => {
-        //console.error('Error fetching store details:');
+        // FIX-02: restore full hours array (including closed-day placeholders) so UI is intact
+        this.shop.businessHours = originalHours;
         this.storageService.errorMessage = "Updated store details failed"
       }
     );
   }
-  
+
     onFileSelected(event: any): void {
       this.selectedFile = event.target.files[0];  // Capture the file
     }
