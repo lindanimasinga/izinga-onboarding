@@ -289,3 +289,70 @@ describe('UserUpdateComponent — ambassador ref in registration payload', () =>
     expect(callArg.ambassadorId).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// ONB-UX-01 — REQ-19, REQ-20
+// ---------------------------------------------------------------------------
+
+describe('UserUpdateComponent — ONB-UX-01 requirements', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  beforeEach(async () => {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'registerCustomer', 'updateCustomer',
+      'getUserConfig', 'getBankConfigs', 'uploadFile'
+    ]);
+    mockStorage = { phoneNumber: undefined, userProfile: undefined, logout: jasmine.createSpy() } as any;
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(buildUser()));
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  // REQ-19: phoneNumber binding falls back to empty string when undefined
+  it('REQ-19 — phoneNumber || empty string binding does not render "undefined"', () => {
+    (component as any).phoneNumber = undefined;
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[name="mobileNumber"]');
+    expect(input).not.toBeNull();
+    expect(input?.value).not.toBe('undefined');
+    expect(input?.value).toBe('');
+  });
+
+  // REQ-20: tip card label text is corrected
+  it('REQ-20 — tip card label reads "I have an iZinga Tip Card" (grammar corrected)', () => {
+    fixture.detectChanges();
+    const html: string = fixture.nativeElement.innerHTML;
+    expect(html).toContain('I have an iZinga Tip Card');
+    expect(html).not.toContain('I have a iZinga Tip Card');
+  });
+
+  // REQ-20: tip card question and YES/NO are visually separated
+  it('REQ-20 — tip card question text is not run together with YES in a single label string', () => {
+    fixture.detectChanges();
+    const html: string = fixture.nativeElement.innerHTML;
+    // Old pattern was "I have a iZinga Tip Card | YES" in a single label; new pattern separates them
+    expect(html).not.toContain('Tip Card | YES');
+  });
+});

@@ -13,7 +13,7 @@ export const environment = {
   appId: "1:315529266651:web:b28ea03f57c4d432ed53fe",
   measurementId: "G-ZJRDF78RJX",
   userTypeConfig: {
-    defaultUserType: 'driver',
+    defaultUserType: 'shop',
     hostnameToUserType: {
       'driver.izinga.co.za': 'driver',
       'biz.izinga.co.za': 'shop',
