@@ -78,6 +78,23 @@ describe('AppComponent', () => {
     expect(link).withContext('Expected a footer anchor for /privacy-policy').toBeTruthy();
   });
 
+  // REQ-PP: footer contains the secure-storage reassurance copy
+  it('REQ-PP — footer contains "Your information will be securely stored" copy', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer');
+    expect(footer).not.toBeNull();
+    expect(footer!.textContent).toContain('Your information will be securely stored');
+  });
+
+  // REQ-PP: footer contains "Operated by Curiousoft (Pty) Ltd"
+  it('REQ-PP — footer contains Curiousoft attribution', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer');
+    expect(footer!.textContent).toContain('Curiousoft');
+  });
+
   // ── getUserTypeFromHostname ────────────────────────────────────────────────
 
   it('getUserTypeFromHostname: refer.izinga.co.za → referral-partner', () => {
