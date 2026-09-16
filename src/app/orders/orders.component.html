@@ -4,20 +4,15 @@
         <p class="text-muted">View your orders and track your progress.</p>
     </div>
 
-    <!-- Orders Section Header -->
-    <div class="mb-4">
-        <div class="h3 fw-bold mt-2" style="font-family: Catamaran, Calibri, sans-serif;">Orders</div>
-        <div class="text-muted mb-2" style="font-size: 1.1rem;">View and manage your recent orders below.</div>
-    </div>
-
     <div class="row g-3">
         <div *ngFor="let order of orders" class="col-12 col-md-6 col-xl-4 d-flex mb-1">
             <app-order-card [order]="order" class="flex-fill"></app-order-card>
         </div>
     </div>
 
+    <!-- REQ-08: material icon replaces emoji; no duplicate heading -->
     <div *ngIf="orders?.length === 0" class="text-center text-muted mt-5" style="font-size: 1.2rem;">
-        <span style="font-size: 2rem;">📭</span>
+        <i class="material-icons" style="font-size: 2rem;">shopping_bag</i>
         <div>No orders found.</div>
     </div>
 </div>
