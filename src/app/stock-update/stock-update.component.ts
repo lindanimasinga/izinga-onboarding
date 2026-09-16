@@ -15,7 +15,7 @@ import { AnalyticsService } from '../service/analytics.service';
 @Component({
   selector: 'app-stock-update',
   templateUrl: './stock-update.component.html',
-  styleUrls: ['./stock-update.component.html']
+  styleUrls: ['./stock-update.component.css']
 })
 export class StockUpdateComponent {
 
@@ -32,7 +32,7 @@ export class StockUpdateComponent {
       { day: 'SUNDAY', open: new Date(), close: new Date() }
     ] as BusinessHours[],
     rates: {
-      
+
     }
   }
 
@@ -40,6 +40,16 @@ export class StockUpdateComponent {
   selectedFile: File | null = null;
   tagEntries: Array<string> = [];
   newTag = '';
+
+  // REQ-03: save/load feedback state
+  isSaving: boolean = false;
+  saveSuccess: boolean = false;
+  saveError: string | null = null;
+  isLoading: boolean = false;
+  loadError: string | null = null;
+
+  // REQ-02: removed item notice
+  itemRemoved: boolean = false;
 
 
   constructor(
@@ -52,19 +62,29 @@ export class StockUpdateComponent {
 
   ngOnInit(): void {
     this.analytics.logScreenView('stock_item_edit');
+    this.isLoading = true;
+    this.loadError = null;
     // Get the store ID from the route parameters
       this.route.params.subscribe(params => {
         var businessId = params['businessId']
         var stockId = params['stockId']
-        this.izingaOrderManagementService.getStoreById(businessId).subscribe(store => {
-          console.log('store details loaded successfully');
-          this.storeProfile = store!
-          this.stockItem = stockId ? this.storeProfile.stockList?.filter(stk => stk.id == stockId)[0]! : this.addStockItem()!
-          this.initTagEntries();
-          console.log('stock details loaded successfully');
-        })
+        this.izingaOrderManagementService.getStoreById(businessId).subscribe(
+          store => {
+            this.isLoading = false;
+            console.log('store details loaded successfully');
+            this.storeProfile = store!
+            this.stockItem = stockId ? this.storeProfile.stockList?.filter(stk => stk.id == stockId)[0]! : this.addStockItem()!
+            this.initTagEntries();
+            console.log('stock details loaded successfully');
+          },
+          (error) => {
+            this.isLoading = false;
+            this.loadError = 'Could not load stock. Please refresh the page.';
+            console.error('Error loading store details:', error);
+          }
+        )
       })
-    
+
   }
 
   formatTime(date?: Date): string | null {
@@ -111,30 +131,45 @@ export class StockUpdateComponent {
     return stockItem
   }
 
+  // REQ-02: confirmation + inline notice before splice
   removeStockItem(stockItem: Stock) {
+    const itemName = stockItem.name || 'this item';
+    const confirmed = confirm(`Remove ${itemName}? Press Update to save the change.`);
+    if (!confirmed) {
+      return;
+    }
     console.log('Removing stock item:', stockItem);
     const index = this.storeProfile?.stockList?.indexOf(stockItem)!;
     if (index > -1) {
       this.storeProfile?.stockList?.splice(index, 1);
     }
+    this.itemRemoved = true;
   }
 
   // Register the business and stock items
   registerBusinessAndStock() {
     this.syncTagObject();
+    this.isSaving = true;
+    this.saveSuccess = false;
+    this.saveError = null;
+    this.itemRemoved = false;
 
     var call = this.selectedFile ? this.uploadImage() : of("")
     call.pipe(
       mergeMap(() => this.izingaOrderManagementService.updateStore(this.storeProfile))
     ).subscribe(
       data => {
+        this.isSaving = false;
         this.storageService.shop = data;
         this.analytics.logEvent('stock_item_saved', { storeId: this.storeProfile.id });
-        console.log('stock details fetched successfully:', data);
-        location.reload()
+        console.log('stock details saved successfully:', data);
+        this.saveSuccess = true;
+        setTimeout(() => { this.saveSuccess = false; }, 4000);
       },
       (error) => {
-        console.error('Error fetching store details:', error);
+        this.isSaving = false;
+        this.saveError = 'Could not save stock. Please try again.';
+        console.error('Error saving stock details:', error);
       }
     );
   }
@@ -152,7 +187,7 @@ export class StockUpdateComponent {
           return response["url"]
         })
       );
-    
+
   }
 
   private initTagEntries(): void {

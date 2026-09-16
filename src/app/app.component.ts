@@ -80,6 +80,11 @@ export class AppComponent {
         this.setUserType(params['type']);
         console.log("User type from query params: " + this.userType);
       }
+      // REQ-21: dev-only userType query param override (?userType=driver etc.)
+      if (!environment.production && params['userType']) {
+        this.setUserType(params['userType'] as UserType);
+        console.log("Dev userType override from query param: " + this.userType);
+      }
     });
 
     // Scroll to top on route change

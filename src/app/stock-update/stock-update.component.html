@@ -2,76 +2,116 @@
     <div class="row">
         <div class="col order-md-1">
 
+            <!-- REQ-03: loading state -->
+            <div *ngIf="isLoading" class="alert alert-info d-flex align-items-center mt-3" role="alert">
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                Loading stock&hellip;
+            </div>
+
+            <!-- REQ-03: load error -->
+            <div *ngIf="loadError" class="alert alert-danger mt-3" role="alert">
+                {{ loadError }}
+            </div>
+
+            <!-- REQ-03: save success banner -->
+            <div *ngIf="saveSuccess" class="alert alert-success mt-3" role="alert">
+                Stock saved successfully.
+            </div>
+
+            <!-- REQ-03: save error banner -->
+            <div *ngIf="saveError" class="alert alert-danger mt-3" role="alert">
+                {{ saveError }}
+            </div>
+
+            <!-- REQ-02: item removed notice -->
+            <div *ngIf="itemRemoved" class="alert alert-warning mt-3" role="alert">
+                Item removed. Press Update to save your changes, or navigate away to discard.
+            </div>
+
             <!-- Dynamic Stock Items Section -->
             <div class="stock-items-section mt-2">
-                <h4 class="mb-3">Manage Your Stock</h4>
-                <div id="accordion">
 
-                    <div class="stock-item-entry mb-4 p-3 border rounded">
-                        <h6>Stock Item: <strong>{{ stockItem.name }}</strong></h6>
-
-                        <div class="mb-3">
-                            <label for="stockName">Product Name</label>
-                            <input type="text" class="form-control" [(ngModel)]="stockItem.name" name="Product Name" placeholder="Enter product name" require>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="stockName">Group Name</label>
-                            <input type="text" class="form-control" [(ngModel)]="stockItem.group" name="Group Name" placeholder="Enter Group name" require>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description">Short Description</label>
-                            <input type="text" class="form-control" [(ngModel)]="stockItem.description" name="Product Description" placeholder="Brief product description">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="detailedDescription">Detailed Description</label>
-                            <textarea class="form-control" [(ngModel)]="stockItem.detailedDescription" rows="2" name="Product details" placeholder="Detailed description of the product"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="price">Price</label>
-                            <input type="number" class="form-control" [(ngModel)]="stockItem.storePrice" placeholder="Enter product price" name="Product price" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="quantity">Quantity</label>
-                            <input type="number" class="form-control" [(ngModel)]="stockItem.quantity" placeholder="Available quantity" name="Product quantity" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="stockImages">Upload Product Images</label>
-                            <input type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
-                        </div>
-
-                        <div class="mb-3">
-                            <label>Tags</label>
-                            <div class="row g-2 mb-2" *ngFor="let t of tagEntries; let i = index">
-                                <div class="col-5">
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        placeholder="Enter tag"
-                                        [(ngModel)]="tagEntries[i]"
-                                        name="tag{{ i }}"
-                                    >
-                                </div>
-                                <div class="col-2 d-grid">
-                                    <button type="button" class="btn btn-outline-danger" (click)="removeTagRow(i)">Remove</button>
-                                </div>
-                            </div>
-                            <div class="col-5">
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        placeholder="Enter tag"
-                                        [(ngModel)]="newTag"
-                                    >
-                            </div>
-                            <button type="button" class="btn btn-outline-primary" (click)="addTagRow()">Add tag</button>
-                        </div>
+                <!-- REQ-09: heading — New vs Edit, h2 + subtitle -->
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">{{ stockItem.name ? 'Stock Item: ' + stockItem.name : 'New Stock Item' }}</h2>
+                    <p class="text-muted">Edit the details below and press Update to save.</p>
                 </div>
+
+                <!-- NOTE-03: form hidden after a confirmed remove so only the notice + Update remain -->
+                <!-- REQ-06: form element wraps all stock fields -->
+                <form *ngIf="!itemRemoved" (ngSubmit)="registerBusinessAndStock()">
+
+                    <div class="mb-3">
+                        <!-- REQ-07: unique id/for pair -->
+                        <label for="stockName-0" class="form-label">Product Name</label>
+                        <input id="stockName-0" type="text" class="form-control" [(ngModel)]="stockItem.name" name="productName" placeholder="Enter product name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stockGroup-0" class="form-label">Group Name</label>
+                        <input id="stockGroup-0" type="text" class="form-control" [(ngModel)]="stockItem.group" name="groupName" placeholder="Enter Group name">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stockDesc-0" class="form-label">Short Description</label>
+                        <input id="stockDesc-0" type="text" class="form-control" [(ngModel)]="stockItem.description" name="productDescription" placeholder="Brief product description">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stockDetailedDesc-0" class="form-label">Detailed Description</label>
+                        <textarea id="stockDetailedDesc-0" class="form-control" [(ngModel)]="stockItem.detailedDescription" rows="2" name="productDetails" placeholder="Detailed description of the product"></textarea>
+                    </div>
+
+                    <!-- REQ-08: price field with R prefix + min/max -->
+                    <div class="mb-3">
+                        <label for="stockPrice-0" class="form-label">Price</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R</span>
+                            <input id="stockPrice-0" type="number" class="form-control" [(ngModel)]="stockItem.storePrice" placeholder="0.00" name="productPrice" min="0" max="99999" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stockQty-0" class="form-label">Quantity</label>
+                        <input id="stockQty-0" type="number" class="form-control" [(ngModel)]="stockItem.quantity" placeholder="Available quantity" name="productQuantity" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="stockImages-0" class="form-label">Upload Product Images</label>
+                        <input id="stockImages-0" type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <div class="row g-2 mb-2" *ngFor="let t of tagEntries; let i = index">
+                            <div class="col-5">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Enter tag"
+                                    [(ngModel)]="tagEntries[i]"
+                                    name="tag{{ i }}"
+                                >
+                            </div>
+                            <div class="col-2 d-grid">
+                                <!-- REQ-06: type="button" so it does not submit the form -->
+                                <button type="button" class="btn btn-outline-danger" (click)="removeTagRow(i)">Remove</button>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <input
+                                type="text"
+                                class="form-control"
+                                placeholder="Enter tag"
+                                [(ngModel)]="newTag"
+                                name="newTag"
+                            >
+                        </div>
+                        <!-- REQ-05: btn-outline-dark, REQ-06: type="button" -->
+                        <button type="button" class="btn btn-outline-dark mt-2" (click)="addTagRow()">Add tag</button>
+                    </div>
+
+                </form>
             </div>
 
             <hr class="mb-4">
@@ -79,15 +119,26 @@
                 Your business and stock information will be securely stored. For details, please review our <a
                     routerLink="/privacy-policy">Privacy Policy</a>.
             </div>
-            
+
         </div>
     </div>
 </div>
 
-<div class="row fixed-bottom">
-     <!-- Remove Stock Item Button -->
-     <button type="button" class="col btn btn-danger" (click)="removeStockItem(stockItem)">Remove Stock Item</button>
+<!-- REQ-14: padding-bottom clears fixed bar -->
+<div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
 
-    <button class="col btn btn-lg btn-block bg-dark shadow-sm" type="submit"
-                (click)="registerBusinessAndStock()">Update</button>
-</div>      
+<!-- REQ-18: no shadow-sm on fixed bar; REQ-02: remove button hidden for new items, btn-outline-danger, left-aligned on mobile -->
+<div class="row fixed-bottom" style="background: var(--bkg-card-color, #fff); border-top: 1px solid #dee2e6;">
+    <!-- REQ-02: hide Remove when item has no id (brand-new unsaved) -->
+    <button *ngIf="stockItem.id" type="button" class="col-auto btn btn-outline-danger remove-stock-btn" style="margin: 8px 0 8px 16px;" (click)="removeStockItem(stockItem)">Remove Stock Item</button>
+
+    <div class="col"></div>
+
+    <!-- REQ-03: spinner + disabled while saving -->
+    <button class="col-auto btn btn-lg btn-dark" type="submit" style="margin: 8px 16px 8px 0;"
+            [disabled]="isSaving"
+            (click)="registerBusinessAndStock()">
+        <span *ngIf="isSaving" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>
+        {{ isSaving ? 'Saving…' : 'Update' }}
+    </button>
+</div>

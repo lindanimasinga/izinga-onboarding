@@ -4,6 +4,36 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.9.0] — 2026-09-16
+
+**Release type:** Feature
+
+**Summary:** Shop-owner flow UX overhaul — stock accordion reliability, save/loading feedback, empty states, flat-design compliance, accessibility fixes, undefined phone field fix, dev environment defaults, and Delivery Rates & Pricing restricted to ADMIN-only.
+
+**Feature brief:** `docs/feature-briefs/ONB-UX-01-shop-owner-flow-fixes.md`
+
+### Changes
+
+- [FIX] **Stock accordion bug** — accordion now correctly expands/collapses; aria-expanded bound to real open state (NOTE-02).
+- [IMPROVED] **Confirmed/deferred stock removal** — after a user confirms removal of a stock item, the form is hidden and replaced with an inline notice; deferred removes are visually distinguished (NOTE-03).
+- [IMPROVED] **Save/loading feedback** — business profile and stock save actions now show a loading spinner and disable the save button during the request, replacing the previous silent reload behaviour (REQ-10 to REQ-16).
+- [NEW] **Empty states** — businesses list and stock list now render a meaningful empty state when no items exist, instead of a blank area (REQ-16, REQ-17).
+- [IMPROVED] **Flat-design compliance** — removed drop-shadows from cards and form containers; border-radius, hover-lift, token colours, and button class assignments aligned to the iZinga design system (REQ-10 to REQ-16, REQ-18).
+- [FIX] **Accessibility label fixes** — form controls and accordion triggers now carry correct aria-labels; AC-16-a empty-state test and isLoaded guard corrected (FIX-01, NOTE-04).
+- [FIX] **Undefined phone field** — phone field no longer displays "undefined" on profile load; guard added before binding (REQ-19 to REQ-21).
+- [IMPROVED] **Dev environment defaults to shop** — local dev environment now lands on the shop/business-update view by default, reducing friction during development (REQ-19 to REQ-21).
+- [CHANGED] **Delivery Rates & Pricing — ADMIN only** — the Delivery Rates & Pricing section is now visible and editable only by users with the ADMIN role. Store admins (STORE_ADMIN) no longer see or can edit platform pricing. Existing rate values are preserved on save; the section is simply hidden for non-admin sessions (REQ-22). This is a deliberate access-control tightening, not a breaking API change.
+
+### Breaking changes
+
+None. The REQ-22 change is a UI access-control restriction; the underlying API contract and stored rate values are unchanged.
+
+### Test coverage
+
+370/370 tests pass on release branch.
+
+---
+
 ## [1.8.0] — 2026-09-04
 
 **Release type:** Feature
