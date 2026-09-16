@@ -53,6 +53,8 @@ export class BusinessUpdateComponent {
   stockList: Stock[] = [];
   storeId?: string| null;
   categories = new Set<string | undefined>()
+  /** NOTE-02: per-category accordion open state; defaults to open (true). */
+  accordionOpenStates: { [key: string]: boolean } = {};
   selectedFile: File | null = null;
   userId: string | undefined
   previewWeightKg = 2;
@@ -234,6 +236,16 @@ export class BusinessUpdateComponent {
 
   shopItems(category?: string): Stock[] | undefined {
     return this.shop?.stockList?.filter(item => item.group?.toLowerCase() == category?.toLowerCase())
+  }
+
+  /** NOTE-02: returns true when the accordion panel for this category key is open (default open). */
+  isOpen(key: string): boolean {
+    return this.accordionOpenStates[key] !== false;
+  }
+
+  /** NOTE-02: toggle the open/closed state for this category key. */
+  toggleOpen(key: string): void {
+    this.accordionOpenStates[key] = !this.isOpen(key);
   }
 
   isPromotion(stock: Stock): boolean {
