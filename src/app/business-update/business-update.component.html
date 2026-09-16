@@ -65,12 +65,14 @@
         <div class="mb-3" *ngFor="let hours of shop.businessHours; let hi = index">
             <div class="d-flex align-items-center justify-content-between mb-1">
                 <strong>{{ hours.day }}</strong>
-                <!-- REQ-07: per-day Closed checkbox -->
+                <!-- REQ-07: per-day Closed checkbox — disabled when this is the last open day -->
                 <div class="form-check mb-0">
                     <input type="checkbox" class="form-check-input" [id]="'closed-' + hours.day"
                            [checked]="businessHoursClosed[hours.day!]"
+                           [disabled]="isLastOpenDay(hours.day!)"
                            (change)="toggleDayClosed(hours.day!)">
                     <label class="form-check-label" [for]="'closed-' + hours.day">Closed</label>
+                    <small *ngIf="isLastOpenDay(hours.day!)" class="form-text text-muted d-block">At least one day must be open.</small>
                 </div>
             </div>
             <div class="row d-flex align-items-center">

@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -9,13 +9,14 @@ import { from, Observable, of, throwError } from 'rxjs';
 import { StorageService } from '../service/storage-service.service';
 import { StoreSummary } from '../model/store-summary';
 import { AnalyticsService } from '../service/analytics.service';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 @Component({
   selector: 'app-businesses',
   templateUrl: './businesses.component.html',
   styleUrls: ['./businesses.component.css']
 })
-export class BusinessesComponent implements OnDestroy {
+export class BusinessesComponent implements OnInit, OnDestroy {
 
   stores: StoreSummary[] = [];
   filteredStores: StoreSummary[] = [];
@@ -31,12 +32,14 @@ export class BusinessesComponent implements OnDestroy {
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private fixedBarService: FixedBarService
   ) {}
 
   ngOnInit(): void {
-    // FIX-01: gate bottom padding only while this page's fixed bar is present
-    document.body.classList.add('has-fixed-bar');
+    // FAIL-01: use FixedBarService counter so router-transition order (ngOnInit before
+    // ngOnDestroy) does not strip the class prematurely when two fixed-bar pages overlap.
+    this.fixedBarService.acquire();
     this.analytics.logScreenView('store_list');
     // Get the store ID from the route parameters
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
@@ -75,8 +78,7 @@ export class BusinessesComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // FIX-01: remove bottom-padding gate when leaving this page
-    document.body.classList.remove('has-fixed-bar');
+    this.fixedBarService.release();
   }
 
   // Add a new stock item to the list

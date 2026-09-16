@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -11,13 +11,14 @@ import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 @Component({
   selector: 'app-stock-update',
   templateUrl: './stock-update.component.html',
   styleUrls: ['./stock-update.component.css']
 })
-export class StockUpdateComponent implements OnDestroy {
+export class StockUpdateComponent implements OnInit, OnDestroy {
 
   storeProfile: StoreProfile = {
     name: '',
@@ -59,12 +60,13 @@ export class StockUpdateComponent implements OnDestroy {
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private fixedBarService: FixedBarService
   ) {}
 
   ngOnInit(): void {
-    // FIX-01: gate bottom padding only while this page's fixed bar is present
-    document.body.classList.add('has-fixed-bar');
+    // FAIL-01: use FixedBarService counter so router-transition order does not strip the class.
+    this.fixedBarService.acquire();
     this.analytics.logScreenView('stock_item_edit');
     this.isLoading = true;
     this.loadError = null;
@@ -96,8 +98,7 @@ export class StockUpdateComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // FIX-01: remove bottom-padding gate when leaving this page
-    document.body.classList.remove('has-fixed-bar');
+    this.fixedBarService.release();
   }
 
   formatTime(date?: Date): string | null {

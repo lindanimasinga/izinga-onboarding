@@ -599,6 +599,87 @@ describe('BusinessUpdateComponent — ONB-UX-02', () => {
     expect(component.shop.businessHours!.find(h => h.day === 'SUNDAY')).toBeTruthy();
   });
 
+  // REQ-07 guard: isLastOpenDay returns true only for the single remaining open day
+  it('REQ-07 guard — isLastOpenDay returns true for the only open day and false for all others', () => {
+    const { component } = buildComponent();
+    component.shop.businessHours = [
+      { day: 'MONDAY' as any, open: new Date(), close: new Date() },
+      { day: 'TUESDAY' as any, open: new Date(), close: new Date() },
+      { day: 'WEDNESDAY' as any, open: new Date(), close: new Date() },
+      { day: 'THURSDAY' as any, open: new Date(), close: new Date() },
+      { day: 'FRIDAY' as any, open: new Date(), close: new Date() },
+      { day: 'SATURDAY' as any, open: new Date(), close: new Date() },
+      { day: 'SUNDAY' as any, open: new Date(), close: new Date() }
+    ];
+    // Close all but MONDAY
+    ['TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'].forEach(d => {
+      component.businessHoursClosed[d] = true;
+    });
+    component.businessHoursClosed['MONDAY'] = false;
+
+    expect(component.isLastOpenDay('MONDAY')).toBeTrue();
+    expect(component.isLastOpenDay('TUESDAY')).toBeFalse();
+    expect(component.isLastOpenDay('SUNDAY')).toBeFalse();
+  });
+
+  // REQ-07 guard: isLastOpenDay returns false when multiple days are open
+  it('REQ-07 guard — isLastOpenDay returns false when more than one day is open', () => {
+    const { component } = buildComponent();
+    component.businessHoursClosed['MONDAY'] = false;
+    component.businessHoursClosed['TUESDAY'] = false;
+    ['WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'].forEach(d => {
+      component.businessHoursClosed[d] = true;
+    });
+    expect(component.isLastOpenDay('MONDAY')).toBeFalse();
+    expect(component.isLastOpenDay('TUESDAY')).toBeFalse();
+  });
+
+  // FAIL-02: payload-capture — closed day absent, remaining entries have valid open/close
+  it('FAIL-02 — registerBusinessAndStock omits the Closed day and all remaining entries have truthy open/close', () => {
+    const { component, orderSvc } = buildComponent();
+    // Stub updateStore to succeed
+    orderSvc.updateStore.and.returnValue(of({ stockList: [], id: 'shop-1' } as any));
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    const open09 = new Date(new Date().setHours(9, 0, 0, 0));
+    const close17 = new Date(new Date().setHours(17, 0, 0, 0));
+    component.shop.id = 'shop-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.shop.businessHours = [
+      { day: 'MONDAY' as any, open: open09, close: close17 },
+      { day: 'TUESDAY' as any, open: open09, close: close17 },
+      { day: 'WEDNESDAY' as any, open: open09, close: close17 },
+      { day: 'THURSDAY' as any, open: open09, close: close17 },
+      { day: 'FRIDAY' as any, open: open09, close: close17 },
+      { day: 'SATURDAY' as any, open: open09, close: close17 },
+      { day: 'SUNDAY' as any, open: open09, close: close17 }
+    ];
+
+    // Mark SATURDAY as Closed via toggleDayClosed
+    component.businessHoursClosed['SATURDAY'] = false;
+    component.toggleDayClosed('SATURDAY');
+    expect(component.businessHoursClosed['SATURDAY']).toBeTrue(); // guard confirms it was accepted
+
+    component.selectedFile = null;
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    const payload: StoreProfile = orderSvc.updateStore.calls.mostRecent().args[0];
+    const hours = payload.businessHours!;
+
+    // SATURDAY must be absent
+    expect(hours.find(h => h.day === 'SATURDAY' as any))
+      .withContext('SATURDAY must be absent from payload businessHours')
+      .toBeUndefined();
+
+    // Every remaining entry must have truthy open and close
+    hours.forEach(h => {
+      expect(h.open).withContext(`${h.day} open must be truthy`).toBeTruthy();
+      expect(h.close).withContext(`${h.day} close must be truthy`).toBeTruthy();
+    });
+  });
+
   // FIX-02: last-open-day guard prevents closing the only remaining open day
   it('FIX-02 — toggleDayClosed does not close the last remaining open day', () => {
     const { component } = buildComponent();

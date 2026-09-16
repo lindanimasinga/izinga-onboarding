@@ -151,6 +151,15 @@ describe('BusinessesComponent — ONB-UX-02', () => {
     expect(alert.textContent).toContain('Loading your shops');
   });
 
+  // FAIL-01: FixedBarService.acquire() called on ngOnInit; release() on ngOnDestroy
+  it('FAIL-01 — ngOnInit acquires has-fixed-bar; ngOnDestroy releases it', () => {
+    const { component, fixture } = buildFixture();
+    fixture.detectChanges();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(true);
+    component.ngOnDestroy();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(false);
+  });
+
   // REQ-09: search-clear button uses btn-outline-dark, not btn-outline-secondary
   it('REQ-09 — search-clear button uses btn-outline-dark', () => {
     const stores$ = new Subject<any[]>();

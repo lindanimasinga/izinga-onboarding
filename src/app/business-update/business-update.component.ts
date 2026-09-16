@@ -11,6 +11,7 @@ import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 // FIX-02: canonical day order used to initialise closed state and guard last-open-day
 const ALL_DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -83,12 +84,13 @@ export class BusinessUpdateComponent implements OnDestroy {
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private fixedBarService: FixedBarService
   ) {}
 
   ngOnInit(): void {
-    // FIX-01: gate bottom padding only while this page's fixed bar is present
-    document.body.classList.add('has-fixed-bar');
+    // FAIL-01: use FixedBarService counter so router-transition order does not strip the class.
+    this.fixedBarService.acquire();
     this.analytics.logScreenView('store_menu');
     // Get the store ID from the route parameters
     this.route.params.subscribe(params => {
@@ -153,8 +155,7 @@ export class BusinessUpdateComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // FIX-01: remove bottom-padding gate when leaving this page
-    document.body.classList.remove('has-fixed-bar');
+    this.fixedBarService.release();
   }
 
   // FIX-02: mark days absent from the backend response as closed; add placeholder entries
@@ -177,6 +178,13 @@ export class BusinessUpdateComponent implements OnDestroy {
   // A day absent from the array is treated as closed by isStoreOffline().
   buildPayloadHours(): BusinessHours[] {
     return (this.shop.businessHours ?? []).filter(h => !this.businessHoursClosed[h.day as string]);
+  }
+
+  // REQ-07 guard: returns true when the given day is the only remaining open day.
+  // Used to disable the Closed checkbox so the user cannot close all 7 days.
+  isLastOpenDay(day: string): boolean {
+    const openDays = ALL_DAYS.filter(d => !this.businessHoursClosed[d]);
+    return openDays.length === 1 && openDays[0] === day;
   }
 
   // REQ-07: toggle closed state per day.

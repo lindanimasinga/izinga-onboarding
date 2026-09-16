@@ -95,6 +95,63 @@ describe('AppComponent', () => {
     expect(footer!.textContent).toContain('Curiousoft');
   });
 
+  // REQ-PP2: exactly one <footer> in the component template
+  it('REQ-PP2 — exactly one footer element is rendered by AppComponent', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footers = (fixture.nativeElement as HTMLElement).querySelectorAll('footer');
+    expect(footers.length).withContext('Expected exactly one <footer>').toBe(1);
+  });
+
+  // REQ-PP2: footer has a link to /contact (Our Offices)
+  it('REQ-PP2 — footer has a routerLink to /contact (Our Offices)', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeEl = fixture.nativeElement as HTMLElement;
+    const link =
+      nativeEl.querySelector('a[href="/contact"]') ??
+      nativeEl.querySelector('a[routerLink="/contact"]');
+    expect(link).withContext('Expected a footer anchor for /contact').toBeTruthy();
+  });
+
+  // REQ-PP2: footer has a routerLink to /indivisuals/legal-info (Terms and Conditions)
+  it('REQ-PP2 — footer has a routerLink to /indivisuals/legal-info (Terms and Conditions)', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeEl = fixture.nativeElement as HTMLElement;
+    const link =
+      nativeEl.querySelector('a[href="/indivisuals/legal-info"]') ??
+      nativeEl.querySelector('a[routerLink="/indivisuals/legal-info"]');
+    expect(link).withContext('Expected a footer anchor for /indivisuals/legal-info').toBeTruthy();
+  });
+
+  // REQ-PP2: footer has an external link to https://izinga.co.za (Izinga Mobile App)
+  it('REQ-PP2 — footer has an external link to https://izinga.co.za', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeEl = fixture.nativeElement as HTMLElement;
+    const link = nativeEl.querySelector('a[href="https://izinga.co.za"]');
+    expect(link).withContext('Expected a footer anchor for https://izinga.co.za').toBeTruthy();
+  });
+
+  // REQ-PP2: footer has an external link to https://tips.izinga.co.za (Izinga Tip Jar)
+  it('REQ-PP2 — footer has an external link to https://tips.izinga.co.za', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const nativeEl = fixture.nativeElement as HTMLElement;
+    const link = nativeEl.querySelector('a[href="https://tips.izinga.co.za"]');
+    expect(link).withContext('Expected a footer anchor for https://tips.izinga.co.za').toBeTruthy();
+  });
+
+  // REQ-PP2: footer year is dynamic (matches current year)
+  it('REQ-PP2 — footer displays the current year dynamically', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer');
+    const currentYear = new Date().getFullYear().toString();
+    expect(footer!.textContent).toContain(currentYear);
+  });
+
   // ── getUserTypeFromHostname ────────────────────────────────────────────────
 
   it('getUserTypeFromHostname: refer.izinga.co.za → referral-partner', () => {

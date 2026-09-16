@@ -40,6 +40,7 @@ interface SeoConfig {
 export class AppComponent {
   title = 'izinga business';
   userType: UserType = environment.userTypeConfig.defaultUserType as UserType;
+  readonly currentYear = new Date().getFullYear();
 
   get dashboardRoute(): string {
     if (!this.storageService.phoneNumber) return '/';
