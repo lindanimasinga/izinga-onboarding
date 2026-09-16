@@ -412,6 +412,9 @@ describe('BusinessUpdateComponent — REQ-22 ADMIN sees rates section', () => {
     const heading = Array.from(fixture.nativeElement.querySelectorAll('h4'))
       .find((el: any) => el.textContent?.includes('Delivery Rates'));
     expect(heading).not.toBeUndefined();
+    // Mirror assertion: ratePerKmBike input must be present for ADMIN
+    const rateInput: HTMLInputElement = fixture.nativeElement.querySelector('[name="ratePerKmBike"]');
+    expect(rateInput).not.toBeNull();
   });
 });
 
@@ -419,11 +422,22 @@ describe('BusinessUpdateComponent — REQ-22 STORE_ADMIN rates hidden', () => {
   afterEach(() => TestBed.resetTestingModule());
 
   it('REQ-22 — STORE_ADMIN does NOT see the Delivery Rates & Pricing section', () => {
-    // Verify the isAdmin getter returns false for a STORE_ADMIN user.
-    // Angular *ngIf binding relies on this getter, so testing it directly is the
-    // authoritative unit-test for the visibility rule without TestBed-reconfiguration overhead.
-    const { component } = buildComponent();
-    (component as any).storageService.userProfile = { id: 'user-1', role: 'STORE_ADMIN' };
+    const { component, fixture } = buildComponent();
+    // Mutate the role on the SAME userProfile object the component reads —
+    // do NOT replace the object, so the reference inside the component stays valid.
+    const storageSvc = TestBed.inject(StorageService) as any;
+    storageSvc.userProfile.role = 'STORE_ADMIN';
+    fixture.detectChanges();
+
+    // DOM assertions: rates section must be absent
+    const heading = Array.from(fixture.nativeElement.querySelectorAll('h4'))
+      .find((el: any) => el.textContent?.includes('Delivery Rates'));
+    expect(heading).toBeUndefined('Expected no "Delivery Rates" heading for STORE_ADMIN');
+
+    const rateInput: HTMLInputElement = fixture.nativeElement.querySelector('[name="ratePerKmBike"]');
+    expect(rateInput).toBeNull('Expected no ratePerKmBike input for STORE_ADMIN');
+
+    // Getter assertion kept as extra confirmation
     expect(component.isAdmin).toBe(false);
   });
 
