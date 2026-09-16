@@ -1,0 +1,11 @@
+/* REQ-14: ensure fixed bottom bar does not cover page content */
+.stock-items-section {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+/* REQ-02: mobile alignment — Remove button left-aligned, never clipped */
+@media (max-width: 575px) {
+  .remove-stock-btn {
+    margin-left: 16px !important;
+  }
+}
