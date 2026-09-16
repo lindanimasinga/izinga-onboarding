@@ -270,3 +270,86 @@ describe('DashboardComponent — terms routing', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
   }));
 });
+
+// ---------------------------------------------------------------------------
+// ONB-UX-01 — REQ-17, REQ-16 (driver toggle, empty state)
+// ---------------------------------------------------------------------------
+
+describe('DashboardComponent — ONB-UX-01 requirements', () => {
+  let component: DashboardComponent;
+  let fixture: ComponentFixture<DashboardComponent>;
+  let mockService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: Partial<StorageService>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockFirebase: jasmine.SpyObj<FirebaseService>;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  const buildUser = (role: UserProfile.RoleEnum, overrides: Partial<UserProfile> = {}): UserProfile => ({
+    id: 'user-001',
+    role,
+    mobileNumber: '+27812815555',
+    termsAccepted: true,
+    icaAccepted: true,
+    icaVersion: TermsConditionsComponent.DRIVER_ICA_VERSION,
+    ...overrides
+  } as UserProfile);
+
+  beforeEach(async () => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/dashboard' });
+    mockStorage = { phoneNumber: '+27812815555', userProfile: undefined as any };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockFirebase = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    mockFirebase.getCurrentToken.and.returnValue(null);
+    mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebase },
+        { provide: AnalyticsService, useValue: mockAnalytics }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardComponent);
+    component = fixture.componentInstance;
+  });
+
+  // REQ-17: no shadow-sm on dashboard cards
+  it('REQ-17 — no shadow-sm classes exist on dashboard cards', fakeAsync(() => {
+    mockService.getCustomerByPhoneNumber.and.returnValue(
+      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true }))
+    );
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+    const html: string = fixture.nativeElement.innerHTML;
+    expect(html).not.toContain('shadow-sm');
+  }));
+
+  // REQ-16: driver availability toggle is NOT visible for STORE_ADMIN
+  it('REQ-16 — driver availability toggle hidden for STORE_ADMIN', fakeAsync(() => {
+    mockService.getCustomerByPhoneNumber.and.returnValue(
+      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true }))
+    );
+    fixture.detectChanges();
+    tick();
+    fixture.detectChanges();
+
+    expect(component.isStoreAdmin).toBeTrue();
+    // The toggle is inside *ngIf="!isAmbassador && !isStoreAdmin"
+    // When isStoreAdmin=true, it should not render
+    const toggle = fixture.nativeElement.querySelector('.btn-group-toggle[data-toggle="buttons"]');
+    // If the element exists it must be inside the ambassador/referral grids, not the availability toggle
+    // The isStoreAdmin check means it won't be the AVAILABLE/AWAY/OFFLINE toggle
+    const html: string = fixture.nativeElement.innerHTML;
+    const hasAvailabilityToggle = html.includes('AVAILABLE') && html.includes('AWAY') && html.includes('OFFLINE');
+    expect(hasAvailabilityToggle).toBeFalse();
+  }));
+});
