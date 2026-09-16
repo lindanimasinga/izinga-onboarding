@@ -37,8 +37,9 @@
                     <p class="text-muted">Edit the details below and press Update to save.</p>
                 </div>
 
+                <!-- NOTE-03: form hidden after a confirmed remove so only the notice + Update remain -->
                 <!-- REQ-06: form element wraps all stock fields -->
-                <form (ngSubmit)="registerBusinessAndStock()">
+                <form *ngIf="!itemRemoved" (ngSubmit)="registerBusinessAndStock()">
 
                     <div class="mb-3">
                         <!-- REQ-07: unique id/for pair -->

@@ -152,6 +152,18 @@ describe('StockUpdateComponent', () => {
     expect(component.itemRemoved).toBe(true);
   });
 
+  // NOTE-03: after confirmed remove, the stock form is absent from the DOM
+  it('NOTE-03 — form is removed from DOM after a confirmed remove', () => {
+    const item = buildStockItem();
+    setup([item], 'item-1');
+    spyOn(window, 'confirm').and.returnValue(true);
+    component.storeProfile.stockList = [item];
+    component.removeStockItem(item);
+    fixture.detectChanges();
+    const form = fixture.nativeElement.querySelector('form');
+    expect(form).toBeNull();
+  });
+
   // REQ-02: Remove button hidden for brand-new items (no id)
   it('REQ-02 — Remove button is hidden when stockItem has no id', () => {
     setup();
