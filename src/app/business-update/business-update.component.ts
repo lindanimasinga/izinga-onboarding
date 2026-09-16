@@ -53,6 +53,8 @@ export class BusinessUpdateComponent {
   stockList: Stock[] = [];
   storeId?: string| null;
   categories = new Set<string | undefined>()
+  // REQ-07: per-day closed state (keyed by DayEnum string)
+  businessHoursClosed: { [day: string]: boolean } = {};
   /** NOTE-02: per-category accordion open state; defaults to open (true). */
   accordionOpenStates: { [key: string]: boolean } = {};
   selectedFile: File | null = null;
@@ -126,6 +128,30 @@ export class BusinessUpdateComponent {
     const updatedDate = new Date();
     updatedDate.setHours(+timeParts[0], +timeParts[1], 0); // Set hours, minutes, and reset seconds
     hours[type] = updatedDate;
+  }
+
+  // REQ-07: copy Monday open/close to all other days
+  applyMondayToAll(): void {
+    const monday = this.shop.businessHours?.find(h => h.day === 'MONDAY');
+    if (!monday) { return; }
+    this.shop.businessHours?.forEach(h => {
+      if (h.day !== 'MONDAY') {
+        h.open = monday.open;
+        h.close = monday.close;
+      }
+    });
+  }
+
+  // REQ-07: toggle closed state per day; clear times when closed
+  toggleDayClosed(day: string): void {
+    this.businessHoursClosed[day] = !this.businessHoursClosed[day];
+    if (this.businessHoursClosed[day]) {
+      const hours = this.shop.businessHours?.find(h => h.day === day);
+      if (hours) {
+        hours.open = undefined;
+        hours.close = undefined;
+      }
+    }
   }
 
   // Fetch store details using the store ID

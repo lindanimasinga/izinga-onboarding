@@ -1,4 +1,5 @@
-<div>
+<!-- REQ-01: max-width 960px centred on desktop; full-width on mobile -->
+<div class="izinga-form-container">
     <div class="row">
         <div class="col order-md-1">
 
@@ -79,36 +80,33 @@
                     <div class="mb-3">
                         <label for="stockImages-0" class="form-label">Upload Product Images</label>
                         <input id="stockImages-0" type="file" class="form-control" (change)="onFileSelected($event)" accept="image/*" multiple>
+                        <!-- REQ-03: thumbnail preview — hidden when no URL -->
+                        <img [src]="imagePreviewUrl" [hidden]="!imagePreviewUrl"
+                             style="max-width: 120px; max-height: 120px; object-fit: cover; margin-top: 8px;"
+                             alt="Stock item preview">
                     </div>
 
+                    <!-- REQ-05: flex-wrap tag chips with 8px gap -->
                     <div class="mb-3">
                         <label class="form-label">Tags</label>
-                        <div class="row g-2 mb-2" *ngFor="let t of tagEntries; let i = index">
-                            <div class="col-5">
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    placeholder="Enter tag"
-                                    [(ngModel)]="tagEntries[i]"
-                                    name="tag{{ i }}"
-                                >
-                            </div>
-                            <div class="col-2 d-grid">
-                                <!-- REQ-06: type="button" so it does not submit the form -->
-                                <button type="button" class="btn btn-outline-danger" (click)="removeTagRow(i)">Remove</button>
-                            </div>
-                        </div>
-                        <div class="col-5">
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;" class="mb-2">
+                            <ng-container *ngFor="let t of tagEntries; let i = index">
+                                <span class="izinga-chip d-inline-flex align-items-center">
+                                    {{ t }}
+                                    <span role="button" style="cursor: pointer; margin-left: 4px;" (click)="removeTagRow(i)" aria-label="Remove tag">&#x2715;</span>
+                                </span>
+                            </ng-container>
                             <input
                                 type="text"
                                 class="form-control"
-                                placeholder="Enter tag"
+                                style="width: 140px; flex-shrink: 0;"
+                                placeholder="New tag"
                                 [(ngModel)]="newTag"
                                 name="newTag"
                             >
+                            <!-- REQ-05: btn-outline-dark, type="button" to not submit form -->
+                            <button type="button" class="btn btn-outline-dark btn-sm" (click)="addTagRow()">Add tag</button>
                         </div>
-                        <!-- REQ-05: btn-outline-dark, REQ-06: type="button" -->
-                        <button type="button" class="btn btn-outline-dark mt-2" (click)="addTagRow()">Add tag</button>
                     </div>
 
                 </form>
@@ -117,20 +115,23 @@
 
         </div>
     </div>
-</div>
+</div><!-- end .izinga-form-container -->
 
 <!-- REQ-14: padding-bottom clears fixed bar -->
 <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
 
-<!-- REQ-18: no shadow-sm on fixed bar; REQ-02: remove button hidden for new items, btn-outline-danger, left-aligned on mobile -->
-<div class="row fixed-bottom" style="background: var(--bkg-card-color, #fff); border-top: 1px solid #dee2e6;">
+<!-- REQ-06: fixed-bottom bar — d-flex, flex:1 per button, no wrapping -->
+<div class="d-flex fixed-bottom" style="background: var(--bkg-card-color, #fff); border-top: 1px solid #dee2e6; padding: 8px;">
     <!-- REQ-02: hide Remove when item has no id (brand-new unsaved) -->
-    <button *ngIf="stockItem.id" type="button" class="col-auto btn btn-outline-danger remove-stock-btn" style="margin: 8px 0 8px 16px;" (click)="removeStockItem(stockItem)">Remove Stock Item</button>
-
-    <div class="col"></div>
+    <button *ngIf="stockItem.id" type="button"
+            class="btn btn-outline-danger"
+            style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 8px;"
+            (click)="removeStockItem(stockItem)">Remove</button>
 
     <!-- REQ-03: spinner + disabled while saving -->
-    <button class="col-auto btn btn-lg btn-dark" type="submit" style="margin: 8px 16px 8px 0;"
+    <button class="btn btn-dark"
+            type="submit"
+            style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"
             [disabled]="isSaving"
             (click)="registerBusinessAndStock()">
         <span *ngIf="isSaving" class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span>

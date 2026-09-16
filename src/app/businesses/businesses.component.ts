@@ -21,6 +21,8 @@ export class BusinessesComponent {
   filteredStores: StoreSummary[] = [];
   searchTerm: string = '';
   isLoaded: boolean = false;
+  // REQ-04: loading state to prevent footer appearing above empty grid
+  isLoadingShops: boolean = true;
 
 
   constructor(
@@ -43,10 +45,12 @@ export class BusinessesComponent {
         this.stores = stores;
         this.filteredStores = stores; // Initialize filtered stores
         this.isLoaded = true;
+        this.isLoadingShops = false;
         console.log('Stores fetched successfully');
       },
       () => {
         this.isLoaded = true;
+        this.isLoadingShops = false;
       }
     )
   }

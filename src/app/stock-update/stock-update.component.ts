@@ -40,6 +40,8 @@ export class StockUpdateComponent {
   selectedFile: File | null = null;
   tagEntries: Array<string> = [];
   newTag = '';
+  // REQ-03: image preview URL (null = hidden)
+  imagePreviewUrl: string | null = null;
 
   // REQ-03: save/load feedback state
   isSaving: boolean = false;
@@ -75,6 +77,10 @@ export class StockUpdateComponent {
             this.storeProfile = store!
             this.stockItem = stockId ? this.storeProfile.stockList?.filter(stk => stk.id == stockId)[0]! : this.addStockItem()!
             this.initTagEntries();
+            // REQ-03: show existing saved image as initial preview
+            if (this.stockItem.images && this.stockItem.images.length > 0) {
+              this.imagePreviewUrl = this.stockItem.images[0];
+            }
             console.log('stock details loaded successfully');
           },
           (error) => {
@@ -176,6 +182,16 @@ export class StockUpdateComponent {
 
   onFileSelected(event: any): void {
     this.selectedFile = event.target.files[0];  // Capture the file
+    // REQ-03: local FileReader preview — no upload until Update is pressed
+    if (this.selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.imagePreviewUrl = e.target?.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile);
+    } else {
+      this.imagePreviewUrl = null;
+    }
   }
 
   uploadImage(): Observable<string> {

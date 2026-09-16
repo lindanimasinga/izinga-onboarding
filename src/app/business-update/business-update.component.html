@@ -1,4 +1,6 @@
 
+<!-- REQ-01: max-width 960px centred on desktop; full-width on mobile -->
+<div class="izinga-form-container">
     <div class="text-center mb-4">
         <h2 class="fw-bold">{{shop.name}}</h2>
         <p class="text-muted">Manage your business information and settings.</p>
@@ -60,17 +62,38 @@
 
     <div class="mb-3">
         <label class="mb-3" for="businessHours">Business Hours</label>
-        <div class="mb-3" *ngFor="let hours of shop.businessHours">
-            <div>{{ hours.day }}</div>
+        <div class="mb-3" *ngFor="let hours of shop.businessHours; let hi = index">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <strong>{{ hours.day }}</strong>
+                <!-- REQ-07: per-day Closed checkbox -->
+                <div class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" [id]="'closed-' + hours.day"
+                           [checked]="businessHoursClosed[hours.day!]"
+                           (change)="toggleDayClosed(hours.day!)">
+                    <label class="form-check-label" [for]="'closed-' + hours.day">Closed</label>
+                </div>
+            </div>
             <div class="row d-flex align-items-center">
                 <div class="col-sm-12 col-md-6">
                     <label class="me-2">Open:</label>
-                    <input type="time" class="form-control me-2" [ngModel]="formatTime(hours.open)" (ngModelChange)="updateTime(hours, $event, 'open')" name="openTime{{hours.day}}" required>
+                    <input type="time" class="form-control me-2"
+                           [ngModel]="formatTime(hours.open)"
+                           (ngModelChange)="updateTime(hours, $event, 'open')"
+                           name="openTime{{hours.day}}"
+                           [disabled]="businessHoursClosed[hours.day!]">
                 </div>
                 <div class="col-sm-12 col-md-6">
                     <label class="me-2">Close:</label>
-                    <input type="time" class="form-control" [ngModel]="formatTime(hours.close)" (ngModelChange)="updateTime(hours, $event, 'close')" name="closeTime{{hours.day}}" required>
+                    <input type="time" class="form-control"
+                           [ngModel]="formatTime(hours.close)"
+                           (ngModelChange)="updateTime(hours, $event, 'close')"
+                           name="closeTime{{hours.day}}"
+                           [disabled]="businessHoursClosed[hours.day!]">
                 </div>
+            </div>
+            <!-- REQ-07: "Apply Monday hours to all days" appears immediately after Monday row -->
+            <div *ngIf="hours.day === 'MONDAY'" class="mt-2">
+                <button type="button" class="btn btn-outline-dark btn-sm" (click)="applyMondayToAll()">Apply Monday hours to all days</button>
             </div>
         </div>
     </div>
@@ -560,6 +583,8 @@
 <div *ngIf="!shop.id" class="alert alert-info mt-3" role="alert">
     Save your shop details first to manage your stock.
 </div>
+
+</div><!-- end .izinga-form-container -->
 
 <!-- REQ-14: padding-bottom so fixed bar does not cover page content -->
 <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
