@@ -86,6 +86,8 @@
     </div>
 </div>
 
+<!-- REQ-22: Delivery Rates & Pricing visible to ADMIN only -->
+<div *ngIf="isAdmin">
 <!-- Store Rates Section -->
 <div class="mb-5">
     <h4 class="mb-3 d-flex align-items-center">
@@ -367,6 +369,7 @@
         <small class="">Preview calculations include selected vehicle base price plus distance adjustments (rate per km beyond standard distance), volume, weight, and floor labour.</small>
     </div>
 </div>
+</div><!-- end isAdmin rates section -->
 
 <!-- Generate Missing Images Section -->
 <div class="mb-5">

@@ -234,6 +234,11 @@ export class BusinessUpdateComponent {
     }
 
 
+  /** REQ-22: true only when the logged-in user has platform ADMIN role. */
+  get isAdmin(): boolean {
+    return this.storageService.userProfile?.role === 'ADMIN';
+  }
+
   shopItems(category?: string): Stock[] | undefined {
     return this.shop?.stockList?.filter(item => item.group?.toLowerCase() == category?.toLowerCase())
   }

@@ -398,6 +398,70 @@ describe('BusinessUpdateComponent — ONB-UX-01 requirements', () => {
 
 });
 
+// REQ-22: Delivery Rates & Pricing section visibility and rates round-trip
+describe('BusinessUpdateComponent — REQ-22 admin-only rates section', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildWithRole(role: string, rates: any = { ratePerKm: 5 }) {
+    const paramsSubject = new Subject<any>();
+    const orderSvc = jasmine.createSpyObj<IzingaOrderManagementService>(
+      'IzingaOrderManagementService',
+      ['getStoreById', 'updateStore', 'createStore', 'uploadFile']
+    );
+    orderSvc.getStoreById.and.returnValue(of({ id: 'store-1', name: 'Test', stockList: [], rates } as any));
+    orderSvc.updateStore.and.returnValue(of({ id: 'store-1', name: 'Test', stockList: [], rates } as any));
+    const storageSvc = { userProfile: { id: 'user-1', role } as any, errorMessage: '', infoMessage: '' } as any;
+    const analyticsSvc = jasmine.createSpyObj<AnalyticsService>('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    TestBed.configureTestingModule({
+      declarations: [BusinessUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        DatePipe,
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: ActivatedRoute, useValue: { params: paramsSubject.asObservable() } },
+        { provide: Router, useValue: jasmine.createSpyObj('Router', ['navigate']) }
+      ]
+    });
+    const fixture = TestBed.createComponent(BusinessUpdateComponent);
+    fixture.detectChanges();
+    return { fixture, component: fixture.componentInstance as BusinessUpdateComponent, orderSvc, storageSvc };
+  }
+
+  it('REQ-22 — ADMIN sees the Delivery Rates & Pricing section', () => {
+    const { fixture } = buildWithRole('ADMIN');
+    fixture.detectChanges();
+    const heading = Array.from(fixture.nativeElement.querySelectorAll('h4'))
+      .find((el: any) => el.textContent?.includes('Delivery Rates'));
+    expect(heading).not.toBeUndefined();
+  });
+
+  it('REQ-22 — STORE_ADMIN does NOT see the Delivery Rates & Pricing section', () => {
+    const { fixture } = buildWithRole('STORE_ADMIN');
+    fixture.detectChanges();
+    const heading = Array.from(fixture.nativeElement.querySelectorAll('h4'))
+      .find((el: any) => el.textContent?.includes('Delivery Rates'));
+    expect(heading).toBeUndefined();
+  });
+
+  it('REQ-22 — shop.rates round-trips unchanged when STORE_ADMIN saves', () => {
+    const { component, orderSvc } = buildWithRole('STORE_ADMIN');
+    // Prevent window.location.reload() from killing the test runner
+    spyOn(component as any, 'reloadPage').and.stub();
+    // Manually set rates and id as if data had been loaded from backend
+    component.shop.rates = { ratePerKm: 7, ratePerKmBike: 3 } as any;
+    component.shop.id = 'store-1';
+    // STORE_ADMIN cannot see or edit the rates section; rates must not be cleared by save
+    component.registerBusinessAndStock();
+    const savedShop = orderSvc.updateStore.calls.mostRecent()?.args[0] as any;
+    expect(savedShop).toBeTruthy();
+    expect(savedShop.rates['ratePerKm']).toBe(7);
+    expect(savedShop.rates['ratePerKmBike']).toBe(3);
+  });
+});
+
 // REQ-01: accordion groups have unique DOM ids — separate describe to allow distinct beforeEach setup
 describe('BusinessUpdateComponent — REQ-01 accordion unique ids', () => {
   it('REQ-01 — accordion group wrappers have unique ids', () => {
