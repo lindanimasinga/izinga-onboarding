@@ -86,6 +86,8 @@
     </div>
 </div>
 
+<!-- REQ-22: Delivery Rates & Pricing visible to ADMIN only -->
+<div *ngIf="isAdmin">
 <!-- Store Rates Section -->
 <div class="mb-5">
     <h4 class="mb-3 d-flex align-items-center">
@@ -367,6 +369,7 @@
         <small class="">Preview calculations include selected vehicle base price plus distance adjustments (rate per km beyond standard distance), volume, weight, and floor labour.</small>
     </div>
 </div>
+</div><!-- end isAdmin rates section -->
 
 <!-- Generate Missing Images Section -->
 <div class="mb-5">
@@ -507,8 +510,9 @@
                 <div class="category">
                     <div class="my-3 p-1" role="button" data-toggle="collapse"
                          [attr.data-target]="'#panel-' + gi"
-                         [attr.aria-expanded]="true"
-                         [attr.aria-controls]="'panel-' + gi">
+                         [attr.aria-expanded]="isOpen('group-' + gi)"
+                         [attr.aria-controls]="'panel-' + gi"
+                         (click)="toggleOpen('group-' + gi)">
                         {{ cat }}
                     </div>
                 </div>
@@ -531,8 +535,9 @@
             <div class="category">
                 <div class="my-3 p-1" role="button" data-toggle="collapse"
                      data-target="#panel-uncategorised"
-                     [attr.aria-expanded]="true"
-                     aria-controls="panel-uncategorised">
+                     [attr.aria-expanded]="isOpen('group-uncategorised')"
+                     aria-controls="panel-uncategorised"
+                     (click)="toggleOpen('group-uncategorised')">
                     Uncategorised
                 </div>
             </div>
