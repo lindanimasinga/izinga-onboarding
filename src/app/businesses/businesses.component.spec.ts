@@ -93,3 +93,83 @@ describe('BusinessesComponent', () => {
     expect(h5After.textContent).toContain("You haven't added a shop yet.");
   });
 });
+
+// ---------------------------------------------------------------------------
+// ONB-UX-02 new tests — REQ-04 loading state, REQ-09 search-clear button
+// ---------------------------------------------------------------------------
+
+describe('BusinessesComponent — ONB-UX-02', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildFixture(storesSubject?: Subject<any[]>) {
+    const stores$ = storesSubject ?? new Subject<any[]>();
+    const lazySvc = {
+      getCustomerByPhoneNumber: () => of({ id: 'user-1' }),
+      getAllStoresSummary: () => stores$.asObservable()
+    } as any;
+    const storageSvc = { userProfile: undefined, phoneNumber: undefined } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+
+    TestBed.configureTestingModule({
+      declarations: [BusinessesComponent],
+      imports: [RouterTestingModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        DatePipe,
+        { provide: IzingaOrderManagementService, useValue: lazySvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc }
+      ]
+    });
+    const fixture = TestBed.createComponent(BusinessesComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    return { fixture, component, stores$ };
+  }
+
+  // REQ-04: isLoadingShops is true before API resolves
+  it('REQ-04 — isLoadingShops is true before shops API resolves', () => {
+    const { component } = buildFixture();
+    // stores$ has not emitted; isLoadingShops should still be true
+    expect(component.isLoadingShops).toBe(true);
+  });
+
+  // REQ-04: isLoadingShops is false after API resolves
+  it('REQ-04 — isLoadingShops is false after shops API resolves', () => {
+    const stores$ = new Subject<any[]>();
+    const { component, fixture } = buildFixture(stores$);
+    stores$.next([]);
+    fixture.detectChanges();
+    expect(component.isLoadingShops).toBe(false);
+  });
+
+  // REQ-04: loading placeholder visible while in flight
+  it('REQ-04 — loading spinner alert is present while API is in flight', () => {
+    const { fixture } = buildFixture();
+    const alert = fixture.nativeElement.querySelector('.alert.alert-info');
+    expect(alert).not.toBeNull();
+    expect(alert.textContent).toContain('Loading your shops');
+  });
+
+  // FAIL-01: FixedBarService.acquire() called on ngOnInit; release() on ngOnDestroy
+  it('FAIL-01 — ngOnInit acquires has-fixed-bar; ngOnDestroy releases it', () => {
+    const { component, fixture } = buildFixture();
+    fixture.detectChanges();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(true);
+    component.ngOnDestroy();
+    expect(document.body.classList.contains('has-fixed-bar')).toBe(false);
+  });
+
+  // REQ-09: search-clear button uses btn-outline-dark, not btn-outline-secondary
+  it('REQ-09 — search-clear button uses btn-outline-dark', () => {
+    const stores$ = new Subject<any[]>();
+    const { fixture, component } = buildFixture(stores$);
+    stores$.next([]);
+    component.searchTerm = 'test';
+    fixture.detectChanges();
+    const clearBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button.btn-outline-dark');
+    expect(clearBtn).not.toBeNull();
+    const secondaryBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button.btn-outline-secondary');
+    expect(secondaryBtn).toBeNull();
+  });
+});

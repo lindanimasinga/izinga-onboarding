@@ -3,18 +3,21 @@
     <div id="logo-image" class="logo-image" height="80px" #logoImage></div>
   </a>
 </div>
-<div class="container">
+<div class="container app-content-wrap">
   <router-outlet></router-outlet>
   <div *ngIf="errorMessage" class="error my-5 py-3 d-flex justify-content-center">{{errorMessage}}</div>
   <div *ngIf="infoMessage" class="info-message my-5 py-3 d-flex justify-content-center">{{infoMessage}}</div>
 </div>
-<footer class="mt-4 pt-3 pb-4 border-top">
+<footer class="mt-4 pt-3 pb-4 border-top izinga-footer">
   <div class="container">
-    <ul class="nav justify-content-center">
-      <li class="nav-item">
-        <a class="nav-link text-muted small" routerLink="/privacy-policy">Privacy Policy</a>
-      </li>
-    </ul>
-    <p class="text-center text-muted small mb-0">Operated by Curiousoft (Pty) Ltd</p>
+    <p class="text-center text-muted small mb-2">Your information will be securely stored.
+      <a class="text-muted" routerLink="/privacy-policy">Privacy Policy</a>
+    </p>
+    <div class="d-flex flex-wrap justify-content-center gap-3 mb-2">
+      <a class="text-muted small text-decoration-none" routerLink="/indivisuals/legal-info">Terms and Conditions</a>
+      <a class="text-muted small text-decoration-none" href="https://izinga.co.za" target="_blank" rel="noopener">Izinga Mobile App</a>
+      <a class="text-muted small text-decoration-none" href="https://tips.izinga.co.za" target="_blank" rel="noopener">Izinga Tip Jar</a>
+    </div>
+    <p class="text-center text-muted small mb-0">Operated by Curiousoft (Pty) Ltd &middot; &copy; {{ currentYear }} iZinga</p>
   </div>
 </footer>
