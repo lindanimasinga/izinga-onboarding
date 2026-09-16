@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -21,7 +21,7 @@ const ALL_DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATUR
   templateUrl: './business-update.component.html',
   styleUrls: ['./business-update.component.css']
 })
-export class BusinessUpdateComponent implements OnDestroy {
+export class BusinessUpdateComponent implements OnInit, OnDestroy {
 
   previewVehicleType: 'BIKE' | 'CAR' | 'BAKKIE' | 'TRUCK' = 'CAR';
   shop: StoreProfile = {

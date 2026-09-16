@@ -103,15 +103,26 @@ describe('AppComponent', () => {
     expect(footers.length).withContext('Expected exactly one <footer>').toBe(1);
   });
 
-  // REQ-PP2: footer has a link to /contact (Our Offices)
-  it('REQ-PP2 — footer has a routerLink to /contact (Our Offices)', () => {
+  // REQ-PP2: footer contains exactly four links (Privacy Policy, Terms, Mobile App, Tip Jar)
+  it('REQ-PP2 — footer contains exactly four links', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
-    const nativeEl = fixture.nativeElement as HTMLElement;
-    const link =
-      nativeEl.querySelector('a[href="/contact"]') ??
-      nativeEl.querySelector('a[routerLink="/contact"]');
-    expect(link).withContext('Expected a footer anchor for /contact').toBeTruthy();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer')!;
+    const links = footer.querySelectorAll('a');
+    expect(links.length).withContext('Expected exactly four footer links').toBe(4);
+  });
+
+  // REQ-PP2: every routerLink in footer matches a registered route
+  it('REQ-PP2 — every footer routerLink targets a registered route', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+    const footer = (fixture.nativeElement as HTMLElement).querySelector('footer')!;
+    const registeredPaths = ['/privacy-policy', '/indivisuals/legal-info'];
+    const routerLinks = Array.from(footer.querySelectorAll('a[routerLink]'))
+      .map(a => a.getAttribute('routerLink') as string);
+    routerLinks.forEach(rl => {
+      expect(registeredPaths).withContext(`routerLink "${rl}" is not a registered route`).toContain(rl);
+    });
   });
 
   // REQ-PP2: footer has a routerLink to /indivisuals/legal-info (Terms and Conditions)
