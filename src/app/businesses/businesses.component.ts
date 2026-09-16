@@ -20,6 +20,7 @@ export class BusinessesComponent {
   stores: StoreSummary[] = [];
   filteredStores: StoreSummary[] = [];
   searchTerm: string = '';
+  isLoaded: boolean = false;
 
 
   constructor(
@@ -37,11 +38,17 @@ export class BusinessesComponent {
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     .pipe( 
         mergeMap(user => this.izingaOrderManagementService.getAllStoresSummary(user.id!))
-    ).subscribe(stores => {
-      this.stores = stores;
-      this.filteredStores = stores; // Initialize filtered stores
-      console.log('Stores fetched successfully');
-    })
+    ).subscribe(
+      stores => {
+        this.stores = stores;
+        this.filteredStores = stores; // Initialize filtered stores
+        this.isLoaded = true;
+        console.log('Stores fetched successfully');
+      },
+      () => {
+        this.isLoaded = true;
+      }
+    )
   }
 
   // Filter businesses based on search term
