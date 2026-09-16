@@ -1,4 +1,8 @@
 <div class="">
+    <!-- REQ-16: onboarding progress banner for new shop users -->
+    <div *ngIf="isStoreAdmin() && !userExist" class="alert alert-info" role="alert">
+        Step 1 of 3 &mdash; Complete your profile to start receiving orders.
+    </div>
     <div class="text-center mb-4">
         <h2 class="fw-bold">My Profile</h2>
         <p class="text-muted">Manage your profile information and settings.</p>
@@ -142,12 +146,14 @@
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
+                        <!-- REQ-20: grammar fix + visual separation of question and value -->
+                        <div class="mb-1 fw-bold">I have an iZinga Tip Card</div>
                         <div class="btn-group btn-group-toggle" data-toggle="buttons">
                             <label class="btn btn-secondary active" [ngClass]="{'bg-selected': hasTipCard, 'bg-not-selected': !hasTipCard}">
-                                <input type="radio" name="hasTipCard" value="true" (click)="hasTipCard = true"> I have a iZinga Tip Card | YES
+                                <input type="radio" name="hasTipCard" value="true" (click)="hasTipCard = true"> YES
                             </label>
                             <label class="btn btn-secondary" [ngClass]="{'bg-selected': !hasTipCard, 'bg-not-selected': hasTipCard}">
-                                <input type="radio" name="hasTipCard" value="false" (click)="hasTipCard = false"> No
+                                <input type="radio" name="hasTipCard" value="false" (click)="hasTipCard = false"> NO
                             </label>
                         </div>
                     </div>
@@ -161,7 +167,7 @@
                 <div class="mb-3">
                     <label for="cellphone">Cellphone Number</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" [value]="phoneNumber" name="mobileNumber"
+                        <input type="text" class="form-control" [value]="phoneNumber || ''" name="mobileNumber"
                             placeholder="cellphone" disabled>
                         <div class="invalid-feedback" style="width: 100%;">
                             Your cellphone number is required.
