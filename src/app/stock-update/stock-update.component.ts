@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -17,7 +17,7 @@ import { AnalyticsService } from '../service/analytics.service';
   templateUrl: './stock-update.component.html',
   styleUrls: ['./stock-update.component.css']
 })
-export class StockUpdateComponent {
+export class StockUpdateComponent implements OnDestroy {
 
   storeProfile: StoreProfile = {
     name: '',
@@ -63,6 +63,8 @@ export class StockUpdateComponent {
   ) {}
 
   ngOnInit(): void {
+    // FIX-01: gate bottom padding only while this page's fixed bar is present
+    document.body.classList.add('has-fixed-bar');
     this.analytics.logScreenView('stock_item_edit');
     this.isLoading = true;
     this.loadError = null;
@@ -91,6 +93,11 @@ export class StockUpdateComponent {
         )
       })
 
+  }
+
+  ngOnDestroy(): void {
+    // FIX-01: remove bottom-padding gate when leaving this page
+    document.body.classList.remove('has-fixed-bar');
   }
 
   formatTime(date?: Date): string | null {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -15,7 +15,7 @@ import { AnalyticsService } from '../service/analytics.service';
   templateUrl: './businesses.component.html',
   styleUrls: ['./businesses.component.css']
 })
-export class BusinessesComponent {
+export class BusinessesComponent implements OnDestroy {
 
   stores: StoreSummary[] = [];
   filteredStores: StoreSummary[] = [];
@@ -35,6 +35,8 @@ export class BusinessesComponent {
   ) {}
 
   ngOnInit(): void {
+    // FIX-01: gate bottom padding only while this page's fixed bar is present
+    document.body.classList.add('has-fixed-bar');
     this.analytics.logScreenView('store_list');
     // Get the store ID from the route parameters
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
@@ -70,6 +72,11 @@ export class BusinessesComponent {
   clearSearch(): void {
     this.searchTerm = '';
     this.filteredStores = this.stores;
+  }
+
+  ngOnDestroy(): void {
+    // FIX-01: remove bottom-padding gate when leaving this page
+    document.body.classList.remove('has-fixed-bar');
   }
 
   // Add a new stock item to the list

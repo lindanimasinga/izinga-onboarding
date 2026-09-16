@@ -41,9 +41,9 @@
             <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
         </div>
 
-        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
+        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
             (click)="verify()">Get Code</button>
-        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
+        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
             (click)="confirmCode()">Confirm</button>
     </div>
 
