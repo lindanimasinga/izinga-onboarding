@@ -1,10 +1,14 @@
-<div class="d-flex justify-content-center">
-    <div class="card shop-item-container my-1 shadow-sm">
+<!-- REQ-02: izinga-out-of-stock mutes card when quantity === 0 -->
+<div class="d-flex justify-content-center" [ngClass]="{'izinga-out-of-stock': shopItem.quantity === 0}">
+    <div class="card shop-item-container my-1">
         <a routerLink="./stock/{{shopItem.id}}">
             <div class="shop-item" [ngClass]="{'gradient-pink': !themeDark, 'gradient-blue': themeDark}">
                 <img class="" [src]="stockImage">
                 <div class="d-flex justify-content-between details mx-2">
-                    <span class="d-flex align-items-end item-name">{{shopItem.name}} </span>
+                    <span class="d-flex align-items-end item-name">
+                        {{shopItem.name}}
+                        <span *ngIf="shopItem.quantity === 0" class="izinga-chip ml-1">Out of stock</span>
+                    </span>
                     <span class="d-flex align-items-end price">{{shopItem.price | currency:'R'}}</span>
                 </div>
             </div>

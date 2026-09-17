@@ -276,3 +276,35 @@ describe('PhoneVerificationComponent', () => {
     }));
   });
 });
+
+// REQ-PP: no inline privacy notice in phone-verification template (ONB-UX-02)
+// Note: TestBed already configured in the outer describe — we use a separate describe
+// with its own TestBed configuration to keep test isolation.
+describe('PhoneVerificationComponent — REQ-PP (ONB-UX-02)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('REQ-PP — no .privacy-notice element rendered in phone-verification template', () => {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', ['sendWhatsAppOtp', 'verifyWhatsAppOtp']);
+    const firebaseSvc = jasmine.createSpyObj('FirebaseService', ['requestVerification', 'confirmCode', 'signInWithWhatsAppToken', 'createCapture']);
+    const storageSvc = { phoneNumber: '', returnUrl: null } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    const routerSvc = { navigate: jasmine.createSpy(), navigateByUrl: jasmine.createSpy() } as any;
+
+    TestBed.configureTestingModule({
+      declarations: [PhoneVerificationComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: FirebaseService, useValue: firebaseSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: ActivatedRoute, useValue: {} }
+      ]
+    });
+    const f = TestBed.createComponent(PhoneVerificationComponent);
+    f.detectChanges();
+    const privacyNotice = f.nativeElement.querySelector('.privacy-notice');
+    expect(privacyNotice).toBeNull();
+  });
+});

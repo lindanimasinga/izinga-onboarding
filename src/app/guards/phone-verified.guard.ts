@@ -51,3 +51,25 @@ export class PhoneVerifiedGuard implements CanActivate {
     );
   }
 }
+
+/*
+ * REQ-13 (ONB-UX-02) — P2-9 deep-link investigation.
+ *
+ * Route: /business/info/:businessId/stock (and /:stockId variant)
+ * Guard applied: NONE — these routes have no canActivate guard in app-routing.module.ts.
+ * PhoneVerifiedGuard only guards /business/info/:id and /business/info (without stockId).
+ *
+ * Reproduction attempt 1 (2026-09-16, code review session):
+ *   Cannot reproduce — authenticated session (phoneNumber present) navigates to stock screen
+ *   without redirect.  Guard code path: phoneNumber present → return true immediately.
+ *
+ * Reproduction attempt 2 (2026-09-16, routing module inspection):
+ *   The only redirect to root observed in similar apps comes from the WelcomeBusinessComponent
+ *   or StorageService losing its phoneNumber on a hard refresh (sessionStorage cleared).
+ *   A hard refresh (F5 / address-bar reload) without persisted phoneNumber causes the
+ *   Angular router to load the component, which then calls getStoreById() — any API 401
+ *   error may trigger an unhandled redirect in the global interceptor (not in this guard).
+ *   Inspect the HTTP interceptor chain if this recurs.
+ *
+ * Conclusion: NOT REPRODUCIBLE via guard logic.  No speculative guard change made per AC-13-c.
+ */

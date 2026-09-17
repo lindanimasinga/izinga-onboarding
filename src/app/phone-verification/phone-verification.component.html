@@ -41,17 +41,10 @@
             <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
         </div>
 
-        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
+        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
             (click)="verify()">Get Code</button>
-        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 shadow-sm sendCode" type="submit"
+        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
             (click)="confirmCode()">Confirm</button>
     </div>
 
-    <div>
-        <hr class="mb-4">
-        <div class="privacy-notice">
-            Your information will be securely stored. For details, please view our
-            <a routerLink="/privacy-policy">Privacy Policy</a>.
-        </div>
-    </div>
 </div>

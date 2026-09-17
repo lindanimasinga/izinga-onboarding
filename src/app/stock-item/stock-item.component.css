@@ -25,8 +25,9 @@
     font-size: 16px;
 }
 
+/* REQ-10: end-stop uses var(--bkg-card-color) so dark-theme doesn't show white stripe */
 .gradient-pink::after {
-    background: linear-gradient(180deg, rgba(173,131,119,0) 0%, rgba(255,255,255,1) 59%);
+    background: linear-gradient(180deg, rgba(173,131,119,0) 0%, var(--bkg-card-color) 59%);
     width: 150px;
     height: 50px;
     content: "";
@@ -35,7 +36,7 @@
 }
 
 .gradient-blue::after {
-    background: linear-gradient(180deg, rgba(173,131,119,0) 0%, rgba(255,255,255,1) 59%);
+    background: linear-gradient(180deg, rgba(173,131,119,0) 0%, var(--bkg-card-color) 59%);
     width: 150px;
     height: 50px;
     content: "";

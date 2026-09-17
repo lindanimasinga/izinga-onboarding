@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
@@ -11,13 +11,14 @@ import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 @Component({
   selector: 'app-stock-update',
   templateUrl: './stock-update.component.html',
   styleUrls: ['./stock-update.component.css']
 })
-export class StockUpdateComponent {
+export class StockUpdateComponent implements OnInit, OnDestroy {
 
   storeProfile: StoreProfile = {
     name: '',
@@ -40,6 +41,8 @@ export class StockUpdateComponent {
   selectedFile: File | null = null;
   tagEntries: Array<string> = [];
   newTag = '';
+  // REQ-03: image preview URL (null = hidden)
+  imagePreviewUrl: string | null = null;
 
   // REQ-03: save/load feedback state
   isSaving: boolean = false;
@@ -57,10 +60,13 @@ export class StockUpdateComponent {
     private izingaOrderManagementService: IzingaOrderManagementService,
     private datePipe: DatePipe,
     private storageService: StorageService,
-    private analytics: AnalyticsService
+    private analytics: AnalyticsService,
+    private fixedBarService: FixedBarService
   ) {}
 
   ngOnInit(): void {
+    // FAIL-01: use FixedBarService counter so router-transition order does not strip the class.
+    this.fixedBarService.acquire();
     this.analytics.logScreenView('stock_item_edit');
     this.isLoading = true;
     this.loadError = null;
@@ -75,6 +81,10 @@ export class StockUpdateComponent {
             this.storeProfile = store!
             this.stockItem = stockId ? this.storeProfile.stockList?.filter(stk => stk.id == stockId)[0]! : this.addStockItem()!
             this.initTagEntries();
+            // REQ-03: show existing saved image as initial preview
+            if (this.stockItem.images && this.stockItem.images.length > 0) {
+              this.imagePreviewUrl = this.stockItem.images[0];
+            }
             console.log('stock details loaded successfully');
           },
           (error) => {
@@ -85,6 +95,10 @@ export class StockUpdateComponent {
         )
       })
 
+  }
+
+  ngOnDestroy(): void {
+    this.fixedBarService.release();
   }
 
   formatTime(date?: Date): string | null {
@@ -176,6 +190,16 @@ export class StockUpdateComponent {
 
   onFileSelected(event: any): void {
     this.selectedFile = event.target.files[0];  // Capture the file
+    // REQ-03: local FileReader preview — no upload until Update is pressed
+    if (this.selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.imagePreviewUrl = e.target?.result as string;
+      };
+      reader.readAsDataURL(this.selectedFile);
+    } else {
+      this.imagePreviewUrl = null;
+    }
   }
 
   uploadImage(): Observable<string> {

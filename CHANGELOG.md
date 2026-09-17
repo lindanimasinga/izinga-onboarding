@@ -4,6 +4,38 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.10.0] — 2026-09-17
+
+**Release type:** Feature
+
+**Summary:** Shop-owner flow polish — single privacy-notice footer on every page, 960 px centred desktop forms, out-of-stock chips, image preview before save, shops-list loading state, per-day "Closed" toggle with "Apply Monday to all" shortcut, tag-row and mobile button-bar layout fixes, orders icon and heading cleanup, search-clear button variant, dark-theme card stripe fix, payout label correction, global transition cleanup, and dead "Our Offices" footer link removed.
+
+**Feature brief:** `docs/feature-briefs/ONB-UX-02-shop-owner-flow-polish.md`
+
+### Changes
+
+- [NEW] **Privacy-notice footer** — a single persistent footer carrying the privacy notice now appears on every page; the duplicate static footer was removed; the footer is no longer hidden under fixed action bars (REQ-PP, REQ-PP2).
+- [NEW] **960 px centred forms on desktop** — all major forms are constrained to 960 px and centred on viewports wider than that breakpoint (REQ-01).
+- [NEW] **Out-of-stock chip on stock cards** — stock cards now display a prominent "Out of stock" chip when quantity is zero (REQ-02).
+- [NEW] **Image preview before save** — store profile and stock image selections now show an inline preview before the upload is committed (REQ-03).
+- [NEW] **Shops-list loading state** — a skeleton/spinner loading state is shown while the shops list fetches, replacing a blank area (REQ-04).
+- [NEW] **Per-day "Closed" toggle** — business hours now support marking individual days as closed; closed days are omitted from the payload per backend contract; at least one day must remain open (REQ-05, REQ-06).
+- [NEW] **"Apply Monday to all" shortcut** — a single action copies Monday's open/close hours to all other days (REQ-07).
+- [IMPROVED] **Tag-row and mobile button-bar layout** — tag rows and the mobile action button bar are correctly spaced and no longer overlap content (REQ-09, REQ-13).
+- [IMPROVED] **Orders icon and heading cleanup** — orders screen icon and heading are visually consistent with the rest of the app (REQ-10, REQ-11).
+- [IMPROVED] **Search-clear button variant** — the search field clear button now uses the correct button variant for visual consistency (REQ-12).
+- [FIX] **Dark-theme card stripe** — card accent stripe colour is now correctly resolved in dark theme (FIX-02).
+- [FIX] **Payout label correction** — payout amount label wording corrected (REQ-14).
+- [IMPROVED] **Global transition cleanup** — redundant and conflicting CSS transitions removed; page feel is smoother (FIX-01 / NOTE-03).
+- [REMOVED] **Dead "Our Offices" footer link** — the non-functional "Our Offices" link has been removed from the footer (FIX-01).
+- [INVESTIGATED] **Deep-link redirect (P2-9)** — investigated and not reproducible in the current build; no code change made.
+
+### Breaking changes
+
+None.
+
+---
+
 ## [1.9.0] — 2026-09-16
 
 **Release type:** Feature
