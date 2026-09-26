@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:rules": "JAVA_HOME=/opt/homebrew/Cellar/openjdk/23.0.2/libexec/openjdk.jdk/Contents/Home firebase emulators:exec --only firestore --project demo-izinga-test 'node_modules/.bin/jest test/firestore-rules.test.js --testEnvironment node --forceExit --verbose'"
+    "test:rules": "firebase emulators:exec --only firestore --project demo-izinga-test 'node_modules/.bin/jest test/firestore-rules.test.js --testEnvironment node --forceExit --verbose'"
   },
   "private": true,
   "dependencies": {
