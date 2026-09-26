@@ -48,11 +48,33 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
     private izingaOrderService: IzingaOrderManagementService
   ) { }
 
+  /**
+   * True when the logged-in user is a plain ADMIN (full access to all sessions).
+   * False for STORE_ADMIN (scoped to their own store via server-side storeId filter).
+   * WA-LINES-02 REQ-18 / AC-13.
+   */
+  isAdmin: boolean = false;
+
+  /**
+   * The storeId scoped to this STORE_ADMIN session.
+   * Populated from storageService.userProfile.storeId (WA-LINES-02 REQ-18).
+   * Null means the backend has not yet provisioned a storeId for this user.
+   */
+  storeAdminStoreId: string | null = null;
+
   ngOnInit(): void {
     // Get current customer ID from user profile
     this.currentCustomerId = this.storageService.userProfile?.id || 'default_customer';
+
+    // Determine role and storeId for query routing (WA-LINES-02 REQ-18)
+    const role = this.storageService.userProfile?.role;
+    this.isAdmin = role === 'ADMIN';
+    if (role === 'STORE_ADMIN') {
+      this.storeAdminStoreId = this.storageService.userProfile?.storeId ?? null;
+    }
+
     this.loadChatSessions();
-    
+
     // Check for sessionId query parameter to auto-select session
     this.route.queryParams.subscribe(params => {
       const sessionId = params['sessionId'];
@@ -75,40 +97,60 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
 
   loadChatSessions(): void {
     this.loading = true;
-    
-    // Subscribe to real-time chat sessions for this customer
-    const sessionsSub = this.chatService.subscribeToCustomerChatSessions()
-      .subscribe(
-        sessions => {
-          const previousSessionCount = this.allSessions.length;
-          this.allSessions = sessions;
-          this.allSessions.sort((a, b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
-          this.activeSessions = this.allSessions;
-          
-          // Log session updates
-          if (previousSessionCount > 0 && sessions.length > previousSessionCount) {
-            console.log('🆕 New chat session(s) received:', sessions.length - previousSessionCount);
-          } else if (sessions.length > 0 && previousSessionCount === 0) {
-            console.log(`💬 Loaded ${sessions.length} chat sessions`);
-          }
-          
-          this.filterSessions(this.activeFilter);
-          this.loading = false;
-          
-          // Check for auto-selection after sessions are loaded
-          this.route.queryParams.subscribe(params => {
-            const sessionId = params['sessionId'];
-            if (sessionId) {
-              this.selectSessionById(sessionId);
-            }
-          });
-        },
-        error => {
-          console.error('Error loading chat sessions:', error);
-          this.loading = false;
+
+    // WA-LINES-02 REQ-18 / AC-13:
+    // ADMIN — fetch all sessions (no storeId filter).
+    // STORE_ADMIN — server-side Firestore where("storeId", "==", storeAdminStoreId) filter.
+    //               A client-side filter does NOT meet the requirement — the query clause
+    //               must be sent to Firestore before any data is returned.
+    // If role is STORE_ADMIN but storeAdminStoreId is null, the backend has not yet
+    // provisioned storeId for this user — show an error and load nothing rather than
+    // silently showing all sessions (safer default).
+
+    const role = this.storageService.userProfile?.role;
+
+    if (role === 'STORE_ADMIN' && !this.storeAdminStoreId) {
+      console.error('STORE_ADMIN user has no storeId claim — cannot load chat sessions safely.');
+      this.showError('Your store account is not fully configured. Please contact support.');
+      this.loading = false;
+      return;
+    }
+
+    const sessionsObservable = (role === 'STORE_ADMIN' && this.storeAdminStoreId)
+      ? this.chatService.subscribeToChatSessions(this.storeAdminStoreId)
+      : this.chatService.subscribeToCustomerChatSessions();
+
+    const sessionsSub = sessionsObservable.subscribe(
+      sessions => {
+        const previousSessionCount = this.allSessions.length;
+        this.allSessions = sessions;
+        this.allSessions.sort((a, b) => new Date(b.lastMessageTimestamp).getTime() - new Date(a.lastMessageTimestamp).getTime());
+        this.activeSessions = this.allSessions;
+
+        // Log session updates
+        if (previousSessionCount > 0 && sessions.length > previousSessionCount) {
+          console.log('New chat session(s) received:', sessions.length - previousSessionCount);
+        } else if (sessions.length > 0 && previousSessionCount === 0) {
+          console.log(`Loaded ${sessions.length} chat sessions`);
         }
-      );
-    
+
+        this.filterSessions(this.activeFilter);
+        this.loading = false;
+
+        // Check for auto-selection after sessions are loaded
+        this.route.queryParams.subscribe(params => {
+          const sessionId = params['sessionId'];
+          if (sessionId) {
+            this.selectSessionById(sessionId);
+          }
+        });
+      },
+      error => {
+        console.error('Error loading chat sessions:', error);
+        this.loading = false;
+      }
+    );
+
     this.subscriptions.push(sessionsSub);
   }
 
