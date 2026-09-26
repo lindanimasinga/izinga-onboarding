@@ -50,6 +50,12 @@ export interface UserProfile {
     tag : { [key: string]: any };
     ambassadorId?: string | null;
     referralCode?: string | null;
+    /**
+     * For STORE_ADMIN users: the ID of the store this user administers.
+     * Added in WA-LINES-02 — null for all other roles.
+     * Used as the server-side Firestore query filter in the chat sessions UI (REQ-18).
+     */
+    storeId?: string | null;
 }
 export namespace UserProfile {
     export type RoleEnum = 'CUSTOMER' | 'STORE_ADMIN' | 'STORE' | 'MESSENGER' | 'MESSENGER_ADMIN' | 'ADMIN' | 'AMBASSADOR' | 'REFERRAL_PARTNER';
