@@ -21,6 +21,7 @@ describe('StorageService', () => {
 
   afterEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('should be created', () => {

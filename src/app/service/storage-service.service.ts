@@ -70,6 +70,14 @@ export class StorageService {
    * Clear the stale phoneNumber flag so PhoneVerifiedGuard requires a fresh OTP, remember where
    * the user was so PhoneVerificationComponent's existing onVerified() sends them straight back,
    * and redirect to the same /{role}/verify route the guard itself uses.
+   *
+   * NOTE: the role-prefix computation below is intentionally kept in sync with
+   * PhoneVerifiedGuard.canActivate() (phone-verified.guard.ts) by hand — the guard returns a
+   * UrlTree built from its own ActivatedRouteSnapshot rather than a reusable string, so there's
+   * no shared helper. If the guard's default role or route shape ever changes, update both.
+   * Unlike the guard, this path skips queryParamsHandling: 'preserve' — the session-expired case
+   * is a mid-session interruption, not a deep-link arrival, and returnUrl already captures the
+   * full originating path including any query params.
    */
   sessionExpired(currentUrl: string): void {
     this.phoneNumber = undefined;
