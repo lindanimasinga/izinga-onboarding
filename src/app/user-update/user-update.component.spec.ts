@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { RouterTestingModule } from '@angular/router/testing';
 import { FormsModule } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 
 import { UserUpdateComponent } from './user-update.component';
@@ -375,14 +375,23 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
     { name: 'STORE_OWNER', label: 'Store Owner', userRole: UserProfile.RoleEnum.STOREADMIN, mandatoryFields: [], optionalFields: [], hiddenFields: [] }
   ] as any;
 
-  async function setup(userType: string | undefined, configs: any = allConfigs): Promise<void> {
+  interface SetupOptions {
+    /** Simulate the route the page is mounted on (RouterTestingModule defaults to '/'). */
+    routerUrl?: string;
+    /** The profile getCustomerByPhoneNumber returns (default: a new user with no description). */
+    user?: UserProfile;
+    /** A selection already made before the config loads. */
+    presetRoleDescription?: string;
+  }
+
+  async function setup(userType: string | undefined, configs: any = allConfigs, opts: SetupOptions = {}): Promise<void> {
     mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
       'getCustomerByPhoneNumber', 'registerCustomer', 'updateCustomer', 'getUserConfig', 'getBankConfigs', 'uploadFile'
     ]);
     mockStorage = { phoneNumber: '+27820000000', userProfile: undefined, userType, ambassadorRef: null, logout: jasmine.createSpy('logout') };
     // Profile with no description loads synchronously AFTER the config in ngOnInit — this is
     // exactly the ordering that must not wipe the shop flow's auto-selected account type.
-    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(buildUser()));
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(opts.user ?? buildUser()));
     mockOrderService.getUserConfig.and.returnValue(of(configs));
     mockOrderService.getBankConfigs.and.returnValue(of([]));
 
@@ -398,12 +407,41 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
       ]
     }).compileComponents();
 
+    if (opts.routerUrl) {
+      spyOnProperty(TestBed.inject(Router), 'url', 'get').and.returnValue(opts.routerUrl);
+    }
     fixture = TestBed.createComponent(UserUpdateComponent);
     component = fixture.componentInstance;
+    if (opts.presetRoleDescription) {
+      component.roleDescription = opts.presetRoleDescription;
+    }
     fixture.detectChanges();
   }
 
   afterEach(() => TestBed.resetTestingModule());
+
+  it('shop flow is detected from the /business route alone, without the shop userType', async () => {
+    await setup('driver', allConfigs, { routerUrl: '/business/user' });
+
+    expect(component.isShopFlow()).toBeTrue();
+    expect(component.userConfig.map(c => c.label)).toEqual(['Store Owner']);
+    expect(component.roleDescription).toBe('Store Owner');
+  });
+
+  it('shop flow: a selection already made is not overwritten by the pre-selection', async () => {
+    await setup('shop', allConfigs, { presetRoleDescription: 'Barber' });
+
+    expect(component.userConfig.map(c => c.label)).toEqual(['Store Owner']);
+    expect(component.roleDescription).toBe('Barber');
+  });
+
+  it('shop flow: a returning store owner keeps the description from their profile', async () => {
+    await setup('shop', allConfigs, { user: buildUser({ id: 'owner-1', role: UserProfile.RoleEnum.STOREADMIN, description: 'Store Owner' }) });
+
+    expect(component.roleDescription).toBe('Store Owner');
+    expect(component.isStoreAdmin()).toBeTrue();
+    expect(fixture.nativeElement.innerHTML).not.toContain('Step 1 of 3');
+  });
 
   it('shop flow: offers only the store-admin account type and pre-selects it', async () => {
     await setup('shop');
