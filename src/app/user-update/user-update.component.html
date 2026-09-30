@@ -1,6 +1,7 @@
 <div class="">
     <!-- REQ-16: onboarding progress banner for new shop users -->
-    <div *ngIf="isStoreAdmin() && !userExist" class="alert alert-info" role="alert">
+    <!-- isShopFlow(), not isStoreAdmin(): a brand-new signup's role is still the MESSENGER default here. -->
+    <div *ngIf="isShopFlow() && !userExist" class="alert alert-info" role="alert">
         Step 1 of 3 &mdash; Complete your profile to start receiving orders.
     </div>
     <div class="text-center mb-4">
@@ -81,10 +82,10 @@
                 </div>
 
                                 <div class="mb-3">
-                    <label for="roleDescription">Tell us about your hustle?</label>
+                    <label for="roleDescription">{{ isShopFlow() ? 'Account type' : 'Tell us about your hustle?' }}</label>
                     <div class="input-group mb-3">
-                        <select class="form-control" [(ngModel)]="roleDescription" name="roleDescription" required>
-                            <option value="" disabled selected>Select your service type</option>
+                        <select id="roleDescription" class="form-control" [(ngModel)]="roleDescription" name="roleDescription" required>
+                            <option value="" disabled selected>{{ isShopFlow() ? 'Select your account type' : 'Select your service type' }}</option>
                             <option *ngFor="let config of userConfig" [value]="config.label">{{ config.label }}</option>
                         </select>
                     </div>
