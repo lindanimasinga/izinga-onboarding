@@ -44,6 +44,7 @@ import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.componen
 import { LegalInfoComponent } from './legal-info/legal-info.component';
 import { UserManagementComponent } from './user-management/user-management.component';
 import { TeamMessengersComponent } from './team-messengers/team-messengers.component';
+import { StoreMessengersComponent } from './store-messengers/store-messengers.component';
 import { TeamDeliveriesComponent } from './team-deliveries/team-deliveries.component';
 import { UserConfigManagementComponent } from './user-config-management/user-config-management.component';
 import { AdminOrdersComponent } from './admin-orders/admin-orders.component';
@@ -92,6 +93,7 @@ import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.
     LegalInfoComponent,
     UserManagementComponent,
     TeamMessengersComponent,
+    StoreMessengersComponent,
     TeamDeliveriesComponent,
     UserConfigManagementComponent,
     AdminOrdersComponent,

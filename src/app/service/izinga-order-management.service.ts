@@ -113,6 +113,14 @@ export class IzingaOrderManagementService {
         }));
     }
 
+    getAllMessengersForStore(storeId: string): Observable<Array<UserProfile>> {
+      return this.http.get<Array<UserProfile>>(`${environment.izingaUrl}/user?role=MESSENGER&storeId=${storeId}&includePendingUsers=true`, {headers: this.headers})
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          return throwError(error)
+        }));
+    }
+
     /**
      * Fetch approved messengers within a bounding box centred on (latitude, longitude).
      * range is in degrees — 1° ≈ 111 km, so 0.1 ≈ 11 km.
