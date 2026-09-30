@@ -140,6 +140,15 @@ describe('StoreMessengersComponent', () => {
       expect(orderSvc.registerCustomer).not.toHaveBeenCalled();
       expect(component.createErrorMessage).toContain('Store not found');
     });
+
+    it('shows an error message when registerCustomer fails', () => {
+      orderSvc.registerCustomer.and.returnValue(throwError(() => new Error('network error')));
+
+      component.createNewDriver();
+
+      expect(component.createErrorMessage).toBe('Failed to create driver profile. Please try again.');
+      expect(component.isCreatingDriver).toBeFalse();
+    });
   });
 
   describe('removeDriver()', () => {
@@ -157,6 +166,23 @@ describe('StoreMessengersComponent', () => {
       expect(orderSvc.deleteUser).toHaveBeenCalledWith('driver-1');
       expect(component.drivers.length).toBe(0);
       expect(component.successMessage).toContain('removed');
+    });
+
+    it('sets an error message and does not call deleteUser when the driver has no id', () => {
+      component.removeDriver({ name: 'No Id Driver' } as any);
+
+      expect(orderSvc.deleteUser).not.toHaveBeenCalled();
+      expect(component.errorMessage).toBe('Unable to remove driver: ID not found.');
+    });
+
+    it('sets an error message and keeps the driver in the list when deleteUser fails', () => {
+      orderSvc.deleteUser.and.returnValue(throwError(() => ({ error: { message: 'server error' } })));
+
+      component.removeDriver({ id: 'driver-1', name: 'Driver One' } as any);
+
+      expect(component.errorMessage).toBe('Failed to remove driver: server error');
+      expect(component.isRemovingDriver['driver-1']).toBeFalse();
+      expect(component.drivers.length).toBe(1);
     });
   });
 });
