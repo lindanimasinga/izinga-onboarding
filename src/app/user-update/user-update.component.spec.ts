@@ -357,3 +357,96 @@ describe('UserUpdateComponent — ONB-UX-01 requirements', () => {
     expect(html).not.toContain('Tip Card | YES');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Shop flow (biz.izinga.co.za / /business routes): only the store-admin account
+// type may be offered. The backend UserConfig list is shared with the driver,
+// ambassador and referral-partner flows.
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — shop flow user-type filter', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+
+  const allConfigs = [
+    { name: 'BIKE_DELIVERY_DRIVER', label: 'Bike Delivery Driver', userRole: UserProfile.RoleEnum.MESSENGER, mandatoryFields: [], optionalFields: [], hiddenFields: [] },
+    { name: 'izinga_ambassador', label: 'iZinga Ambassador', userRole: UserProfile.RoleEnum.AMBASSADOR, mandatoryFields: [], optionalFields: [], hiddenFields: [] },
+    { name: 'STORE_OWNER', label: 'Store Owner', userRole: UserProfile.RoleEnum.STOREADMIN, mandatoryFields: [], optionalFields: [], hiddenFields: [] }
+  ] as any;
+
+  async function setup(userType: string | undefined, configs: any = allConfigs): Promise<void> {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'registerCustomer', 'updateCustomer', 'getUserConfig', 'getBankConfigs', 'uploadFile'
+    ]);
+    mockStorage = { phoneNumber: '+27820000000', userProfile: undefined, userType, ambassadorRef: null, logout: jasmine.createSpy('logout') };
+    // Profile with no description loads synchronously AFTER the config in ngOnInit — this is
+    // exactly the ordering that must not wipe the shop flow's auto-selected account type.
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(buildUser()));
+    mockOrderService.getUserConfig.and.returnValue(of(configs));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']) },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('shop flow: offers only the store-admin account type and pre-selects it', async () => {
+    await setup('shop');
+
+    expect(component.isShopFlow()).toBeTrue();
+    expect(component.userConfig.map(c => c.label)).toEqual(['Store Owner']);
+    expect(component.roleDescription).toBe('Store Owner');
+
+    fixture.detectChanges();
+    const options = fixture.nativeElement.querySelectorAll('select[name="roleDescription"] option');
+    // placeholder + the single store-owner option
+    expect(options.length).toBe(2);
+    expect(fixture.nativeElement.innerHTML).toContain('Account type');
+    expect(fixture.nativeElement.innerHTML).not.toContain('Tell us about your hustle');
+    // REQ-16 banner: previously gated on isStoreAdmin(), which is never true for a new signup.
+    expect(fixture.nativeElement.innerHTML).toContain('Step 1 of 3');
+  });
+
+  it('shop flow: a new signup is registered with role STORE_ADMIN, not CUSTOMER or MESSENGER', async () => {
+    await setup('shop');
+    component.profilePictureUploaded = true;
+    mockOrderService.registerCustomer.and.returnValue(of(buildUser({ id: 'new-store-admin', role: UserProfile.RoleEnum.STOREADMIN })));
+
+    component.createCustomer();
+
+    const posted = mockOrderService.registerCustomer.calls.mostRecent().args[0];
+    expect(posted.role).toBe(UserProfile.RoleEnum.STOREADMIN);
+    expect(posted.description).toBe('Store Owner');
+  });
+
+  it('shop flow: no store-admin config available → empty list, nothing pre-selected, no crash', async () => {
+    await setup('shop', allConfigs.filter((c: any) => c.userRole !== UserProfile.RoleEnum.STOREADMIN));
+
+    expect(component.userConfig.length).toBe(0);
+    expect(component.roleDescription).toBeUndefined();
+  });
+
+  it('non-shop flow: all account types are offered and nothing is pre-selected', async () => {
+    await setup('driver');
+
+    expect(component.isShopFlow()).toBeFalse();
+    expect(component.userConfig.length).toBe(3);
+    expect(component.roleDescription).toBeUndefined();
+    expect(fixture.nativeElement.innerHTML).toContain('Tell us about your hustle');
+  });
+});

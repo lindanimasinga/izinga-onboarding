@@ -91,7 +91,9 @@ export class UserUpdateComponent {
       if(!user.tag) user.tag = {}; // Initialize tags if not present
       this.userProfile = user
       this.storageService.userProfile = user
-      this.roleDescription = user.description
+      // Don't let a profile with no description wipe a selection already made (e.g. the
+      // shop flow's auto-selected store-owner type when the config loaded first).
+      this.roleDescription = user.description || this.roleDescription
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
@@ -306,12 +308,28 @@ export class UserUpdateComponent {
     }
   }
 
+  /**
+   * biz.izinga.co.za and the /business routes are the shop-owner signup. The backend's
+   * UserConfig list is shared with the driver/ambassador/referral flows, so without this
+   * a shop owner is offered "Bike Delivery Driver", "iZinga Ambassador", etc. and can end
+   * up registered with the wrong role.
+   */
+  isShopFlow(): boolean {
+    return this.router.url.startsWith('/business') || this.storageService.userType === 'shop';
+  }
+
   loadUserConfig() {
     console.log("Loading user config...")
     this.izingaOrderManager.getUserConfig()
     .subscribe(config => {
       console.log("Loaded user config: ", config)
-      this.userConfig = config;
+      this.userConfig = this.isShopFlow()
+        ? config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN)
+        : config;
+      // One store-owner type: pick it for the user instead of making them choose from a list of one.
+      if (this.isShopFlow() && this.userConfig.length === 1 && !this._roleDescription) {
+        this.roleDescription = this.userConfig[0].label;
+      }
       // Refresh cached fields now that config is available — roleDescription may
       // already be set from a returning user profile loaded in ngOnInit.
       this._refreshConfigFields();
