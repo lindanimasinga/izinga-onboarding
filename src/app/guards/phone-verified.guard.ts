@@ -38,6 +38,10 @@ export class PhoneVerifiedGuard implements CanActivate {
 
     // Determine the role prefix from the URL so we redirect to the correct
     // verify route (/indivisuals/verify or /business/verify).
+    // NOTE: StorageService.sessionExpired() (storage-service.service.ts) independently
+    // computes this same role-prefix / redirect shape for the "Firebase session lost
+    // mid-use" case — there's no shared helper since this guard returns a UrlTree rather
+    // than a reusable string. If you change this logic, update that method too.
     const urlSegments = state.url.split('/').filter(s => s.length > 0);
     const rolePrefix = urlSegments[0] ?? 'indivisuals';
 
