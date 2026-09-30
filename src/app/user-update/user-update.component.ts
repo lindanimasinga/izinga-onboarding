@@ -517,7 +517,7 @@ export class UserUpdateComponent {
 
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check your permissions or use file upload instead.');
+      alert('Unable to access camera. Please check your camera permissions and try again.');
     }
   }
 
