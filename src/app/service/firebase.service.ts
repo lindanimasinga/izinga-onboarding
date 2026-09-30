@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 import { initializeApp, FirebaseApp } from "firebase/app";
 // Add the Firebase services that you want to use
 import { getAuth, Auth, RecaptchaVerifier, ConfirmationResult, signInWithPhoneNumber, signInWithCustomToken, UserCredential } from "firebase/auth";
@@ -9,6 +10,7 @@ import { Analytics, getAnalytics } from "firebase/analytics";
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { StorageService } from './storage-service.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,7 +25,7 @@ export class FirebaseService {
   storage = localStorage;
   messaging: Messaging | null = null;
 
-  constructor() {
+  constructor(private router: Router, private storageService: StorageService) {
     var firebaseConfig = {
       apiKey: environment.firebase_apiKey,
       authDomain: environment.authDomain,
@@ -111,10 +113,20 @@ export class FirebaseService {
     return this.storage.getItem("fcmToken")
   }
 
+  /**
+   * The app's own "logged in" flag (StorageService.phoneNumber) and Firebase's own Auth
+   * session are only ever synchronized once, at login — nothing re-checks them against each
+   * other afterward. If the Firebase session is lost independently (cleared, revoked, never
+   * restored on this device) while the app-level flag survives, PhoneVerifiedGuard still lets
+   * the user through, and they only find out here, on the first call that actually needs a
+   * token. Route them back to verify instead of leaving the caller with a silent/console-only
+   * failure and no way to recover other than a manual reload.
+   */
   getFirebaseIdToken(): Observable<string> {
     const user = this.auth.currentUser;
     if (!user) {
-      return throwError(() => new Error('No authenticated Firebase user'));
+      this.storageService.sessionExpired(this.router.url);
+      return throwError(() => new Error('Your session has expired. Please verify your phone number again.'));
     }
     return from(user.getIdToken());
   }

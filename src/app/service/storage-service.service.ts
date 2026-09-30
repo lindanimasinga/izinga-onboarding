@@ -60,6 +60,25 @@ export class StorageService {
     this.router.navigate([''])
   }
 
+  /**
+   * The Firebase Auth session (IndexedDB-backed, its own refresh-token lifecycle) can be lost
+   * independently of this app's own "logged in" flag (phoneNumber, plain localStorage, no expiry,
+   * only ever set once at login). When that happens, PhoneVerifiedGuard still lets the user
+   * through — they can browse and fill in forms — but any call requiring a Firebase ID token
+   * (store save, stock save, etc.) fails with "No authenticated Firebase user".
+   *
+   * Clear the stale phoneNumber flag so PhoneVerifiedGuard requires a fresh OTP, remember where
+   * the user was so PhoneVerificationComponent's existing onVerified() sends them straight back,
+   * and redirect to the same /{role}/verify route the guard itself uses.
+   */
+  sessionExpired(currentUrl: string): void {
+    this.phoneNumber = undefined;
+    this.returnUrl = currentUrl;
+    const urlSegments = currentUrl.split('/').filter(s => s.length > 0);
+    const rolePrefix = urlSegments[0] ?? 'indivisuals';
+    this.router.navigate([`/${rolePrefix}/verify`]);
+  }
+
   get phoneNumber():  string | undefined {
     if (this._phoneNumber == null) {
       const raw = this.cache.getItem(this.PHONE_KEY);
