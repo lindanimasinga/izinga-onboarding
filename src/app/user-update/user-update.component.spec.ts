@@ -149,8 +149,7 @@ describe('UserUpdateComponent — profile picture validation', () => {
     mockOrderService.uploadFile.and.returnValue(of({ url: 'https://cdn.example.com/new.jpg' }));
 
     const fakeFile = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-    const fakeEvent = { target: { files: [fakeFile] } };
-    component.onProfilePictureSelect(fakeEvent);
+    (component as any).uploadProfilePicture(fakeFile);
     tick(2000);
 
     expect(component.profilePictureUploaded).toBeTrue();
@@ -165,8 +164,7 @@ describe('UserUpdateComponent — profile picture validation', () => {
     spyOn(window, 'alert');
 
     const fakeFile = new File(['data'], 'photo.jpg', { type: 'image/jpeg' });
-    const fakeEvent = { target: { files: [fakeFile] } };
-    component.onProfilePictureSelect(fakeEvent);
+    (component as any).uploadProfilePicture(fakeFile);
     tick();
 
     expect(component.profilePictureUploaded).toBeFalse();
@@ -176,8 +174,7 @@ describe('UserUpdateComponent — profile picture validation', () => {
   it('TC-09: rejects file larger than 5MB without calling uploadFile', () => {
     spyOn(window, 'alert');
     const largeFile = new File([new ArrayBuffer(6 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' });
-    const fakeEvent = { target: { files: [largeFile] } };
-    component.onProfilePictureSelect(fakeEvent);
+    (component as any).uploadProfilePicture(largeFile);
 
     expect(mockOrderService.uploadFile).not.toHaveBeenCalled();
   });
@@ -186,10 +183,14 @@ describe('UserUpdateComponent — profile picture validation', () => {
   it('TC-10: rejects non-image files without calling uploadFile', () => {
     spyOn(window, 'alert');
     const pdfFile = new File(['data'], 'document.pdf', { type: 'application/pdf' });
-    const fakeEvent = { target: { files: [pdfFile] } };
-    component.onProfilePictureSelect(fakeEvent);
+    (component as any).uploadProfilePicture(pdfFile);
 
     expect(mockOrderService.uploadFile).not.toHaveBeenCalled();
+  });
+
+  // ONB-CAM-01: profile picture must come from a live camera capture, not an arbitrary file upload
+  it('ONB-CAM-01: no file-picker path exists for the profile picture — onProfilePictureSelect was removed', () => {
+    expect((component as any).onProfilePictureSelect).toBeUndefined();
   });
 });
 

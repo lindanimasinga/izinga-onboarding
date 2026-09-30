@@ -458,17 +458,6 @@ export class UserUpdateComponent {
   }
 
   /**
-   * Handle profile picture upload from file
-   * @param event File input change event
-   */
-  onProfilePictureSelect(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.uploadProfilePicture(file);
-    }
-  }
-
-  /**
    * Take a selfie using device camera
    */
   async takeSelfie(): Promise<void> {

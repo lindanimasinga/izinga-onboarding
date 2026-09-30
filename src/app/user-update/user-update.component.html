@@ -49,19 +49,11 @@
                             <div class="flex-grow-1">
                                 <div class="btn-group btn-group-toggle mb-2" data-toggle="buttons">
                                     <label class="btn btn-secondary active bg-not-selected" (click)="takeSelfie()">
-                                        
                                         Take Selfie
                                     </label>
-                                    <label class="btn btn-secondary active bg-not-selected" for="profilePictureInput">
-                                        Upload Photo
-                                    </label>
                                 </div>
-                                <input type="file" 
-                                    id="profilePictureInput"
-                                    class="d-none"
-                                    accept="image/*"
-                                    (change)="onProfilePictureSelect($event)">
-                                        
+                                <small class="text-muted d-block mb-2">A live photo is required — uploading an existing picture isn't allowed.</small>
+
                                 <!-- Upload Progress -->
                                 <div *ngIf="uploadProgress['profilePicture']" class="mt-2">
                                     <div class="progress" style="height: 8px;">
@@ -83,7 +75,7 @@
                             </div>
                         </div>
                         <div *ngIf="showProfilePictureError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
-                            <small><strong>Profile picture is required before you can submit your application.</strong> Please take a selfie or upload a photo.</small>
+                            <small><strong>A profile picture is required before you can submit your application.</strong> Please take a selfie.</small>
                         </div>
                     </div>
                 </div>
