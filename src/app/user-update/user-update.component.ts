@@ -458,17 +458,6 @@ export class UserUpdateComponent {
   }
 
   /**
-   * Handle profile picture upload from file
-   * @param event File input change event
-   */
-  onProfilePictureSelect(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.uploadProfilePicture(file);
-    }
-  }
-
-  /**
    * Take a selfie using device camera
    */
   async takeSelfie(): Promise<void> {
@@ -528,7 +517,7 @@ export class UserUpdateComponent {
 
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check your permissions or use file upload instead.');
+      alert('Unable to access camera. Please check your camera permissions and try again.');
     }
   }
 
