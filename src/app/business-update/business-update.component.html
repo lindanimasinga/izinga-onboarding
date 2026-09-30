@@ -518,6 +518,16 @@
     </div>
 </div>
 
+<!-- ================================================================
+     Store Drivers — link/register MESSENGER-role drivers to this store
+     ================================================================ -->
+<div class="mb-5 mt-4" *ngIf="shop.id">
+    <app-store-messengers [storeId]="shop.id"></app-store-messengers>
+</div>
+<div *ngIf="!shop.id" class="alert alert-info mt-3" role="alert">
+    Save your business profile first to add drivers to this store.
+</div>
+
 <!-- REQ-01: accordion — unique group ids, all expanded by default, Uncategorised after named groups -->
 <div *ngIf="shop.id">
     <h4 class="mb-3 d-flex align-items-center">Manage Your Stock</h4>

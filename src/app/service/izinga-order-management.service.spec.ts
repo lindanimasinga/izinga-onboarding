@@ -194,4 +194,50 @@ describe('IzingaOrderManagementService', () => {
       });
     });
   });
+
+  describe('getAllMessengersForStore()', () => {
+    it('sends GET /user with role=MESSENGER, storeId and includePendingUsers=true', () => {
+      const storeId = 'store-abc-123';
+
+      service.getAllMessengersForStore(storeId).subscribe();
+
+      const req = httpTestingController.expectOne(
+        `${environment.izingaUrl}/user?role=MESSENGER&storeId=${storeId}&includePendingUsers=true`
+      );
+      expect(req.request.method).toBe('GET');
+      req.flush([]);
+    });
+
+    it('returns the array of messengers from the response', () => {
+      const storeId = 'store-abc-123';
+      const messengers = [{ id: 'driver-1', name: 'Driver One' }] as any;
+      let result: any;
+
+      service.getAllMessengersForStore(storeId).subscribe(res => result = res);
+
+      const req = httpTestingController.expectOne(
+        `${environment.izingaUrl}/user?role=MESSENGER&storeId=${storeId}&includePendingUsers=true`
+      );
+      req.flush(messengers);
+
+      expect(result).toEqual(messengers);
+    });
+
+    it('propagates HTTP errors to the caller', (done) => {
+      const storeId = 'store-abc-123';
+
+      service.getAllMessengersForStore(storeId).subscribe({
+        next: () => fail('expected an error, not a success response'),
+        error: (err) => {
+          expect(err.status).toBe(500);
+          done();
+        }
+      });
+
+      const req = httpTestingController.expectOne(
+        `${environment.izingaUrl}/user?role=MESSENGER&storeId=${storeId}&includePendingUsers=true`
+      );
+      req.flush('server error', { status: 500, statusText: 'Internal Server Error' });
+    });
+  });
 });
