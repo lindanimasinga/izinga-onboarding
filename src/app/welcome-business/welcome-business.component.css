@@ -5,7 +5,7 @@
    rules that Bootstrap cannot cover are written here.
    ---------------------------------------------------------------- */
 
-/* ---- Card background colours for the benefit tile grid ---- */
+/* ---- Solid-fill classes kept for the "How to Get Started" strip ---- */
 .card.bg-growth  { background: var(--btn-pill-color); }
 .card.bg-store   { background: var(--btn-red-color); }
 .card.bg-secure  { background: var(--btn-pill-color); }
@@ -16,8 +16,52 @@
    "Daily Payouts", "Withdrawal Limits") have been removed because they
    were inaccurate or redundant with the tier preview section above. */
 
-.card {
+/* "How to Get Started" tiles use solid fills — keep white text for contrast */
+.card.bg-growth,
+.card.bg-store,
+.card.bg-secure,
+.card.bg-tip {
     color: white;
+}
+
+/* ---- Benefit tile grid — "Why Join iZinga?"
+   Dark-theme card language consistent with .tier-card.
+   Uses var(--bkg-card-color) surface + accent left-border per tile,
+   mirroring the .tier-card--free / .tier-card--gold border pattern.
+   Overrides the solid-fill .bg-* classes for this section only. ---- */
+.benefit-card {
+  background: var(--bkg-card-color);
+  color: var(--text-color);
+}
+
+.benefit-card--teal {
+  border-left: 3px solid var(--tier-teal);
+}
+
+.benefit-card--gold {
+  border-left: 3px solid var(--tier-gold);
+}
+
+/* Accent circle behind each emoji — gives each tile colour personality
+   without a solid fill.  color-mix() mirrors the .tier-card--featured
+   tinted-background pattern already used in this file. */
+.benefit-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 28px;
+  margin: 0 auto 8px;
+}
+
+.benefit-icon-chip--teal {
+  background: color-mix(in srgb, var(--tier-teal) 15%, transparent);
+}
+
+.benefit-icon-chip--gold {
+  background: color-mix(in srgb, var(--tier-gold) 15%, transparent);
 }
 
 /* Illustration image height */
