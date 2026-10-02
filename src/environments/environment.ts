@@ -111,10 +111,10 @@ export const environment = {
       },
       individual: {
         title: 'Receive Payments Seamlessly | Join iZinga as an Individual',
-        description: 'Sign up as an individual on iZinga to receive payments or tips directly to your bank account or cellphone.',
-        keywords: 'iZinga, Individual Signup, Receive Payments, Receive Tips, Easy Withdrawals, eWallet, Bank Payouts',
+        description: 'Sign up as an individual on iZinga to receive payments or tips directly to your bank account or mobile wallet.',
+        keywords: 'iZinga, Individual Signup, Receive Payments, Receive Tips, Bank Payouts, Mobile Wallet',
         ogTitle: 'Receive Payments Seamlessly | Join iZinga as an Individual',
-        ogDescription: 'Join iZinga as an individual and receive payments or tips with easy withdrawals.',
+        ogDescription: 'Join iZinga as an individual and receive payments or tips directly to your bank account or mobile wallet.',
         twitterTitle: 'Receive Payments Seamlessly | Join iZinga as an Individual',
         twitterDescription: 'Sign up as an individual on iZinga and receive payments or tips directly.'
       },
