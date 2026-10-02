@@ -5,9 +5,10 @@ import { TierSelectionComponent } from './tier-selection.component';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 
-const mockStorageService: Partial<StorageService> = {
+const mockStorageService: Partial<StorageService> & { sawPricing: boolean } = {
   selectedTier: null as any,
-  userProfile: undefined
+  userProfile: undefined,
+  sawPricing: false   // ONB-02: set by landing page when tier preview entered viewport
 };
 
 const mockAnalyticsService: Partial<AnalyticsService> = {
@@ -23,6 +24,9 @@ describe('TierSelectionComponent', () => {
   beforeEach(async () => {
     // Reset shared mock state before each test
     mockStorageService.selectedTier = null as any;
+    mockStorageService.sawPricing = false;
+    (mockAnalyticsService.logScreenView as jasmine.Spy).calls.reset();
+    (mockAnalyticsService.logEvent as jasmine.Spy).calls.reset();
 
     await TestBed.configureTestingModule({
       declarations: [TierSelectionComponent],
@@ -45,6 +49,33 @@ describe('TierSelectionComponent', () => {
 
   it('should log screen view on init', () => {
     expect(mockAnalyticsService.logScreenView).toHaveBeenCalledWith('tier_selection');
+  });
+
+  // ONB-02: tier_select_reached — fires on load, carries saw_pricing flag
+  it('should log tier_select_reached on init with saw_pricing=false when landing page was not seen', () => {
+    expect(mockAnalyticsService.logEvent).toHaveBeenCalledWith(
+      'tier_select_reached',
+      { saw_pricing: false }
+    );
+  });
+
+  it('should log tier_select_reached with saw_pricing=true when storageService.sawPricing is true', async () => {
+    mockStorageService.sawPricing = true;
+    await TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      declarations: [TierSelectionComponent],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        { provide: StorageService, useValue: mockStorageService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService }
+      ]
+    }).compileComponents();
+    const pricingFixture = TestBed.createComponent(TierSelectionComponent);
+    pricingFixture.detectChanges();
+    expect(mockAnalyticsService.logEvent).toHaveBeenCalledWith(
+      'tier_select_reached',
+      { saw_pricing: true }
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -258,6 +289,65 @@ describe('TierSelectionComponent', () => {
         'tier_selected',
         { tier: 'PREMIUM_2', userId: 'test-user-id' }
       );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // AC-01 — three tier cards rendered on load (DOM-level)
+  // -------------------------------------------------------------------------
+
+  describe('AC-01 — three tier cards rendered', () => {
+    it('should render exactly three tier cards', () => {
+      const cards: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-card');
+      expect(cards.length).toBe(3);
+    });
+
+    it('should show a Free card', () => {
+      const text: string = fixture.nativeElement.textContent;
+      expect(text).toContain('Free');
+    });
+
+    it('should show a Premium Tier 1 card', () => {
+      const text: string = fixture.nativeElement.textContent;
+      expect(text).toContain('Premium Tier 1');
+    });
+
+    it('should show a Premium Tier 2 card', () => {
+      const text: string = fixture.nativeElement.textContent;
+      expect(text).toContain('Premium Tier 2');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // AC-02 — 6.5% fee disclosure present on each tier card (DOM-level)
+  // The viewport-width / no-scroll requirement is a browser layout concern
+  // that Karma does not verify; the DOM-level check confirms the text is
+  // present on all three cards independently of layout.
+  // -------------------------------------------------------------------------
+
+  describe('AC-02 — 6.5% fee disclosure on all three tier cards', () => {
+    it('should render three .fee-disclosure elements (one per card)', () => {
+      const disclosures: NodeListOf<Element> =
+        fixture.nativeElement.querySelectorAll('.fee-disclosure');
+      expect(disclosures.length).toBe(3);
+    });
+
+    it('each .fee-disclosure element should mention 6.5%', () => {
+      const disclosures: NodeListOf<Element> =
+        fixture.nativeElement.querySelectorAll('.fee-disclosure');
+      Array.from(disclosures).forEach((el, idx) => {
+        expect(el.textContent).toContain('6.5%',
+          `Card ${idx + 1} fee-disclosure must contain "6.5%"`);
+      });
+    });
+
+    it('each .fee-disclosure should say the fee is paid by the customer', () => {
+      const disclosures: NodeListOf<Element> =
+        fixture.nativeElement.querySelectorAll('.fee-disclosure');
+      Array.from(disclosures).forEach((el, idx) => {
+        expect(el.textContent!.toLowerCase()).toContain('customer',
+          `Card ${idx + 1} fee-disclosure must mention "customer"`);
+      });
     });
   });
 });

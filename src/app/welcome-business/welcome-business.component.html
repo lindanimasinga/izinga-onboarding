@@ -1,6 +1,126 @@
 <div class="container py-4">
 
+    <!-- ================================================================
+         TIER PREVIEW — Plans & Pricing (informational, pre-sign-up).
+         Wrapped in *ngIf driven by the Remote Config flag
+         'business_landing_tier_preview_enabled' (default true, toggleable
+         without a redeploy). The #tierPreviewSection ref is used by the
+         IntersectionObserver in WelcomeBusinessComponent to fire the
+         tier_preview_entered_viewport analytics event.
+
+         This section is a READ-ONLY display for unauthenticated visitors.
+         No tier is committed here and StorageService is NOT written.
+         The actual tier commitment (StorageService.selectedTier write,
+         TierSelectedGuard, route to /business/terms/:id) happens at
+         TierSelectionComponent (/business/tier-select/:id), which is
+         reached post-OTP and post-profile setup within the authenticated
+         onboarding flow. Do NOT add selection/click logic to this section.
+         ================================================================ -->
+    <div *ngIf="tierPreviewEnabled" #tierPreviewSection>
+
     <div class="text-center mb-4">
+        <h2 class="fw-bold">Plans &amp; Pricing</h2>
+        <p class="text-muted">Start free. Upgrade when you're ready.</p>
+    </div>
+
+    <div class="row g-3 mb-3">
+
+        <!-- FREE tier preview -->
+        <div class="col-12 col-lg-4">
+            <div class="tier-card tier-card--free tier-card--preview d-flex flex-column h-100">
+                <span class="tier-badge tier-badge--free">Free</span>
+                <h3 class="tier-name">Get online, zero cost</h3>
+                <p class="tier-tagline">Your store live and sellable from day one.</p>
+                <ul class="tier-features flex-grow-1">
+                    <li>Store listing, live immediately</li>
+                    <li>Secure payments</li>
+                    <li>Live order tracking</li>
+                    <li>Store Admin app — manage pricing &amp; menu yourself</li>
+                    <li>Daily payouts — funds reflect within 3 business days (bank processing)</li>
+                    <li>Access to iZinga's driver network</li>
+                </ul>
+                <p class="tier-price">Free for merchants</p>
+                <div class="fee-disclosure" role="note">
+                    <strong>Service fee: 6.5% per order</strong>
+                    Added at customer checkout — not deducted from your payout.
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM TIER 1 preview -->
+        <div class="col-12 col-lg-4">
+            <div class="tier-card tier-card--gold tier-card--preview d-flex flex-column h-100">
+                <!-- NOTE: VAT treatment to be confirmed before go-live -->
+                <span class="tier-badge tier-badge--gold">Premium Tier 1</span>
+                <h3 class="tier-name">Your own brand</h3>
+                <p class="tier-tagline">Includes all Free features — with your brand in front.</p>
+                <ul class="tier-features flex-grow-1">
+                    <li class="tier-li--inherited">All Free tier features</li>
+                    <li class="tier-li--exclusive">Branded storefront — your colours, logo, tone</li>
+                    <li class="tier-li--exclusive">Custom domain</li>
+                    <li class="tier-li--exclusive">Dedicated WhatsApp order line</li>
+                    <li class="tier-li--exclusive">Regulated-industry compliance</li>
+                </ul>
+                <p class="tier-price">R800<span class="tier-price-period">/month</span></p>
+                <div class="fee-disclosure" role="note">
+                    <strong>Service fee: 6.5% per order</strong>
+                    Added at customer checkout — not deducted from your payout.
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM TIER 2 preview.
+             NOTE: "Advice mode available on application — regulatory licences required"
+             is intentionally omitted here. On an unauthenticated landing page, before
+             iZinga knows what the visitor sells, that line implies a regulated-product
+             assumption and raises a qualification barrier prematurely. The full bullet
+             is shown correctly at TierSelectionComponent post-OTP — leave it there. -->
+        <div class="col-12 col-lg-4">
+            <div class="tier-card tier-card--gold tier-card--featured tier-card--preview d-flex flex-column h-100">
+                <span class="tier-featured-ribbon" aria-label="Most complete tier">Full Platform</span>
+                <!-- NOTE: VAT treatment to be confirmed before go-live -->
+                <span class="tier-badge tier-badge--gold">Premium Tier 2</span>
+                <h3 class="tier-name">AI-powered commerce</h3>
+                <p class="tier-tagline">All Tier 1 features plus a 24/7 AI assistant on your WhatsApp line.</p>
+                <ul class="tier-features flex-grow-1">
+                    <li class="tier-li--inherited">All Free &amp; Tier 1 features</li>
+                    <li class="tier-li--exclusive">24/7 AI assistant on WhatsApp</li>
+                    <li class="tier-li--exclusive">Hands off to your team for anything needing a human</li>
+                </ul>
+                <p class="tier-price">R3,000<span class="tier-price-period">/month</span></p>
+                <div class="fee-disclosure" role="note">
+                    <strong>Service fee: 6.5% per order</strong>
+                    Added at customer checkout — not deducted from your payout.
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <!-- /tier preview row -->
+
+    <p class="text-center text-muted small mb-5">
+        You'll confirm your plan during sign-up. Start Free and upgrade at any time from your dashboard.
+    </p>
+
+    </div><!-- /tier preview section -->
+
+    <!-- ================================================================
+         BENEFIT TILES — supporting reasons to join iZinga.
+         Content changes from original:
+         - "Instant Payments" REMOVED: said "paid instantly to your bank
+           or phone" which overpromises — actual settlement is daily
+           payouts that reflect within 3 business days (bank processing),
+           as shown correctly in the tier preview above.
+         - "Easy Withdrawals" REMOVED: said "Withdraw from any ATM,
+           anytime" which is not confirmed for store owner bank payouts;
+           also redundant with tier preview payout details.
+         - "Daily Payouts" REMOVED: redundant — tier preview shows this
+           accurately with the correct 3-business-day settlement wording.
+         - "Withdrawal Limits R3000/day" REMOVED: the R3000/day cellphone
+           payout limit is a driver/messenger detail, not store owner
+           specific; redundant with and less accurate than tier preview.
+         ================================================================ -->
+    <div class="text-center mb-4 mt-3">
         <h2 class="fw-bold">Why Join iZinga?</h2>
         <p class="">Boost your business with a digital storefront and secure payments.</p>
     </div>
@@ -21,41 +141,10 @@
             </div>
         </div>
         <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-payment">
-                <div style="font-size:48px;">💸</div>
-                <div class="fw-bold mt-2 ">Instant Payments</div>
-                <div class="small ">Earnings paid instantly to your bank or phone.</div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-atm">
-                <div style="font-size:48px;">🏧</div>
-                <div class="fw-bold mt-2 ">Easy Withdrawals</div>
-                <div class="small ">Withdraw from any ATM, anytime.</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6 mb-1">
             <div class="card border-0 shadow-sm h-100 text-center p-3 bg-secure">
                 <div style="font-size:48px;">🔒</div>
                 <div class="fw-bold mt-2 ">Secure Transactions</div>
                 <div class="small ">Safe payment processing for every order and tip.</div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-payout">
-                <div style="font-size:48px;">📅</div>
-                <div class="fw-bold mt-2 ">Daily Payouts</div>
-                <div class="small ">Get paid daily to your bank or e-wallet.</div>
-            </div>
-        </div>
-        <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-limit">
-                <div style="font-size:48px;">⚖️</div>
-                <div class="fw-bold mt-2 ">Withdrawal Limits</div>
-                <div class="small ">Cellphone payouts: R3000/day, excess paid next day.</div>
             </div>
         </div>
         <div class="col-md-3 col-6 mb-1">
@@ -87,14 +176,14 @@
             </div>
         </div>
         <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-payment">
+            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-secure">
                 <div style="font-size:48px;">🔗</div>
                 <div class="fw-bold mt-2 ">3. Download QR Code</div>
                 <div class="small ">Get your personalized QR code for easy tipping.</div>
             </div>
         </div>
         <div class="col-md-3 col-6 mb-1">
-            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-atm">
+            <div class="card border-0 shadow-sm h-100 text-center p-3 bg-tip">
                 <div style="font-size:48px;">🛍️</div>
                 <div class="fw-bold mt-2 ">4. Start Selling</div>
                 <div class="small ">Watch your sales grow as customers order from you!</div>
@@ -104,7 +193,7 @@
 </div>
 
 <div class="row fixed-bottom">
-    <button type="button" class="col btn bg-dark shadow-sm" routerLink="./verify">
+    <button type="button" class="col btn bg-dark shadow-sm" routerLink="./verify" (click)="onGetStarted()">
         Get Started
     </button>
 </div>

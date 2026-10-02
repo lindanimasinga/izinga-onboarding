@@ -54,6 +54,14 @@ export class TierSelectionComponent implements OnInit {
     if (stored === 'PREMIUM_1' || stored === 'PREMIUM_2') {
       this.selectedTier = stored;
     }
+
+    // ONB-02 analytics: fire tier_select_reached and pass through whether the
+    // merchant saw the tier preview on the /business landing page.  This lets
+    // Growth & Analytics compare tier-select reach rates for visitors who saw
+    // pricing upfront vs. those who did not (Remote Config A/B flag).
+    this.analytics.logEvent('tier_select_reached', {
+      saw_pricing: this.storageService.sawPricing
+    });
   }
 
   /**

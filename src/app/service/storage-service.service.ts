@@ -26,6 +26,14 @@ export class StorageService {
    * Valid values: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2'
    */
   SELECTED_TIER_KEY = "onb02SelectedTier"
+  /**
+   * ONB-02 analytics: set to true when the merchant has seen the tier preview
+   * section on the /business landing page. Read at TierSelectionComponent
+   * (tier_select_reached event) and at the Get Started click to measure whether
+   * showing pricing upfront affects conversion. Cleared when the tab closes
+   * (sessionStorage).
+   */
+  SAW_PRICING_KEY = "onb02SawPricing"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
   sessionCache: Storage = window.sessionStorage
@@ -197,6 +205,18 @@ export class StorageService {
       this.sessionCache.setItem(this.SELECTED_TIER_KEY, tier);
     } else {
       this.sessionCache.removeItem(this.SELECTED_TIER_KEY);
+    }
+  }
+
+  get sawPricing(): boolean {
+    return this.sessionCache.getItem(this.SAW_PRICING_KEY) === 'true';
+  }
+
+  set sawPricing(saw: boolean) {
+    if (saw) {
+      this.sessionCache.setItem(this.SAW_PRICING_KEY, 'true');
+    } else {
+      this.sessionCache.removeItem(this.SAW_PRICING_KEY);
     }
   }
 
