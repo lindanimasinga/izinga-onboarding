@@ -13,9 +13,22 @@ h2 , h3 {
     font-size: 14px;
 }
 
+/* ----------------------------------------------------------------
+   Hero section — replaced flat solid role-colour fill with a dark
+   card surface + subtle gradient tint + role-colour accent strip.
+   --btn-bg-selected-color resolves to the current role's brand
+   colour (gold for shop, teal for driver, coral for individual),
+   so the accent adapts without any JS.  This matches the
+   border-left accent language used across tier and benefit cards.
+   ---------------------------------------------------------------- */
 .circle {
   height: 620px;
-  background-color: var(--btn-bg-selected-color);
+  background: linear-gradient(
+    180deg,
+    var(--bkg-card-color) 0%,
+    color-mix(in srgb, var(--btn-bg-selected-color) 8%, var(--bkg-card-color)) 100%
+  );
+  border-bottom: 3px solid var(--btn-bg-selected-color);
   position: absolute;
   left: 0px;
 }
@@ -24,6 +37,30 @@ h2 , h3 {
   position: relative;
 }
 
-.welcome, .welcome h2 {
-  color: white;
+/* Text on the hero now inherits var(--text-color) from body (dark in
+   light mode, light in dark mode).  The old "color: white" override
+   was only correct against the solid gold fill — removed. */
+
+/* ----------------------------------------------------------------
+   Category badge pills — userType === '' state.
+   Semi-transparent tinted surfaces replace the original flat solid
+   fills, consistent with the benefit-icon-chip pattern in
+   welcome-business.component.css.
+   ---------------------------------------------------------------- */
+.welcome-badge--teal {
+  background: color-mix(in srgb, var(--btn-pill-color) 18%, transparent);
+  color: var(--btn-pill-color);
+  border: 1px solid color-mix(in srgb, var(--btn-pill-color) 30%, transparent);
+}
+
+.welcome-badge--gold {
+  background: color-mix(in srgb, var(--btn-bg-color) 18%, transparent);
+  color: var(--btn-bg-color);
+  border: 1px solid color-mix(in srgb, var(--btn-bg-color) 30%, transparent);
+}
+
+.welcome-badge--coral {
+  background: color-mix(in srgb, var(--btn-red-color) 18%, transparent);
+  color: var(--btn-red-color);
+  border: 1px solid color-mix(in srgb, var(--btn-red-color) 30%, transparent);
 }
