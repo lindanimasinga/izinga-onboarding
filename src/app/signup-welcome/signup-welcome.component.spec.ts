@@ -126,11 +126,22 @@ describe('SignupWelcomeComponent — termsRoute and canViewTerms', () => {
   });
 
   // -------------------------------------------------------------------------
-  // TC-SW-08: STOREADMIN via /business/ URL
+  // TC-SW-08: STOREADMIN via /business/ URL — T-10 (ONB-02) behaviour
   // -------------------------------------------------------------------------
 
-  it('TC-SW-08: termsRoute uses /business base when URL contains /business/', () => {
+  it('TC-SW-08: STORE_ADMIN via /business/ URL: termsRoute → tier-select (T-10 ONB-02)', () => {
+    // T-10 change: STORE_ADMIN in the business flow goes to tier selection first.
     setup(buildProfile(UserProfile.RoleEnum.STOREADMIN), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/business', 'tier-select', ROUTE_PARAM_ID]);
+  });
+
+  // TC-SW-10: non-STORE_ADMIN on /business/ URL still resolves to /business/terms/:id
+  // This preserves the /business base-selection logic test that TC-SW-08 previously covered.
+  it('TC-SW-10: non-STORE_ADMIN via /business/ URL: termsRoute → [/business, terms, userId]', () => {
+    // Use MESSENGER role in a business URL — any non-STOREADMIN role should still
+    // resolve to /business/terms/:id when the current route contains /business/.
+    setup(buildProfile(UserProfile.RoleEnum.MESSENGER), '/business/signup-welcome/user-123');
     fixture.detectChanges();
     expect(component.termsRoute).toEqual(['/business', 'terms', ROUTE_PARAM_ID]);
   });

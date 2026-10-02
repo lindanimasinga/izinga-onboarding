@@ -18,6 +18,14 @@ export class StorageService {
   AMBASSADOR_REF_KEY = "ambassadorRef"
   REFERRAL_PARTNER_REF_KEY = "referralPartnerRef"
   RETURN_URL_KEY = "returnUrl"
+  /**
+   * T-10 (ONB-02): Subscription tier selected during the store sign-up flow.
+   * Stored in sessionStorage so it survives Angular router navigation within the
+   * tab but clears when the tab is closed. Loss on page refresh is acceptable per
+   * the feature brief — the user restarts from tier-select.
+   * Valid values: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2'
+   */
+  SELECTED_TIER_KEY = "onb02SelectedTier"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
   sessionCache: Storage = window.sessionStorage
@@ -172,6 +180,23 @@ export class StorageService {
       this.sessionCache.setItem(this.RETURN_URL_KEY, url);
     } else {
       this.sessionCache.removeItem(this.RETURN_URL_KEY);
+    }
+  }
+
+  /**
+   * T-10 (ONB-02): Subscription tier chosen at the tier selection step.
+   * Cleared automatically when the tab closes (sessionStorage).
+   * Null if the user has not yet passed through tier-select in this session.
+   */
+  get selectedTier(): string | null {
+    return this.sessionCache.getItem(this.SELECTED_TIER_KEY);
+  }
+
+  set selectedTier(tier: string | null) {
+    if (tier) {
+      this.sessionCache.setItem(this.SELECTED_TIER_KEY, tier);
+    } else {
+      this.sessionCache.removeItem(this.SELECTED_TIER_KEY);
     }
   }
 

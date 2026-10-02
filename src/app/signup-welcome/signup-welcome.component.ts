@@ -92,6 +92,11 @@ export class SignupWelcomeComponent implements OnInit {
       return ['/referral-partner/enroll'];
     }
     const base = this.router.url.includes('/business/') ? '/business' : '/indivisuals';
+    // T-10 (ONB-02): STORE_ADMIN in the business flow goes to tier selection first,
+    // then tier-select navigates to /business/terms/:id on tier confirmation.
+    if (this.userRole === UserProfile.RoleEnum.STOREADMIN && base === '/business') {
+      return [base, 'tier-select', this.userId || ''];
+    }
     return [base, 'terms', this.userId || ''];
   }
 

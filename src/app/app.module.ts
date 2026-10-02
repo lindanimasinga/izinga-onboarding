@@ -56,6 +56,7 @@ import { ReconDashboardComponent } from './admin/recon-dashboard/recon-dashboard
 import { ReconComponent } from './admin/recon/recon.component';
 import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
 import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.component';
+import { TierSelectionComponent } from './tier-selection/tier-selection.component';
 
 @NgModule({
   declarations: [
@@ -105,6 +106,7 @@ import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.
     ReconComponent,
     ReconPayoutOrdersComponent,
     PostIcaTrainingComponent,
+    TierSelectionComponent,
   ],
   imports: [
     BrowserModule,
