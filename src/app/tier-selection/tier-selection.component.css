@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
-   TierSelectionComponent — ONB-02 T-10
+   TierSelectionComponent — ONB-02 T-10 / Design-Review refinement
    Only rules that Bootstrap cannot cover are here.
    Bootstrap utilities handle layout, spacing, and grid.
    ---------------------------------------------------------------- */
@@ -21,19 +21,54 @@
   background: var(--bkg-card-color);
   position: relative;
   overflow: visible;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
 }
 
+/* ---- Graduating left-border visual device (item 7) ---- */
 .tier-card--free {
-  border: 2px solid var(--tier-teal);
+  border-left: 3px solid var(--tier-teal);
 }
 
 .tier-card--gold {
-  border: 2px solid var(--tier-gold);
+  border-left: 3px solid var(--tier-gold);
 }
 
-/* Featured (Tier 2): subtle warm-tinted background */
+/* Tier 2 (featured): thicker left border */
 .tier-card--featured {
+  border-left-width: 4px;
   background: color-mix(in srgb, var(--bkg-card-color) 90%, var(--tier-gold) 10%);
+}
+
+/* ---- Selected state (item 4) ---- */
+/* Free selected: upgrade to 4px teal */
+.tier-card--free.tier-card--selected {
+  border-left: 4px solid var(--tier-teal);
+  box-shadow: 0 2px 8px rgba(0, 169, 161, 0.18);
+}
+
+/* Tier 1 / Tier 2 selected: 4px gold */
+.tier-card--gold.tier-card--selected {
+  border-left: 4px solid var(--tier-gold);
+  box-shadow: 0 2px 8px rgba(190, 131, 61, 0.18);
+}
+
+/* ---- Checkmark indicator in top-right corner (item 4) ---- */
+.tier-selected-check {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.tier-card--free .tier-selected-check {
+  color: var(--tier-teal);
+}
+
+.tier-card--gold .tier-selected-check {
+  color: var(--tier-gold);
 }
 
 /* ---- "Full Platform" ribbon on Tier 2 ---- */
@@ -49,6 +84,11 @@
   text-transform: uppercase;
   padding: 3px 10px;
   border-radius: 0 0 6px 6px;
+}
+
+/* Shift the checkmark left on Tier 2 to avoid colliding with the ribbon */
+.tier-card--featured .tier-selected-check {
+  right: 110px;
 }
 
 /* ---- Tier badge ---- */
@@ -102,6 +142,16 @@
   vertical-align: middle;
 }
 
+/* Inherited bullets (repeated from a lower tier): 55% opacity (item 1) */
+.tier-li--inherited {
+  opacity: 0.55;
+}
+
+/* Exclusive bullets (new to this tier): full weight — default opacity already 1 (item 1) */
+.tier-li--exclusive {
+  opacity: 1;
+}
+
 /* Divider item — visual separator between cumulative tier groups */
 li.tier-divider {
   border-bottom: 1px solid rgba(190, 131, 61, 0.4) !important;
@@ -127,11 +177,17 @@ li.tier-divider::before { display: none; }
   font-weight: 400;
 }
 
-/* ---- Fee disclosure block ---- */
+/* ---- Fee disclosure block (item 2) ----
+   Left border uses the card's accent colour; the other borders are removed
+   so only the left accent strip remains.  Card-specific colour overrides
+   are applied via parent-card selectors below. */
 .fee-disclosure {
   background: rgba(128, 128, 128, 0.08);
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: 6px;
+  border-left: 3px solid rgba(128, 128, 128, 0.3);  /* fallback */
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 0 4px 4px 0;
   padding: 10px 12px;
   font-size: 0.8rem;
   color: var(--text-color);
@@ -144,16 +200,26 @@ li.tier-divider::before { display: none; }
   margin-bottom: 2px;
 }
 
-/* ---- Payout cadence note below cards ---- */
+/* Card-specific fee-disclosure accent colour */
+.tier-card--free .fee-disclosure {
+  border-left-color: var(--tier-teal);
+}
+
+.tier-card--gold .fee-disclosure {
+  border-left-color: var(--tier-gold);
+}
+
+/* ---- Payout cadence note below cards (item 3) ----
+   Rendered once, below all three cards, separated by a top border. */
 .payout-note {
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
   border-left: 4px solid var(--tier-teal);
-  padding: 12px 14px;
+  padding: 16px 14px 12px;
   background: rgba(128, 128, 128, 0.06);
   border-radius: 0 6px 6px 0;
   font-size: 0.85rem;
   line-height: 1.6;
   color: var(--text-color);
-  margin-top: 8px;
 }
 
 .payout-note strong {

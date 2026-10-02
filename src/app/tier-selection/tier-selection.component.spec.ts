@@ -21,6 +21,9 @@ describe('TierSelectionComponent', () => {
   let router: Router;
 
   beforeEach(async () => {
+    // Reset shared mock state before each test
+    mockStorageService.selectedTier = null as any;
+
     await TestBed.configureTestingModule({
       declarations: [TierSelectionComponent],
       imports: [RouterTestingModule.withRoutes([])],
@@ -43,6 +46,174 @@ describe('TierSelectionComponent', () => {
   it('should log screen view on init', () => {
     expect(mockAnalyticsService.logScreenView).toHaveBeenCalledWith('tier_selection');
   });
+
+  // -------------------------------------------------------------------------
+  // selectedTier default and edit-path pre-selection
+  // -------------------------------------------------------------------------
+
+  it('should default selectedTier to FREE on init when storage is null', () => {
+    expect(component.selectedTier).toBe('FREE');
+  });
+
+  it('should pre-select PREMIUM_1 from storageService on the edit path', async () => {
+    mockStorageService.selectedTier = 'PREMIUM_1';
+    // Re-create the component so ngOnInit reads the updated storageService value
+    await TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      declarations: [TierSelectionComponent],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        { provide: StorageService, useValue: mockStorageService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService }
+      ]
+    }).compileComponents();
+    const editFixture = TestBed.createComponent(TierSelectionComponent);
+    editFixture.detectChanges();
+    expect(editFixture.componentInstance.selectedTier).toBe('PREMIUM_1');
+  });
+
+  it('should pre-select PREMIUM_2 from storageService on the edit path', async () => {
+    mockStorageService.selectedTier = 'PREMIUM_2';
+    await TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      declarations: [TierSelectionComponent],
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        { provide: StorageService, useValue: mockStorageService },
+        { provide: AnalyticsService, useValue: mockAnalyticsService }
+      ]
+    }).compileComponents();
+    const editFixture = TestBed.createComponent(TierSelectionComponent);
+    editFixture.detectChanges();
+    expect(editFixture.componentInstance.selectedTier).toBe('PREMIUM_2');
+  });
+
+  // -------------------------------------------------------------------------
+  // chooseTier() — visual selection without navigation
+  // -------------------------------------------------------------------------
+
+  describe('chooseTier()', () => {
+    it('should set selectedTier to FREE', () => {
+      component.chooseTier('FREE');
+      expect(component.selectedTier).toBe('FREE');
+    });
+
+    it('should set selectedTier to PREMIUM_1', () => {
+      component.chooseTier('PREMIUM_1');
+      expect(component.selectedTier).toBe('PREMIUM_1');
+    });
+
+    it('should set selectedTier to PREMIUM_2', () => {
+      component.chooseTier('PREMIUM_2');
+      expect(component.selectedTier).toBe('PREMIUM_2');
+    });
+
+    it('should not navigate when choosing a tier', () => {
+      const navigateSpy = spyOn(router, 'navigate');
+      component.chooseTier('PREMIUM_1');
+      expect(navigateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // continueBtnText getter — reactive label
+  // -------------------------------------------------------------------------
+
+  describe('continueBtnText', () => {
+    it('should return "Continue with Free" when selectedTier is FREE', () => {
+      component.selectedTier = 'FREE';
+      expect(component.continueBtnText).toBe('Continue with Free');
+    });
+
+    it('should return "Continue with Tier 1 — R800/month" when selectedTier is PREMIUM_1', () => {
+      component.selectedTier = 'PREMIUM_1';
+      expect(component.continueBtnText).toBe('Continue with Tier 1 — R800/month');
+    });
+
+    it('should return "Continue with Tier 2 — R3,000/month" when selectedTier is PREMIUM_2', () => {
+      component.selectedTier = 'PREMIUM_2';
+      expect(component.continueBtnText).toBe('Continue with Tier 2 — R3,000/month');
+    });
+
+    it('should update continueBtnText when chooseTier is called', () => {
+      component.chooseTier('PREMIUM_2');
+      expect(component.continueBtnText).toBe('Continue with Tier 2 — R3,000/month');
+      component.chooseTier('FREE');
+      expect(component.continueBtnText).toBe('Continue with Free');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // onContinue() — delegates to selectTier with current selection
+  // -------------------------------------------------------------------------
+
+  describe('onContinue()', () => {
+    beforeEach(() => {
+      component.userId = 'user-abc';
+    });
+
+    it('should store the selectedTier in storageService and navigate', () => {
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectedTier = 'PREMIUM_1';
+      component.onContinue();
+      expect(mockStorageService.selectedTier).toBe('PREMIUM_1');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/terms', 'user-abc']);
+    });
+
+    it('should navigate with FREE by default', () => {
+      const navigateSpy = spyOn(router, 'navigate');
+      component.onContinue();
+      expect(mockStorageService.selectedTier).toBe('FREE');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/terms', 'user-abc']);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Selection state CSS class in the rendered template
+  // -------------------------------------------------------------------------
+
+  describe('tier-card--selected class', () => {
+    it('should apply tier-card--selected to the Free card when selectedTier is FREE', () => {
+      component.selectedTier = 'FREE';
+      fixture.detectChanges();
+      const cards: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-card');
+      expect(cards[0].classList).toContain('tier-card--selected');
+      expect(cards[1].classList).not.toContain('tier-card--selected');
+      expect(cards[2].classList).not.toContain('tier-card--selected');
+    });
+
+    it('should apply tier-card--selected to the Tier 1 card when selectedTier is PREMIUM_1', () => {
+      component.selectedTier = 'PREMIUM_1';
+      fixture.detectChanges();
+      const cards: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-card');
+      expect(cards[0].classList).not.toContain('tier-card--selected');
+      expect(cards[1].classList).toContain('tier-card--selected');
+      expect(cards[2].classList).not.toContain('tier-card--selected');
+    });
+
+    it('should apply tier-card--selected to the Tier 2 card when selectedTier is PREMIUM_2', () => {
+      component.selectedTier = 'PREMIUM_2';
+      fixture.detectChanges();
+      const cards: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-card');
+      expect(cards[0].classList).not.toContain('tier-card--selected');
+      expect(cards[1].classList).not.toContain('tier-card--selected');
+      expect(cards[2].classList).toContain('tier-card--selected');
+    });
+
+    it('should move tier-card--selected from Free to Tier 1 after chooseTier(PREMIUM_1)', () => {
+      component.selectedTier = 'FREE';
+      fixture.detectChanges();
+      component.chooseTier('PREMIUM_1');
+      fixture.detectChanges();
+      const cards: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-card');
+      expect(cards[0].classList).not.toContain('tier-card--selected');
+      expect(cards[1].classList).toContain('tier-card--selected');
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // selectTier() — existing behaviour preserved (regression guard)
+  // -------------------------------------------------------------------------
 
   describe('selectTier()', () => {
     beforeEach(() => {

@@ -158,4 +158,50 @@ describe('SignupWelcomeComponent — termsRoute and canViewTerms', () => {
     fixture.detectChanges();
     expect(component.userRole).toBe(UserProfile.RoleEnum.REFERRALPARTNER);
   });
+
+  // -------------------------------------------------------------------------
+  // TC-SW-11 to TC-SW-14: isStoreAdmin getter and STORE_ADMIN copy branch
+  // -------------------------------------------------------------------------
+
+  it('TC-SW-11: isStoreAdmin is true for STORE_ADMIN role', () => {
+    setup(buildProfile(UserProfile.RoleEnum.STOREADMIN), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.isStoreAdmin).toBeTrue();
+  });
+
+  it('TC-SW-12: isStoreAdmin is false for MESSENGER role', () => {
+    setup(buildProfile(UserProfile.RoleEnum.MESSENGER));
+    fixture.detectChanges();
+    expect(component.isStoreAdmin).toBeFalse();
+  });
+
+  it('TC-SW-13: isStoreAdmin is false when userRole is undefined', () => {
+    setup(undefined);
+    // Do not call detectChanges — userRole remains undefined
+    expect(component.isStoreAdmin).toBeFalse();
+  });
+
+  describe('STORE_ADMIN copy branch in template', () => {
+    beforeEach(() => {
+      setup(buildProfile(UserProfile.RoleEnum.STOREADMIN), '/business/signup-welcome/user-123');
+      fixture.detectChanges();
+    });
+
+    it('TC-SW-14: STORE_ADMIN shows business-plan copy, not the review copy', () => {
+      const text: string = fixture.nativeElement.textContent;
+      expect(text).toContain('choose the plan that fits your business');
+      expect(text).not.toContain('Your profile is being reviewed');
+    });
+  });
+
+  // TC-SW-15 is a standalone test (not inside the STORE_ADMIN describe) because
+  // it calls setup() directly and cannot re-configure TestBed after a beforeEach
+  // has already compiled it.
+  it('TC-SW-15: non-STORE_ADMIN shows review copy, not the business-plan copy', () => {
+    setup(buildProfile(UserProfile.RoleEnum.MESSENGER));
+    fixture.detectChanges();
+    const text: string = fixture.nativeElement.textContent;
+    expect(text).toContain('Your profile is being reviewed');
+    expect(text).not.toContain('choose the plan that fits your business');
+  });
 });

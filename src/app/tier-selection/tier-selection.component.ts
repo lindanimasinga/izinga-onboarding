@@ -30,6 +30,13 @@ export class TierSelectionComponent implements OnInit {
 
   userId?: string;
 
+  /**
+   * Currently highlighted tier — drives the selection state UI (card border + checkmark).
+   * Defaults to FREE; pre-populated from session state so the edit path pre-selects
+   * whichever tier the store owner had already chosen in this session.
+   */
+  selectedTier: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2' = 'FREE';
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -40,6 +47,40 @@ export class TierSelectionComponent implements OnInit {
   ngOnInit(): void {
     this.analytics.logScreenView('tier_selection');
     this.userId = this.route.snapshot.paramMap.get('id') || this.storageService.userProfile?.id;
+
+    // Pre-select from session state on the edit path.
+    // storageService.selectedTier is null on a fresh sign-up; FREE stays as the default.
+    const stored = this.storageService.selectedTier;
+    if (stored === 'PREMIUM_1' || stored === 'PREMIUM_2') {
+      this.selectedTier = stored;
+    }
+  }
+
+  /**
+   * Set the visual selection state without navigating.
+   * Called by per-card buttons and card-click areas.
+   */
+  chooseTier(tier: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2'): void {
+    this.selectedTier = tier;
+  }
+
+  /**
+   * Navigate forward with the currently selected tier.
+   * Called by the single shared Continue button at the bottom of the page.
+   */
+  onContinue(): void {
+    this.selectTier(this.selectedTier);
+  }
+
+  /**
+   * Reactive label for the shared Continue button.
+   */
+  get continueBtnText(): string {
+    switch (this.selectedTier) {
+      case 'PREMIUM_1': return 'Continue with Tier 1 — R800/month';
+      case 'PREMIUM_2': return 'Continue with Tier 2 — R3,000/month';
+      default:          return 'Continue with Free';
+    }
   }
 
   /**

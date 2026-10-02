@@ -109,4 +109,13 @@ export class SignupWelcomeComponent implements OnInit {
     }
     return !!this.userId;
   }
+
+  /**
+   * True when the signed-up user is a STORE_ADMIN.
+   * Used in the template to show business-specific copy instead of the
+   * generic driver/ambassador copy.
+   */
+  get isStoreAdmin(): boolean {
+    return this.userRole === UserProfile.RoleEnum.STOREADMIN;
+  }
 }
