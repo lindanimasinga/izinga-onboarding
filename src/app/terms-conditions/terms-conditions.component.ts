@@ -1,3 +1,41 @@
+/**
+ * T-23 FINDING — STORE_ADMIN role at /business/terms/:id (ONB-02, 2 Oct 2026)
+ *
+ * Question: Is the user guaranteed to arrive at /business/terms/:id with role STORE_ADMIN?
+ *
+ * Trace:
+ *  1. UserUpdateComponent.createCustomer() sets the role via:
+ *       role = isStoreAdmin() ? STORE_ADMIN
+ *                              : userConfig.find(label === roleDescription)?.userRole
+ *                                || CUSTOMER  ← fallback
+ *     isStoreAdmin() returns true only if the user's EXISTING profile already has STORE_ADMIN.
+ *     For a brand-new user, role comes from UserConfig; the UserConfig entry for the
+ *     business/store owner description MUST map to STORE_ADMIN for the happy path.
+ *
+ *  2. After createCustomer(), storageService.userProfile is NOT updated by createCustomer().
+ *     SignupWelcomeComponent.ngOnInit() finds storageService.userProfile null for brand-new
+ *     users and fetches fresh via getCustomerById(userId), updating storageService.userProfile
+ *     with the newly created STORE_ADMIN profile. By the time TermsConditionsComponent reads
+ *     storageService.userProfile, role IS STORE_ADMIN on the happy path.
+ *
+ *  3. BusinessUpdateComponent does NOT touch UserProfile.role — it only affects StoreProfile.
+ *
+ * Confirmed non-STORE_ADMIN path (gap):
+ *  If UserConfig is not loaded yet when createCustomer() runs, OR if roleDescription does not
+ *  match any UserConfig entry, the role falls back to CUSTOMER. The user then arrives at
+ *  /business/terms/:id with role CUSTOMER. The general terms branch fires (no regression to
+ *  Driver or Ambassador ICA), but the T-11 STORE_ADMIN merchant-ICA branch would NOT fire.
+ *
+ * Implication for T-11:
+ *  The needsMerchantIcaAcceptance getter must guard on isStoreAdmin — it already does by
+ *  construction. The MERCHANT_ICA_ENABLED feature flag (default false) provides a second
+ *  safety net: even if a CUSTOMER-role user reaches /business/terms/:id, the STORE_ADMIN
+ *  branch never activates unless both the flag is true AND the role is STORE_ADMIN.
+ *  No code change required in TermsConditionsComponent based on this finding; the T-11
+ *  implementer should be aware of the CUSTOMER fallback path and confirm it is acceptable
+ *  (store creation would then proceed with CUSTOMER role — the C-04 gate in REQ-03 would
+ *  catch this server-side if properly implemented in StoreService.createStore()).
+ */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StorageService } from '../service/storage-service.service';
