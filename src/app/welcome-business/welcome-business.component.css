@@ -5,26 +5,15 @@
    rules that Bootstrap cannot cover are written here.
    ---------------------------------------------------------------- */
 
-/* ---- Solid-fill classes kept for the "How to Get Started" strip ---- */
-.card.bg-growth  { background: var(--btn-pill-color); }
-.card.bg-store   { background: var(--btn-red-color); }
-.card.bg-secure  { background: var(--btn-pill-color); }
-.card.bg-tip     { background: var(--btn-pill-color); }
+/* Removed: bg-growth, bg-store, bg-secure, bg-tip solid fills — the
+   "How to Get Started" step tiles now use the same .benefit-card /
+   .benefit-card--teal / .benefit-card--gold / .benefit-icon-chip
+   dark-theme card language as the "Why Join iZinga?" grid above.
+   Also removed: bg-payment, bg-atm, bg-payout, bg-limit (tiles for
+   "Instant Payments", "Easy Withdrawals", "Daily Payouts",
+   "Withdrawal Limits" were removed as inaccurate or redundant). */
 
-/* Removed: bg-payment, bg-atm, bg-payout, bg-limit — tiles that used
-   these backgrounds ("Instant Payments", "Easy Withdrawals",
-   "Daily Payouts", "Withdrawal Limits") have been removed because they
-   were inaccurate or redundant with the tier preview section above. */
-
-/* "How to Get Started" tiles use solid fills — keep white text for contrast */
-.card.bg-growth,
-.card.bg-store,
-.card.bg-secure,
-.card.bg-tip {
-    color: white;
-}
-
-/* ---- Benefit tile grid — "Why Join iZinga?"
+/* ---- Benefit tile grid — "Why Join iZinga?" and "How to Get Started"
    Dark-theme card language consistent with .tier-card.
    Uses var(--bkg-card-color) surface + accent left-border per tile,
    mirroring the .tier-card--free / .tier-card--gold border pattern.
