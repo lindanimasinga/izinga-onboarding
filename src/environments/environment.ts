@@ -35,15 +35,15 @@ export const environment = {
     heroCopy: {
       '': {
         heading: 'Sell Online with Ease',
-        description: 'List your products and services, attract customers, and get paid — daily payouts reflect within 3 business days.'
+        description: 'List your products and services, attract customers, and get paid with daily payouts.'
       },
       shop: {
         heading: 'Sell Online with Ease',
-        description: 'List your products and services, attract customers, and get paid — daily payouts reflect within 3 business days.'
+        description: 'List your products and services, attract customers, and get paid with daily payouts.'
       },
       individual: {
         heading: 'Receive Payments Seamlessly',
-        description: 'Receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.'
+        description: 'Receive payments or tips directly into your bank account or mobile wallet, and access your earnings on the go.'
       },
       driver: {
         heading: 'Join As A Driver',
@@ -61,13 +61,13 @@ export const environment = {
     signupCards: {
       shop: {
         title: 'Sign up to sell online',
-        description: 'Register to list your shop on iZinga, reach more customers, and enjoy seamless transactions with daily payouts that reflect within 3 business days.',
+        description: 'Register to list your shop on iZinga, reach more customers, and enjoy seamless transactions with daily payouts.',
         cta: 'Start as a shop',
         route: './business'
       },
       individual: {
         title: 'Sign up to receive tips and payments',
-        description: 'Sign up as an individual to receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.',
+        description: 'Sign up as an individual to receive payments or tips directly into your bank account or mobile wallet, and access your earnings on the go.',
         cta: 'Start as an individual',
         route: './indivisuals'
       },
@@ -93,12 +93,12 @@ export const environment = {
     seo: {
       shop: {
         title: 'Sell Online with Ease | Join iZinga as a Shop',
-        description: 'List your products and services on iZinga, reach more customers, and get paid with daily payouts that reflect within 3 business days.',
-        keywords: 'iZinga, Shop Registration, Sell Online, Business Signup, Reliable Payouts, Local Commerce, Merchant Platform',
+        description: 'List your products and services on iZinga, reach more customers, and get paid with daily payouts.',
+        keywords: 'iZinga, Shop Registration, Sell Online, Business Signup, Daily Payouts, Local Commerce, Merchant Platform',
         ogTitle: 'Sell Online with Ease | Join iZinga as a Shop',
-        ogDescription: 'Register your shop on iZinga and start selling online with fast, reliable payouts and local reach.',
+        ogDescription: 'Register your shop on iZinga and start selling online with daily payouts and local reach.',
         twitterTitle: 'Sell Online with Ease | Join iZinga as a Shop',
-        twitterDescription: 'Register your shop on iZinga and grow with reliable payouts and seamless transactions.'
+        twitterDescription: 'Register your shop on iZinga and grow with daily payouts and seamless transactions.'
       },
       driver: {
         title: 'Earn Money With Your Vehicle | Join iZinga as a Driver',
