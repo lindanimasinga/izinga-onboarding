@@ -4,6 +4,23 @@ All notable changes to this project are documented here.
 
 ---
 
+## [1.16.0] — 2026-10-03
+
+**Release type:** Patch
+
+**Summary:** Google Maps JS API key rotated to izinga-web-prod; resolves autocomplete failures on *.izinga.co.za.
+
+### Changes
+- [IMPROVED] Google Maps JS API key rotated to `izinga-web-prod` (GCP project `ijudi-d19bd`); new key is scoped to maps-backend/places-backend/geocoding-backend and HTTP-referrer-restricted to `https://*.izinga.co.za/*` and `https://*.rxnova24.co.za/*`
+
+### Breaking changes
+None
+
+### Deployment notes
+Firebase Hosting redeploy required — the new Maps key in `src/index.html` is a static asset; the CDN must be updated before production traffic resolves the new key.
+
+---
+
 ## [1.10.0] — 2026-09-17
 
 **Release type:** Feature
