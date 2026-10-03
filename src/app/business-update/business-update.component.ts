@@ -287,9 +287,18 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
         if(this.shop.id) {
           this.reloadPage()
         } else {
-          this.router.navigate([data.id], {relativeTo: this.route})
+          // TIER-BILLING-01 (T-14): branch on the tier selected during this session.
+          // FREE (or no tier in session): navigate to the dashboard — no subscription step.
+          // PREMIUM_1 or PREMIUM_2: navigate to the subscription checkout.
+          // The storeId from the backend response is used as the route parameter.
+          const selectedTier = this.storageService.selectedTier;
+          if (selectedTier === 'PREMIUM_1' || selectedTier === 'PREMIUM_2') {
+            this.router.navigate(['/business/subscription', data.id]);
+          } else {
+            this.router.navigate(['/business/dashboard']);
+          }
         }
-        
+
       },
       (error) => {
         // FIX-02: restore full hours array (including closed-day placeholders) so UI is intact

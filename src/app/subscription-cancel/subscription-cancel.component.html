@@ -1,0 +1,49 @@
+<div class="mt-3 px-3">
+
+  <!-- Page title -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold" id="cancel-heading" tabindex="-1">Your store is ready</h2>
+    <p class="text-muted">You can start receiving orders right away</p>
+  </div>
+
+  <!-- Cancel card -->
+  <div class="cancel-card" role="main">
+
+    <!-- Icon chip — store icon -->
+    <div class="d-flex align-items-center mb-4">
+      <div class="cancel-icon-chip cancel-icon-chip--teal me-3" aria-hidden="true">
+        <i class="material-icons" style="font-size:22px;color:var(--tier-teal);">store</i>
+      </div>
+      <div>
+        <span class="cancel-state-badge cancel-state-badge--teal">Free tier active</span>
+        <p class="mb-0 text-muted" style="font-size:0.85rem;">Your store is live</p>
+      </div>
+    </div>
+
+    <hr class="my-3">
+
+    <!-- Body copy -->
+    <p style="color:var(--text-color);line-height:1.65;" class="mb-4">
+      You're on the Free tier. Customers can place orders and you'll be notified via WhatsApp.
+      Upgrade to Premium anytime from your dashboard.
+    </p>
+
+    <!-- Primary action -->
+    <button
+      type="button"
+      class="btn btn-dark w-100 mb-2"
+      (click)="goToDashboard()">
+      Go to my dashboard
+    </button>
+
+    <!-- Secondary action -->
+    <button
+      type="button"
+      class="btn btn-outline-dark w-100"
+      (click)="tryAgain()">
+      Try upgrading again
+    </button>
+
+  </div>
+
+</div>

@@ -1,6 +1,8 @@
 export const environment = {
   production: false,
   izingaUrl : 'http://localhost',
+  /** TIER-BILLING-01: PayFast sandbox URL — used in non-production environments. */
+  payFastUrl: 'https://sandbox.payfast.co.za/eng/process',
   appVersion: '2.1.2',
   firebase_apiKey: "AIzaSyBCn6HQH1UKJMPImXFFBl7fGc2jT8amb0Q",
   firebaseVapidKey: "BBTAcjDdxSYob_-MRhZiBbrzOaW4qvyLQjHiZEsmVq8S3LXHZMrXBvsixmiIs8VYVFrlRaaZUeEPEGuUc-pM39A",

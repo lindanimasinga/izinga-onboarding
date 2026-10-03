@@ -1,6 +1,8 @@
 export const environment = {
   production: true,
   izingaUrl : 'https://api.izinga.co.za',
+  /** TIER-BILLING-01: PayFast production URL — used in production environment only. */
+  payFastUrl: 'https://www.payfast.co.za/eng/process',
   appVersion: '2.1.2',
   firebase_apiKey: "AIzaSyAsdgewbAv-hKaz55KyIDzQC2q7Iv8GrjI",
   firebaseVapidKey: "BBTAcjDdxSYob_-MRhZiBbrzOaW4qvyLQjHiZEsmVq8S3LXHZMrXBvsixmiIs8VYVFrlRaaZUeEPEGuUc-pM39A",

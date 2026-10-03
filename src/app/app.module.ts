@@ -57,6 +57,9 @@ import { ReconComponent } from './admin/recon/recon.component';
 import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
 import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.component';
 import { TierSelectionComponent } from './tier-selection/tier-selection.component';
+import { SubscriptionCheckoutComponent } from './subscription-checkout/subscription-checkout.component';
+import { SubscriptionSuccessComponent } from './subscription-success/subscription-success.component';
+import { SubscriptionCancelComponent } from './subscription-cancel/subscription-cancel.component';
 
 @NgModule({
   declarations: [
@@ -107,6 +110,9 @@ import { TierSelectionComponent } from './tier-selection/tier-selection.componen
     ReconPayoutOrdersComponent,
     PostIcaTrainingComponent,
     TierSelectionComponent,
+    SubscriptionCheckoutComponent,
+    SubscriptionSuccessComponent,
+    SubscriptionCancelComponent,
   ],
   imports: [
     BrowserModule,

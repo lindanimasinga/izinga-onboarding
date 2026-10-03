@@ -1,0 +1,90 @@
+<div class="mt-3 px-3">
+
+  <!-- Page title -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Complete Your Subscription</h2>
+    <p class="text-muted">Secure checkout powered by PayFast</p>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="text-center py-5" aria-live="polite" aria-busy="true">
+    <div class="spinner-border mb-3" role="status" aria-hidden="true"
+         style="width:2.5rem;height:2.5rem;color:var(--tier-gold);">
+    </div>
+    <p class="text-muted">Taking you to secure payment&hellip;</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="!loading && errorMessage" class="text-center py-4">
+    <div class="checkout-icon-chip checkout-icon-chip--gold mx-auto mb-3" aria-hidden="true">
+      <i class="material-icons" style="font-size:22px;color:var(--tier-gold);">error_outline</i>
+    </div>
+    <p class="mb-3" style="color:var(--text-color);">{{ errorMessage }}</p>
+    <button type="button" class="btn btn-dark w-100" (click)="initiateCheckout()">
+      <i class="material-icons me-2" style="font-size:16px;vertical-align:middle;"
+         aria-hidden="true">refresh</i>
+      Try again
+    </button>
+  </div>
+
+  <!-- Main checkout card — shown briefly while initiation is in flight,
+       then replaced by the PayFast redirect. -->
+  <div *ngIf="!loading && !errorMessage" class="checkout-card" role="main">
+
+    <!-- Tier badge chip -->
+    <div class="d-flex align-items-center mb-4">
+      <div class="checkout-icon-chip checkout-icon-chip--gold me-3" aria-hidden="true">
+        <i class="material-icons" style="font-size:22px;color:var(--tier-gold);">workspace_premium</i>
+      </div>
+      <div>
+        <span class="checkout-state-badge checkout-state-badge--gold">Premium tier</span>
+        <p class="mb-0 text-muted" style="font-size:0.85rem;">
+          {{ tierLabel === 'PREMIUM_2' ? 'Tier 2' : 'Tier 1' }} subscription
+        </p>
+      </div>
+    </div>
+
+    <hr class="my-3">
+
+    <!-- Price display -->
+    <div class="mb-3">
+      <span class="checkout-price" [attr.aria-label]="tierPrice + ' per month plus VAT'">
+        {{ tierPrice }}
+      </span>
+      <span class="checkout-price-period">/month + VAT</span>
+    </div>
+    <p class="text-muted mb-4" style="font-size:0.85rem;">
+      Billed monthly via PayFast &middot; cancel anytime from your dashboard
+    </p>
+
+    <hr class="my-3">
+
+    <!-- Billing disclosure (13px, reduced opacity — WCAG AA compliant against card background) -->
+    <p class="checkout-disclosure mb-4">
+      By proceeding, you authorise iZinga to initiate a recurring monthly subscription charge
+      via PayFast. Your subscription renews automatically each month until cancelled. You may
+      cancel at any time from your merchant dashboard. No refunds are issued for partial months.
+      PayFast is the payment processor; iZinga does not store your card details.
+    </p>
+
+    <!-- CTA button -->
+    <button
+      type="button"
+      class="btn btn-dark w-100 mb-2"
+      (click)="initiateCheckout()"
+      aria-label="Proceed to Payment — you will be redirected to PayFast's secure checkout page">
+      Proceed to Payment
+      <i class="material-icons ms-2" style="font-size:16px;vertical-align:middle;"
+         aria-hidden="true">arrow_forward</i>
+    </button>
+
+    <!-- Lock note below button -->
+    <p class="text-center text-muted" style="font-size:0.8rem;">
+      <i class="material-icons me-1" style="font-size:13px;vertical-align:middle;"
+         aria-hidden="true">lock</i>
+      You'll be redirected to PayFast's secure checkout
+    </p>
+
+  </div>
+
+</div>
