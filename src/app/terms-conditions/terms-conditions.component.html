@@ -452,6 +452,14 @@
       Something went wrong saving your acceptance. Please try again.
     </div>
 
+    <!-- Fix 3 (TIER-BILLING-01 DS review): muted tier hint for premium merchants only -->
+    <p *ngIf="selectedTier === 'PREMIUM_1' || selectedTier === 'PREMIUM_2'"
+       class="text-muted small mt-3 mb-0">
+      You've chosen {{ selectedTier === 'PREMIUM_2' ? 'Premium Tier 2' : 'Premium Tier 1' }}.
+      After this, we'll collect your store details and then complete your
+      {{ selectedTier === 'PREMIUM_2' ? 'R3,000' : 'R800' }} monthly subscription.
+    </p>
+
     <div class="card mt-4">
         <div class="card-body">
             <div class="form-check">

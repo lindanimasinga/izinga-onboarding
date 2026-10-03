@@ -598,6 +598,12 @@
 
 </div><!-- end .izinga-form-container -->
 
+<!-- Fix 3 (TIER-BILLING-01 DS review): muted tier hint for premium merchants only -->
+<p *ngIf="selectedTier === 'PREMIUM_1' || selectedTier === 'PREMIUM_2'"
+   class="text-muted small text-center mt-2 mb-0 px-3">
+  You're nearly there &mdash; one payment step after this.
+</p>
+
 <!-- REQ-14: padding-bottom so fixed bar does not cover page content -->
 <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
 

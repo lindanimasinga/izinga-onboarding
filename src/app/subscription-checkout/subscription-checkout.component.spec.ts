@@ -60,23 +60,47 @@ describe('SubscriptionCheckoutComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should call initiateSubscription with PREMIUM_1 on init', () => {
+  // Fix 1 (TIER-BILLING-01 DS review): initiateCheckout() must NOT be called on init —
+  // the checkout card must render first so the merchant sees the billing disclosure.
+  it('should NOT call initiateSubscription automatically on init', () => {
     const svc = makeServiceStub({ m_payment_id: 'pay-001', merchant_id: '16791971' });
     setup('PREMIUM_1', svc);
     fixture.detectChanges();
+    expect(svc.initiateSubscription).not.toHaveBeenCalled();
+  });
+
+  it('loading should be false on init (checkout card is the resting state)', () => {
+    setup('PREMIUM_1');
+    fixture.detectChanges();
+    expect(component.loading).toBeFalse();
+  });
+
+  it('errorMessage should be null on init', () => {
+    setup('PREMIUM_1');
+    fixture.detectChanges();
+    expect(component.errorMessage).toBeNull();
+  });
+
+  it('should call initiateSubscription with PREMIUM_1 when initiateCheckout is explicitly called', () => {
+    const svc = makeServiceStub({ m_payment_id: 'pay-001', merchant_id: '16791971' });
+    setup('PREMIUM_1', svc);
+    fixture.detectChanges();
+    component.initiateCheckout();
     expect(svc.initiateSubscription).toHaveBeenCalledWith('PREMIUM_1');
   });
 
-  it('should call initiateSubscription with PREMIUM_2 on init', () => {
+  it('should call initiateSubscription with PREMIUM_2 when initiateCheckout is explicitly called', () => {
     const svc = makeServiceStub({ m_payment_id: 'pay-002', merchant_id: '16791971' });
     setup('PREMIUM_2', svc);
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(svc.initiateSubscription).toHaveBeenCalledWith('PREMIUM_2');
   });
 
   it('should call submitPayFastForm on successful initiation', () => {
     setup('PREMIUM_1');
     fixture.detectChanges();
+    component.initiateCheckout();
     expect((component as any).submitPayFastForm).toHaveBeenCalled();
   });
 
@@ -88,6 +112,7 @@ describe('SubscriptionCheckoutComponent', () => {
     } as unknown as IzingaOrderManagementService;
     setup('PREMIUM_1', errorStub);
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(router.navigate).toHaveBeenCalledWith(['/business/dashboard']);
   });
 
@@ -99,6 +124,7 @@ describe('SubscriptionCheckoutComponent', () => {
     } as unknown as IzingaOrderManagementService;
     setup('PREMIUM_1', errorStub);
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(component.errorMessage).not.toBeNull();
     expect(component.errorMessage).toContain("couldn't start");
   });
@@ -106,12 +132,14 @@ describe('SubscriptionCheckoutComponent', () => {
   it('should redirect to dashboard when tier is FREE (belt-and-suspenders)', () => {
     setup('FREE');
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(router.navigate).toHaveBeenCalledWith(['/business/dashboard']);
   });
 
   it('should redirect to dashboard when tier is null', () => {
     setup(null);
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(router.navigate).toHaveBeenCalledWith(['/business/dashboard']);
   });
 
@@ -130,6 +158,7 @@ describe('SubscriptionCheckoutComponent', () => {
   it('loading should be false after a successful initiation', () => {
     setup('PREMIUM_1');
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(component.loading).toBeFalse();
   });
 
@@ -139,6 +168,7 @@ describe('SubscriptionCheckoutComponent', () => {
     } as unknown as IzingaOrderManagementService;
     setup('PREMIUM_1', errorStub);
     fixture.detectChanges();
+    component.initiateCheckout();
     expect(component.loading).toBeFalse();
   });
 });

@@ -334,6 +334,15 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     return this.storageService.userProfile?.role === 'ADMIN';
   }
 
+  /**
+   * Exposes the selected subscription tier to the template so premium-tier
+   * merchants see a muted reminder that a payment step follows the store-info
+   * form (Fix 3 — TIER-BILLING-01 DS review).
+   */
+  get selectedTier(): string | null {
+    return this.storageService.selectedTier;
+  }
+
   shopItems(category?: string): Stock[] | undefined {
     return this.shop?.stockList?.filter(item => item.group?.toLowerCase() == category?.toLowerCase())
   }

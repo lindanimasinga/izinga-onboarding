@@ -11,7 +11,11 @@ import { environment } from 'src/environments/environment';
  * Route: /business/subscription/:storeId
  * Guard: PremiumTierGuard (redirects FREE/null tier to /business/dashboard)
  *
- * On init:
+ * Renders the checkout card (price, billing disclosure, "Proceed to Payment" button) as
+ * its resting state, so the merchant explicitly sees and acknowledges the billing
+ * disclosure before any payment is initiated (ECT Act consent requirement).
+ *
+ * On "Proceed to Payment" click:
  *  1. Calls POST /merchant/subscription/initiate with the tier from session state.
  *  2. On success: constructs a hidden PayFast form and auto-submits it — the browser
  *     navigates to PayFast's hosted payment page.
@@ -47,7 +51,10 @@ export class SubscriptionCheckoutComponent implements OnInit {
   ngOnInit(): void {
     this.analytics.logScreenView('subscription_checkout');
     this.storeId = this.route.snapshot.paramMap.get('storeId');
-    this.initiateCheckout();
+    // Do NOT call initiateCheckout() here. The checkout card (price, disclosure,
+    // "Proceed to Payment" button) must render first so the merchant explicitly sees
+    // and acknowledges the billing disclosure before any payment call is made.
+    // initiateCheckout() fires only when the merchant clicks "Proceed to Payment".
   }
 
   /** Calls the initiate endpoint and, on success, auto-submits the PayFast form. */

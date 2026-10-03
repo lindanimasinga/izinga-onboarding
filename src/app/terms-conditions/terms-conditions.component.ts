@@ -122,6 +122,15 @@ export class TermsConditionsComponent implements OnInit {
     return !this.user?.icaAccepted || this.user?.icaVersion !== TermsConditionsComponent.DRIVER_ICA_VERSION;
   }
 
+  /**
+   * Exposes the selected subscription tier to the template so premium-tier
+   * merchants see a muted reminder that a payment step follows the T&Cs
+   * screen (Fix 3 — TIER-BILLING-01 DS review).
+   */
+  get selectedTier(): string | null {
+    return this.storageService.selectedTier;
+  }
+
   ngOnInit() {
     this.analytics.logScreenView('terms_conditions');
     this.route.params.subscribe(params => {

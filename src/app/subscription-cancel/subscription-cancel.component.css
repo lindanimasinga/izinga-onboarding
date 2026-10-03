@@ -1,17 +1,18 @@
 /* ----------------------------------------------------------------
    SubscriptionCancelComponent — TIER-BILLING-01 (T-13)
-   Teal accent — closes the loop back to Free tier's established colour.
+   Gold accent — merchant-facing screens use --tier-gold per iZinga
+   Design System convention (teal is reserved for driver/messenger).
    No guilt framing, no retention popups, no looping motion.
    ---------------------------------------------------------------- */
 
 :host {
-  --tier-teal: #00A9A1;
+  --tier-gold: #be833d;
 }
 
 /* Card entrance — one-shot translateY+opacity. */
 .cancel-card {
   background: var(--bkg-card-color);
-  border-left: 4px solid var(--tier-teal);
+  border-left: 4px solid var(--tier-gold);
   border-radius: 8px;
   padding: 24px 20px;
   animation: card-enter 0.22s ease both;
@@ -46,8 +47,8 @@
   flex-shrink: 0;
 }
 
-.cancel-icon-chip--teal {
-  background: color-mix(in srgb, var(--tier-teal) 20%, transparent);
+.cancel-icon-chip--gold {
+  background: color-mix(in srgb, var(--tier-gold) 20%, transparent);
 }
 
 /* ---- State badge ---- */
@@ -60,6 +61,6 @@
   margin-bottom: 2px;
 }
 
-.cancel-state-badge--teal {
-  color: var(--tier-teal);
+.cancel-state-badge--gold {
+  color: var(--tier-gold);
 }
