@@ -187,7 +187,22 @@ export class UserUpdateComponent {
         this.linkCode()
       }
       this.analytics.logEvent('profile_updated', { role: this.userProfile.role });
-      this.router.navigate(['../info'], {relativeTo: this.route }  )
+
+      // STORE_ADMIN users who have never selected a tier and have no existing store are
+      // still mid-funnel: they updated their UserProfile but never picked a subscription
+      // tier. Route them to tier-select so they pass through the onboarding gate.
+      // Existing merchants (storeId present) and anyone who already chose a tier in this
+      // session (selectedTier set in sessionStorage) follow the normal edit-profile path.
+      const needsTierSelection =
+        resp.role === UserProfile.RoleEnum.STOREADMIN &&
+        !resp.storeId &&
+        !this.storageService.selectedTier;
+
+      if (needsTierSelection) {
+        this.router.navigate(['../tier-select', resp.id], { relativeTo: this.route });
+      } else {
+        this.router.navigate(['../info'], { relativeTo: this.route });
+      }
     }, error => console.error(error))
   }
 

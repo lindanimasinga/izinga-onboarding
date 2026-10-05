@@ -510,3 +510,116 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
     expect(fixture.nativeElement.innerHTML).toContain('Tell us about your hustle');
   });
 });
+
+// ---------------------------------------------------------------------------
+// ONB-TIER-GATE — updateCustomer() post-save routing for STORE_ADMIN users
+//
+// TC-UPD-TIER-01  STORE_ADMIN, no storeId, no selectedTier → route to tier-select (new funnel)
+// TC-UPD-TIER-02  STORE_ADMIN, storeId present (established merchant editing profile) → route to info
+// TC-UPD-TIER-03  STORE_ADMIN, no storeId, but selectedTier set in session → route to info
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — updateCustomer() tier-select routing gate (ONB-TIER-GATE)', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+  let router: Router;
+
+  async function buildTestBed(
+    selectedTier: string | null,
+    profileOverrides: Partial<UserProfile> = {}
+  ): Promise<void> {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber',
+      'registerCustomer',
+      'updateCustomer',
+      'getUserConfig',
+      'getBankConfigs',
+      'uploadFile'
+    ]);
+    mockStorage = {
+      phoneNumber: '+27820000000',
+      userProfile: undefined,
+      selectedTier,
+      ambassadorRef: null,
+      logout: jasmine.createSpy('logout')
+    };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    const storeAdminProfile = buildUser({
+      role: UserProfile.RoleEnum.STOREADMIN,
+      ...profileOverrides
+    });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(storeAdminProfile));
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    fixture.detectChanges();
+  }
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  // TC-UPD-TIER-01: STORE_ADMIN + no storeId + no selectedTier → must go to tier-select
+  it('TC-UPD-TIER-01: STORE_ADMIN with no storeId and no selectedTier is routed to tier-select after profile update', async () => {
+    await buildTestBed(null);
+
+    const updatedUser = buildUser({ id: 'sa-new', role: UserProfile.RoleEnum.STOREADMIN });
+    mockOrderService.updateCustomer.and.returnValue(of(updatedUser));
+    const navigateSpy = spyOn(router, 'navigate');
+
+    component.updateCustomer();
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(
+      ['../tier-select', 'sa-new'],
+      jasmine.objectContaining({ relativeTo: jasmine.anything() })
+    );
+  });
+
+  // TC-UPD-TIER-02: STORE_ADMIN + storeId present → established merchant, must stay on ../info
+  it('TC-UPD-TIER-02: STORE_ADMIN with an existing storeId is routed to info after profile update (no regression)', async () => {
+    await buildTestBed(null, { id: 'sa-existing', storeId: 'store-001' });
+
+    const updatedUser = buildUser({ id: 'sa-existing', role: UserProfile.RoleEnum.STOREADMIN, storeId: 'store-001' });
+    mockOrderService.updateCustomer.and.returnValue(of(updatedUser));
+    const navigateSpy = spyOn(router, 'navigate');
+
+    component.updateCustomer();
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(
+      ['../info'],
+      jasmine.objectContaining({ relativeTo: jasmine.anything() })
+    );
+  });
+
+  // TC-UPD-TIER-03: STORE_ADMIN + no storeId + selectedTier already in session → mid-funnel, go to info
+  it('TC-UPD-TIER-03: STORE_ADMIN with selectedTier in session but no storeId is routed to info (tier already chosen)', async () => {
+    await buildTestBed('FREE');
+
+    const updatedUser = buildUser({ id: 'sa-has-tier', role: UserProfile.RoleEnum.STOREADMIN });
+    mockOrderService.updateCustomer.and.returnValue(of(updatedUser));
+    const navigateSpy = spyOn(router, 'navigate');
+
+    component.updateCustomer();
+
+    expect(navigateSpy).toHaveBeenCalledOnceWith(
+      ['../info'],
+      jasmine.objectContaining({ relativeTo: jasmine.anything() })
+    );
+  });
+});
