@@ -623,3 +623,146 @@ describe('UserUpdateComponent — updateCustomer() tier-select routing gate (ONB
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bug 9 — bank.phone field: frontend/backend contract gap
+//
+// TC-BANK-PHONE-01  bankPhone getter reads from userProfile.bank.phone
+// TC-BANK-PHONE-02  bankPhone setter writes to userProfile.bank.phone
+// TC-BANK-PHONE-03  ngOnInit seeds bank.phone from storageService.phoneNumber
+// TC-BANK-PHONE-04  existing user loaded — bank.phone defaulted to mobileNumber if blank
+// TC-BANK-PHONE-05  existing user loaded — bank.phone preserved when already set
+// TC-BANK-PHONE-06  onBankSelected defaults bank.phone to mobileNumber if blank
+// TC-BANK-PHONE-07  onBankSelected preserves bank.phone when already set
+// TC-BANK-PHONE-08  bank.phone is included in PATCH /user payload via updateCustomer
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — bank.phone field (Bug 9)', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  beforeEach(async () => {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber',
+      'registerCustomer',
+      'updateCustomer',
+      'getUserConfig',
+      'getBankConfigs',
+      'uploadFile'
+    ]);
+    mockStorage = {
+      phoneNumber: '+27820000000',
+      userProfile: undefined,
+      logout: jasmine.createSpy('logout'),
+      ambassadorRef: null,
+      selectedTier: null
+    } as any;
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(
+      of(buildUser({ mobileNumber: '+27820000000', bank: { type: 'EWALLET', name: 'FNB', accountId: '', branchCode: '250655' } }))
+    );
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  // TC-BANK-PHONE-01: bankPhone getter reads from userProfile.bank.phone
+  it('TC-BANK-PHONE-01: bankPhone getter returns userProfile.bank.phone', () => {
+    component.userProfile.bank.phone = '+27811111111';
+    expect(component.bankPhone).toBe('+27811111111');
+  });
+
+  // TC-BANK-PHONE-02: bankPhone setter writes to userProfile.bank.phone
+  it('TC-BANK-PHONE-02: bankPhone setter writes to userProfile.bank.phone', () => {
+    component.bankPhone = '+27822222222';
+    expect(component.userProfile.bank.phone).toBe('+27822222222');
+  });
+
+  // TC-BANK-PHONE-03: ngOnInit seeds bank.phone from storageService.phoneNumber
+  it('TC-BANK-PHONE-03: ngOnInit seeds bank.phone from storageService.phoneNumber before the user observable fires', () => {
+    // After fixture.detectChanges() ngOnInit has run; the seeding happens synchronously before subscribe()
+    expect(component.userProfile.bank.phone).toBeTruthy();
+  });
+
+  // TC-BANK-PHONE-04: existing user loaded with blank bank.phone — defaulted to mobileNumber
+  it('TC-BANK-PHONE-04: bank.phone is defaulted to mobileNumber when existing user has blank phone', () => {
+    const existingUser = buildUser({
+      id: 'u-existing',
+      mobileNumber: '+27833333333',
+      bank: { type: 'CHEQUE', name: 'FNB', accountId: '12345', branchCode: '250655', phone: '' }
+    });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(existingUser));
+    mockStorage.userProfile = undefined;
+
+    component.ngOnInit();
+
+    expect(component.userProfile.bank.phone).toBe('+27833333333');
+  });
+
+  // TC-BANK-PHONE-05: existing user with bank.phone already set — preserved, not overwritten
+  it('TC-BANK-PHONE-05: bank.phone is preserved when existing user already has it set', () => {
+    const existingUser = buildUser({
+      id: 'u-existing-phone',
+      mobileNumber: '+27844444444',
+      bank: { type: 'CHEQUE', name: 'FNB', accountId: '99999', branchCode: '250655', phone: '+27855555555' }
+    });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(existingUser));
+    mockStorage.userProfile = undefined;
+
+    component.ngOnInit();
+
+    expect(component.userProfile.bank.phone).toBe('+27855555555');
+  });
+
+  // TC-BANK-PHONE-06: onBankSelected defaults bank.phone to mobileNumber when blank
+  it('TC-BANK-PHONE-06: onBankSelected defaults bank.phone to mobileNumber if not already set', () => {
+    component.userProfile.mobileNumber = '+27866666666';
+    component.userProfile.bank.phone = '';
+    const bankConfig = { bankName: 'Nedbank', branchCode: '198765', bankCode: '198765' };
+
+    component.onBankSelected(bankConfig as any);
+
+    expect(component.userProfile.bank.phone).toBe('+27866666666');
+  });
+
+  // TC-BANK-PHONE-07: onBankSelected preserves bank.phone when already set
+  it('TC-BANK-PHONE-07: onBankSelected preserves existing bank.phone', () => {
+    component.userProfile.mobileNumber = '+27877777777';
+    component.userProfile.bank.phone = '+27888888888';
+    const bankConfig = { bankName: 'ABSA', branchCode: '632005', bankCode: '632005' };
+
+    component.onBankSelected(bankConfig as any);
+
+    expect(component.userProfile.bank.phone).toBe('+27888888888');
+  });
+
+  // TC-BANK-PHONE-08: bank.phone is included in the payload sent by updateCustomer
+  it('TC-BANK-PHONE-08: updateCustomer sends bank.phone in the PATCH payload', () => {
+    component.userProfile.bank.phone = '+27899999999';
+    const updatedUser = buildUser({ id: 'u-upd' });
+    mockOrderService.updateCustomer.and.returnValue(of(updatedUser));
+
+    component.updateCustomer();
+
+    const payload = mockOrderService.updateCustomer.calls.mostRecent().args[0];
+    expect(payload.bank.phone).toBe('+27899999999');
+  });
+});

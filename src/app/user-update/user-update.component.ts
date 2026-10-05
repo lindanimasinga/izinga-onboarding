@@ -63,7 +63,8 @@ export class UserUpdateComponent {
       type: "EWALLET",
       name: "FNB",
       accountId: "",
-      branchCode: "250655"
+      branchCode: "250655",
+      phone: ""
     },
     tag: {}
   }
@@ -85,6 +86,8 @@ export class UserUpdateComponent {
     this.loadUserConfig()
     this.loadBankConfigs()
     this.userProfile.mobileNumber = this.storageService.phoneNumber
+    // Seed bank.phone from mobileNumber so new-user BANK_ACC submissions have it set
+    this.userProfile.bank.phone = this.storageService.phoneNumber || ''
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
       if(!user.bank) user.bank = this.userProfile.bank
@@ -97,6 +100,10 @@ export class UserUpdateComponent {
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
+      // Default bank.phone to mobileNumber if not already set (backend requires this field)
+      if (!this.userProfile.bank.phone) {
+        this.userProfile.bank.phone = this.userProfile.mobileNumber || ''
+      }
       // Mark picture as uploaded if user already has a non-default profile picture
       if (user.imageUrl && user.imageUrl !== this.DEFAULT_PROFILE_PIC) {
         this.profilePictureUploaded = true;
@@ -258,6 +265,14 @@ export class UserUpdateComponent {
     this.userProfile.bank.accountId = name
   }
 
+  get bankPhone(): string {
+    return this.userProfile.bank.phone || ''
+  }
+
+  set bankPhone(value: string) {
+    this.userProfile.bank.phone = value
+  }
+
   findCustomer() {
     this.izingaOrderManager.getCustomerByPhoneNumber(this.userProfile.mobileNumber!)
     .pipe(
@@ -292,6 +307,8 @@ export class UserUpdateComponent {
     this.userProfile.bank.name = bankConfig.bankName;
     this.userProfile.bank.branchCode = bankConfig.branchCode;
     this.userProfile.bank.accountId = this.userProfile.bank.accountId || '';
+    // Default phone to mobileNumber when a bank is selected, if not already set
+    this.userProfile.bank.phone = this.userProfile.bank.phone || this.userProfile.mobileNumber || '';
   }
 
   linkCode() {

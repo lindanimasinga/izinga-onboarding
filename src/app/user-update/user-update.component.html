@@ -278,6 +278,13 @@
                         </div>
                         <small *ngIf="selectedBankConfig" class="text-muted">Auto-filled from selected bank</small>
                     </div>
+                    <div class="mb-3">
+                        <label for="bankPhone">Bank Phone Number</label>
+                        <div class="input-group">
+                            <input type="tel" class="form-control" [(ngModel)]="bankPhone" name="bankPhone" id="bankPhone">
+                        </div>
+                        <small class="text-muted">Mobile number linked to this bank account</small>
+                    </div>
                 </div>
 
                 <div class="mb-3">

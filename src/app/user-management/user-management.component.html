@@ -147,6 +147,11 @@
                     [class.bg-light]="!!selectedBankConfigForNewUser">
                 <small *ngIf="selectedBankConfigForNewUser" class="text-muted">Auto-filled from selected bank</small>
               </div>
+              <div class="mb-2">
+                <label class="form-label">Bank Phone Number</label>
+                <input type="tel" class="form-control" [(ngModel)]="newUser.bank.phone" name="createBankPhone">
+                <small class="text-muted">Mobile number linked to this bank account</small>
+              </div>
             </div>
 
             <button class="btn btn-dark w-100 mt-2" type="submit" [disabled]="isCreatingUser || !createUserForm.form.valid">
@@ -342,6 +347,11 @@
                   <div class="mb-2">
                     <label class="form-label">Branch Code</label>
                     <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.branchCode" name="editBranchCode">
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label">Bank Phone Number</label>
+                    <input type="tel" class="form-control" [(ngModel)]="selectedUser.bank.phone" name="editBankPhone">
+                    <small class="text-muted">Mobile number linked to this bank account</small>
                   </div>
                 </div>
                 <!-- Missing Documents Reminder Flag -->

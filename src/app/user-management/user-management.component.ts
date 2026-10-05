@@ -307,10 +307,11 @@ export class UserManagementComponent {
       this.newUser.bank.name = 'FNB';
       this.newUser.bank.branchCode = '250655';
       this.newUser.bank.accountId = this.newUser.mobileNumber;
+      this.newUser.bank.phone = this.newUser.mobileNumber || '';
     }
 
-    if (this.createPaymentType === 'BANK_ACC' && (!this.newUser.bank.name || !this.newUser.bank.accountId || !this.newUser.bank.branchCode)) {
-      this.errorMessage = 'Bank name, account number, and branch code are required for bank payouts';
+    if (this.createPaymentType === 'BANK_ACC' && (!this.newUser.bank.name || !this.newUser.bank.accountId || !this.newUser.bank.branchCode || !this.newUser.bank.phone)) {
+      this.errorMessage = 'Bank name, account number, branch code, and bank phone number are required for bank payouts';
       return;
     }
 
@@ -339,11 +340,14 @@ export class UserManagementComponent {
     this.newUser.bank.accountId = this.newUser.mobileNumber ? this.formatPhoneNumber(this.newUser.mobileNumber) : '';
     this.newUser.bank.name = 'FNB';
     this.newUser.bank.branchCode = '250655';
+    this.newUser.bank.phone = this.newUser.mobileNumber || '';
   }
 
   onBankSelectedForNewUser(bankConfig: BankConfig): void {
     this.newUser.bank.name = bankConfig.bankName;
     this.newUser.bank.branchCode = bankConfig.branchCode;
+    // Default phone to mobileNumber when a bank is selected, if not already set
+    this.newUser.bank.phone = this.newUser.bank.phone || this.newUser.mobileNumber || '';
   }
 
   getInputType(dataType: DataType): string {
