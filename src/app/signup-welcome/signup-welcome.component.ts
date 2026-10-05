@@ -97,6 +97,20 @@ export class SignupWelcomeComponent implements OnInit {
     if (this.userRole === UserProfile.RoleEnum.STOREADMIN && base === '/business') {
       return [base, 'tier-select', this.userId || ''];
     }
+    // Instance 3 of the business-flow placeholder-role bug (same root cause as
+    // DashboardComponent cc86278 and UserUpdateComponent a045a48):
+    // WhatsApp OTP auto-creates a placeholder UserProfile with role CUSTOMER when no
+    // existing profile is found/matched — this happens even on /business/ routes. Any
+    // role that is not an established merchant role (STOREADMIN — already handled above,
+    // STORE, or ADMIN) indicates an incomplete profile that must be completed at
+    // /business/user (UserUpdateComponent assigns STORE_ADMIN on submission).
+    // Without this guard the user lands at /business/terms/:id with role CUSTOMER and
+    // never completes profile setup, which breaks all subsequent merchant operations.
+    if (base === '/business' &&
+        this.userRole !== UserProfile.RoleEnum.STORE &&
+        this.userRole !== UserProfile.RoleEnum.ADMIN) {
+      return ['/business', 'user'];
+    }
     return [base, 'terms', this.userId || ''];
   }
 

@@ -136,14 +136,59 @@ describe('SignupWelcomeComponent — termsRoute and canViewTerms', () => {
     expect(component.termsRoute).toEqual(['/business', 'tier-select', ROUTE_PARAM_ID]);
   });
 
-  // TC-SW-10: non-STORE_ADMIN on /business/ URL still resolves to /business/terms/:id
-  // This preserves the /business base-selection logic test that TC-SW-08 previously covered.
-  it('TC-SW-10: non-STORE_ADMIN via /business/ URL: termsRoute → [/business, terms, userId]', () => {
-    // Use MESSENGER role in a business URL — any non-STOREADMIN role should still
-    // resolve to /business/terms/:id when the current route contains /business/.
+  // TC-SW-10: updated to reflect the Instance-3 placeholder-role fix.
+  // MESSENGER is not an established merchant role (STOREADMIN/STORE/ADMIN), so on a
+  // /business/ route it must now redirect to /business/user for profile completion
+  // instead of falling through to /business/terms/:id (the old behaviour that allowed
+  // the CUSTOMER placeholder to bypass profile setup).
+  it('TC-SW-10: MESSENGER via /business/ URL: termsRoute → [/business, user] (profile completion)', () => {
     setup(buildProfile(UserProfile.RoleEnum.MESSENGER), '/business/signup-welcome/user-123');
     fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/business', 'user']);
+  });
+
+  // -------------------------------------------------------------------------
+  // TC-SW-16 to TC-SW-19: Instance-3 business-flow placeholder-role fix
+  // Same root cause as DashboardComponent (cc86278) and UserUpdateComponent (a045a48).
+  // -------------------------------------------------------------------------
+
+  it('TC-SW-16: CUSTOMER role + /business/ URL: termsRoute → [/business, user] (primary regression case)', () => {
+    // This is the exact case that was broken: WhatsApp OTP auto-creates a UserProfile
+    // with role CUSTOMER when no existing profile is found. The user must complete
+    // profile setup at /business/user (assigns STORE_ADMIN) before proceeding.
+    setup(buildProfile(UserProfile.RoleEnum.CUSTOMER), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/business', 'user']);
+  });
+
+  it('TC-SW-17: STORE role + /business/ URL: termsRoute → [/business, terms, userId] (established employee role)', () => {
+    // STORE is an established sub-role for store employees — they have an existing
+    // profile and should proceed to terms, not be redirected to profile setup.
+    setup(buildProfile(UserProfile.RoleEnum.STORE), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
     expect(component.termsRoute).toEqual(['/business', 'terms', ROUTE_PARAM_ID]);
+  });
+
+  it('TC-SW-18: ADMIN role + /business/ URL: termsRoute → [/business, terms, userId] (iZinga admin role)', () => {
+    // ADMIN is the iZinga internal admin — already fully established, should proceed to terms.
+    setup(buildProfile(UserProfile.RoleEnum.ADMIN), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/business', 'terms', ROUTE_PARAM_ID]);
+  });
+
+  it('TC-SW-19: STOREADMIN + /business/ URL: termsRoute → tier-select (unchanged from TC-SW-08)', () => {
+    // Regression guard: the STOREADMIN → tier-select branch must be unaffected.
+    setup(buildProfile(UserProfile.RoleEnum.STOREADMIN), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/business', 'tier-select', ROUTE_PARAM_ID]);
+  });
+
+  it('TC-SW-20: REFERRALPARTNER + /business/ URL: termsRoute → /referral-partner/enroll (unchanged from TC-SW-01)', () => {
+    // Regression guard: the REFERRALPARTNER branch fires before the base-route check
+    // and must be unaffected regardless of the URL prefix.
+    setup(buildProfile(UserProfile.RoleEnum.REFERRALPARTNER), '/business/signup-welcome/user-123');
+    fixture.detectChanges();
+    expect(component.termsRoute).toEqual(['/referral-partner/enroll']);
   });
 
   // -------------------------------------------------------------------------
