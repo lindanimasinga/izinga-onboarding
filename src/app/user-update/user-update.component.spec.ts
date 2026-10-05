@@ -479,6 +479,28 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
     expect(component.roleDescription).toBeUndefined();
   });
 
+  // TC-SHOP-ROLE-02: Race-condition guard — if getUserConfig HTTP response has not returned
+  // by the time the user submits the form (userConfig is empty, roleDescription is unset),
+  // createCustomer() must still assign STORE_ADMIN for the shop flow.
+  // Previously this fell back to CUSTOMER via the userConfig.find() → undefined path.
+  it('TC-SHOP-ROLE-02: shop flow createCustomer assigns STORE_ADMIN even when userConfig has not yet loaded (race condition guard)', async () => {
+    // setup with empty config simulates the race: getUserConfig response not yet arrived.
+    await setup('shop', []);
+    // Explicitly zero out in case any sync resolution set them (belt-and-suspenders).
+    component.userConfig = [];
+    component.roleDescription = undefined;
+    component.profilePictureUploaded = true;
+
+    mockOrderService.registerCustomer.and.returnValue(
+      of(buildUser({ id: 'race-store-owner', role: UserProfile.RoleEnum.STOREADMIN }))
+    );
+
+    component.createCustomer();
+
+    const posted = mockOrderService.registerCustomer.calls.mostRecent().args[0];
+    expect(posted.role).toBe(UserProfile.RoleEnum.STOREADMIN);
+  });
+
   it('non-shop flow: all account types are offered and nothing is pre-selected', async () => {
     await setup('driver');
 
