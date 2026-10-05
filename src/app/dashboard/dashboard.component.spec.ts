@@ -352,10 +352,10 @@ describe('DashboardComponent — business profile-setup guard', () => {
     expect(wentToTerms).toBeFalse();
   }));
 
-  // TC-DASH-16: An existing STOREADMIN with accepted terms must pass through the new guard
-  // and proceed normally (no redirect to /business/user).
-  it('TC-DASH-16: STOREADMIN on /business/dashboard with termsAccepted proceeds normally (no redirect)', fakeAsync(() => {
-    const user = buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true });
+  // TC-DASH-16: An existing STOREADMIN with accepted terms AND an existing store must pass
+  // through the new guards and proceed normally (no redirect to /business/user or tier-select).
+  it('TC-DASH-16: STOREADMIN on /business/dashboard with termsAccepted and storeId proceeds normally (no redirect)', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true, storeId: 'store-biz-001' });
     mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
 
     fixture.detectChanges();
@@ -418,7 +418,7 @@ describe('DashboardComponent — ONB-UX-01 requirements', () => {
   // REQ-17: no shadow-sm on dashboard cards
   it('REQ-17 — no shadow-sm classes exist on dashboard cards', fakeAsync(() => {
     mockService.getCustomerByPhoneNumber.and.returnValue(
-      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true }))
+      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true, storeId: 'store-req17' }))
     );
     fixture.detectChanges();
     tick();
@@ -430,7 +430,7 @@ describe('DashboardComponent — ONB-UX-01 requirements', () => {
   // REQ-16: driver availability toggle is NOT visible for STORE_ADMIN
   it('REQ-16 — driver availability toggle hidden for STORE_ADMIN', fakeAsync(() => {
     mockService.getCustomerByPhoneNumber.and.returnValue(
-      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true }))
+      of(buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true, storeId: 'store-req16' }))
     );
     fixture.detectChanges();
     tick();
@@ -445,5 +445,111 @@ describe('DashboardComponent — ONB-UX-01 requirements', () => {
     const html: string = fixture.nativeElement.innerHTML;
     const hasAvailabilityToggle = html.includes('AVAILABLE') && html.includes('AWAY') && html.includes('OFFLINE');
     expect(hasAvailabilityToggle).toBeFalse();
+  }));
+});
+
+// ---------------------------------------------------------------------------
+// Merchant funnel completeness gate — TC-DASH-17 through TC-DASH-19
+//
+// TC-DASH-17  STOREADMIN + termsAccepted + no storeId + no selectedTier → redirected to /business/tier-select/:id
+// TC-DASH-18  STOREADMIN + termsAccepted + storeId present → dashboard renders (no redirect, regression guard)
+// TC-DASH-19  STOREADMIN + termsAccepted + no storeId + selectedTier set (mid-funnel) → NOT bounced to tier-select
+// ---------------------------------------------------------------------------
+describe('DashboardComponent — merchant funnel completeness gate', () => {
+  let component: DashboardComponent;
+  let fixture: ComponentFixture<DashboardComponent>;
+  let mockService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: Partial<StorageService>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockFirebase: jasmine.SpyObj<FirebaseService>;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  const buildUser = (overrides: Partial<UserProfile> = {}): UserProfile => ({
+    id: 'user-funnel-01',
+    role: UserProfile.RoleEnum.STOREADMIN,
+    mobileNumber: '+27812810000',
+    termsAccepted: true,
+    ...overrides
+  } as UserProfile);
+
+  beforeEach(async () => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/dashboard' });
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockFirebase = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    mockFirebase.getCurrentToken.and.returnValue(null);
+    mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    // Default: no selectedTier in session (null simulates no session key).
+    mockStorage = {
+      phoneNumber: '+27812810000',
+      userProfile: undefined as any,
+      selectedTier: null as any
+    };
+
+    await TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebase },
+        { provide: AnalyticsService, useValue: mockAnalytics }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardComponent);
+    component = fixture.componentInstance;
+  });
+
+  // TC-DASH-17: The main fix — STOREADMIN with accepted T&Cs but no store and no session tier
+  // must be redirected to tier-select, not left on the merchant dashboard.
+  it('TC-DASH-17: STOREADMIN + termsAccepted + no storeId + no selectedTier → redirected to /business/tier-select/:id', fakeAsync(() => {
+    const user = buildUser(); // no storeId, mockStorage.selectedTier is null
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/business/tier-select', user.id]);
+  }));
+
+  // TC-DASH-18: Regression guard — an existing merchant with a store must pass straight
+  // through to the dashboard regardless of session tier state.
+  it('TC-DASH-18: STOREADMIN + termsAccepted + storeId present → dashboard renders (no redirect)', fakeAsync(() => {
+    const user = buildUser({ storeId: 'store-existing-01' });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(component.isStoreAdmin).toBeTrue();
+  }));
+
+  // TC-DASH-19: Mid-funnel pass-through — a STOREADMIN who has no store yet but HAS a tier
+  // in their session (they just left /business/tier-select → /business/info) must NOT be
+  // bounced back to tier-select if they somehow reach /business/dashboard mid-funnel
+  // (e.g. BusinessUpdateComponent navigates here for FREE-tier after store creation before
+  // the backend response propagates storeId to the profile). The selectedTier signal keeps
+  // them moving forward.
+  it('TC-DASH-19: STOREADMIN + termsAccepted + no storeId + selectedTier set → NOT bounced to tier-select', fakeAsync(() => {
+    const user = buildUser(); // no storeId
+    // Simulate having selected a tier this session
+    (mockStorage as any).selectedTier = 'FREE';
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    const calls = mockRouter.navigate.calls.allArgs();
+    const wentToTierSelect = calls.some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0]?.includes('/business/tier-select');
+    });
+    expect(wentToTierSelect).toBeFalse();
   }));
 });

@@ -116,6 +116,30 @@ export class DashboardComponent {
         }
         return;
       }
+      // Merchant funnel completeness gate.
+      // A STOREADMIN who has accepted T&Cs but has never created a store must be
+      // redirected to tier selection — they cannot use the merchant dashboard until
+      // a store exists.
+      //
+      // Let through when EITHER:
+      //   (a) user.storeId is truthy — real merchant, store already exists.
+      //   (b) storageService.selectedTier is truthy — user is mid-session in the
+      //       new-store funnel (just picked a tier and is going through store
+      //       creation, or just created a FREE-tier store and BusinessUpdateComponent
+      //       routed here). selectedTier is sessionStorage-backed, so it clears when
+      //       the tab closes; a refresh of the dashboard with no store will correctly
+      //       send the user back to tier-select to restart the funnel.
+      //
+      // Applied only on /business/ routes (STOREADMIN/STORE/ADMIN) — no crossover
+      // with the /indivisuals/ flow.
+      if (currentUrl.includes('/business/') &&
+          user.role === UserProfile.RoleEnum.STOREADMIN &&
+          !user.storeId &&
+          !this.storageService.selectedTier) {
+        this.router.navigate(['/business/tier-select', user.id]);
+        return;
+      }
+
       this.updateDevice()
       this.findMissingDocuments()
     }, error => { 
