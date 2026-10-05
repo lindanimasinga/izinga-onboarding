@@ -9,6 +9,7 @@ import { BusinessUpdateComponent } from './business-update.component';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FirebaseService } from '../service/firebase.service';
 import { Category, StoreProfile } from '../model/storeProfile';
 import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
 
@@ -27,6 +28,7 @@ function buildComponent(
   fixture: ComponentFixture<BusinessUpdateComponent>;
   orderSvc: jasmine.SpyObj<IzingaOrderManagementService>;
   storageSvc: jasmine.SpyObj<StorageService>;
+  firebaseSvc: jasmine.SpyObj<FirebaseService>;
 } {
   const paramsSubject = new Subject<any>();
 
@@ -51,6 +53,12 @@ function buildComponent(
 
   const analyticsSvc = jasmine.createSpyObj<AnalyticsService>('AnalyticsService', ['logScreenView', 'logEvent']);
 
+  // TIER-BILLING-01: stub FirebaseService so tests that exercise registerBusinessAndStock()
+  // on the new-store path do not trigger a real Firebase token fetch. Default returns a
+  // synthetic refresh token — individual tests override this as needed.
+  const firebaseSvc = jasmine.createSpyObj<FirebaseService>('FirebaseService', ['refreshIdToken']);
+  firebaseSvc.refreshIdToken.and.returnValue(of('refreshed-token'));
+
   TestBed.configureTestingModule({
     declarations: [BusinessUpdateComponent],
     schemas: [NO_ERRORS_SCHEMA],
@@ -59,6 +67,7 @@ function buildComponent(
       { provide: IzingaOrderManagementService, useValue: orderSvc },
       { provide: StorageService, useValue: storageSvc },
       { provide: AnalyticsService, useValue: analyticsSvc },
+      { provide: FirebaseService, useValue: firebaseSvc },
       {
         provide: ActivatedRoute,
         useValue: { params: paramsSubject.asObservable() }
@@ -71,7 +80,7 @@ function buildComponent(
   const component = fixture.componentInstance;
   fixture.detectChanges();
 
-  return { component, fixture, orderSvc, storageSvc };
+  return { component, fixture, orderSvc, storageSvc, firebaseSvc };
 }
 
 // ---------------------------------------------------------------------------
@@ -703,6 +712,104 @@ describe('BusinessUpdateComponent — ONB-UX-02', () => {
     component.businessHoursClosed['MONDAY'] = false;
     component.toggleDayClosed('MONDAY');
     expect(component.businessHoursClosed['MONDAY']).toBe(false); // unchanged
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER-BILLING-01 — Firebase token refresh after new store creation
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — TIER-BILLING-01 token refresh', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // TB-TOKEN-01: refreshIdToken() must be called (and complete) before navigation
+  // when a NEW store is created. Without the forced refresh the JWT still lacks the
+  // storeId claim that StoreService.create() just stamped, causing
+  // POST /merchant/subscription/initiate to return 422 STORE_ID_NOT_IN_JWT.
+  it('TB-TOKEN-01: refreshIdToken is called after successful new store creation', () => {
+    const { component, orderSvc, firebaseSvc, storageSvc } = buildComponent();
+
+    // Provide ICA-accepted userProfile so the guard does not redirect early
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: shop.id is falsy
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.createStore).toHaveBeenCalled();
+    expect(firebaseSvc.refreshIdToken).toHaveBeenCalledTimes(1);
+  });
+
+  // TB-TOKEN-02: refreshIdToken() must NOT be called when updating an existing store.
+  // Updating a store does not grant a new Firebase custom claim, so forcing a token
+  // refresh would add unnecessary network latency to every update save.
+  it('TB-TOKEN-02: refreshIdToken is NOT called when updating an existing store', () => {
+    const { component, orderSvc, firebaseSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    // Existing store: shop.id is truthy
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    expect(firebaseSvc.refreshIdToken).not.toHaveBeenCalled();
+  });
+
+  // TB-TOKEN-03: navigation to subscription checkout only occurs AFTER the token
+  // refresh completes (not in parallel). Verify sequencing by making refreshIdToken
+  // use a Subject so we can assert the router has NOT navigated mid-refresh.
+  it('TB-TOKEN-03: navigation to subscription is deferred until refreshIdToken completes', () => {
+    const { component, orderSvc, firebaseSvc, storageSvc } = buildComponent();
+    const routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+    (storageSvc as any).selectedTier = 'PREMIUM_1';
+
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-2', stockList: [] } as any));
+
+    // Hold the refresh open so we can check whether navigation fires prematurely
+    const refreshSubject = new Subject<string>();
+    firebaseSvc.refreshIdToken.and.returnValue(refreshSubject.asObservable());
+
+    component.registerBusinessAndStock();
+
+    // Refresh has not completed — navigation must NOT have fired yet
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+
+    // Now complete the refresh — navigation must fire
+    refreshSubject.next('token');
+    refreshSubject.complete();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/business/subscription', 'new-store-2']);
   });
 });
 

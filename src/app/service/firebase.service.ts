@@ -159,6 +159,33 @@ export class FirebaseService {
     return from(user.getIdToken());
   }
 
+  /**
+   * Force-refresh the Firebase ID token, bypassing the SDK cache.
+   *
+   * Call this immediately after a backend operation that grants a new Firebase custom
+   * claim — specifically, after a new store is created via POST /store, because
+   * StoreService.create() calls FirebaseAuth.setCustomUserClaims() to stamp the new
+   * storeId onto the owner's account. Without a forced refresh the SDK continues to
+   * serve the pre-creation token (which lacks storeId), causing
+   * POST /merchant/subscription/initiate to return 422 STORE_ID_NOT_IN_JWT.
+   *
+   * getFirebaseIdToken() MUST NOT be changed to force-refresh on every call — that
+   * would add a server round-trip to every authenticated request in the app. This
+   * method is the targeted, one-time alternative for the exact moment a new claim
+   * has just been granted.
+   *
+   * Null-user guard mirrors getFirebaseIdToken(): routes to session-expired flow
+   * rather than emitting a silent error the caller cannot handle.
+   */
+  refreshIdToken(): Observable<string> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      this.storageService.sessionExpired(this.router.url);
+      return throwError(() => new Error('Your session has expired. Please verify your phone number again.'));
+    }
+    return from(user.getIdToken(true));
+  }
+
   listen() {
     if (!this.messaging) return;
     onMessage(this.messaging, (payload: any) => {

@@ -12,6 +12,7 @@ import { BusinessHours } from '../model/businessHours';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { FixedBarService } from '../service/fixed-bar.service';
+import { FirebaseService } from '../service/firebase.service';
 
 // FIX-02: canonical day order used to initialise closed state and guard last-open-day
 const ALL_DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -85,7 +86,8 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     private datePipe: DatePipe,
     private storageService: StorageService,
     private analytics: AnalyticsService,
-    private fixedBarService: FixedBarService
+    private fixedBarService: FixedBarService,
+    private firebaseService: FirebaseService
   ) {}
 
   ngOnInit(): void {
@@ -298,7 +300,23 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
 
     var call = this.selectedFile ? this.uploadImage() : of("")
       call.pipe(
-        mergeMap(() => this.shop.id ? this.izingaOrderManagementService.updateStore(this.shop) : this.izingaOrderManagementService.createStore(this.shop))
+        mergeMap(() => this.shop.id ? this.izingaOrderManagementService.updateStore(this.shop) : this.izingaOrderManagementService.createStore(this.shop)),
+        // TIER-BILLING-01 (token refresh): POST /store triggers StoreService.create() which
+        // calls FirebaseAuth.setCustomUserClaims() to stamp a storeId onto the merchant's
+        // Firebase account. The SDK caches ID tokens and will NOT pick up that new claim
+        // unless we force a server round-trip with getIdToken(true). Without this refresh,
+        // POST /merchant/subscription/initiate returns 422 STORE_ID_NOT_IN_JWT because the
+        // JWT still reflects the pre-creation claim state.
+        //
+        // Only new store creation (shop.id falsy) grants a new claim — updates are exempt.
+        // This step must be in the pipe (not fire-and-forget) so the navigation to the
+        // subscription checkout cannot race ahead of the refresh completing.
+        mergeMap((data) => {
+          if (!this.shop.id) {
+            return this.firebaseService.refreshIdToken().pipe(map(() => data));
+          }
+          return of(data);
+        })
       ).subscribe(
       data => {
         this.stockList = data.stockList!
