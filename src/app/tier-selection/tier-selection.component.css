@@ -180,7 +180,9 @@ li.tier-divider::before { display: none; }
 /* ---- Fee disclosure block (item 2) ----
    Left border uses the card's accent colour; the other borders are removed
    so only the left accent strip remains.  Card-specific colour overrides
-   are applied via parent-card selectors below. */
+   are applied via parent-card selectors below.
+   margin-bottom is 0 — the button's mt-2 (8px) provides the only gap so
+   the fee box sits close to the Select button (Bug 2 fix). */
 .fee-disclosure {
   background: rgba(128, 128, 128, 0.08);
   border-left: 3px solid rgba(128, 128, 128, 0.3);  /* fallback */
@@ -192,7 +194,7 @@ li.tier-divider::before { display: none; }
   font-size: 0.8rem;
   color: var(--text-color);
   line-height: 1.55;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .fee-disclosure strong {
@@ -227,9 +229,47 @@ li.tier-divider::before { display: none; }
   margin-bottom: 4px;
 }
 
+/* ---- Select tier buttons (Bug 1 fix) ----
+   btn-outline-dark uses Bootstrap's charcoal text, which is invisible on dark
+   card backgrounds. These rules use the card's own colour token so the button
+   reads clearly in both light and dark themes.
+   background: transparent keeps the card colour visible behind the button.
+   hover: brightness(0.9) per iZinga convention — never --btn-bg-hover-color. */
+.tier-action-btn {
+  background: transparent;
+  border: 1.5px solid currentColor;
+  transition: filter 0.15s ease;
+}
+
+.tier-action-btn:hover,
+.tier-action-btn:focus-visible {
+  filter: brightness(0.9);
+}
+
+.tier-card--free .tier-action-btn {
+  color: var(--tier-teal);
+  border-color: var(--tier-teal);
+}
+
+.tier-card--gold .tier-action-btn {
+  color: var(--tier-gold);
+  border-color: var(--tier-gold);
+}
+
+/* ---- Card gap (Bug 3 fix) ----
+   Bootstrap 4 has no g-* gutter utilities; the row g-3 in the template is
+   silently ignored. Add bottom margin directly on .tier-card so stacked cards
+   (mobile/tablet) have breathing room. On desktop (lg+) the cards are in a
+   three-column row so the bottom margin is harmless but cleared to keep the
+   row bottom flush with the payout note below. */
+.tier-card {
+  margin-bottom: 1rem;
+}
+
 /* ---- Responsive: ensure equal-height row on lg+ ---- */
 @media (min-width: 992px) {
   .tier-card {
     min-height: 560px;
+    margin-bottom: 0;
   }
 }

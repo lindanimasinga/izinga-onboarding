@@ -319,6 +319,40 @@ describe('TierSelectionComponent', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Bug 1 — Select buttons must use tier-action-btn, not btn-outline-dark
+  // btn-outline-dark renders charcoal text invisible on dark card backgrounds.
+  // -------------------------------------------------------------------------
+
+  describe('Bug 1 — Select button contrast classes', () => {
+    it('should not use btn-outline-dark on any Select button', () => {
+      const buttons: NodeListOf<Element> = fixture.nativeElement.querySelectorAll('.tier-action-btn');
+      // Three Select buttons must exist
+      expect(buttons.length).toBe(3);
+    });
+
+    it('Select Free button should carry tier-action-btn, not btn-outline-dark', () => {
+      const cards = fixture.nativeElement.querySelectorAll('.tier-card');
+      const freeBtn = cards[0].querySelector('button.tier-action-btn');
+      expect(freeBtn).not.toBeNull();
+      expect(freeBtn!.classList).not.toContain('btn-outline-dark');
+    });
+
+    it('Select Premium Tier 1 button should carry tier-action-btn, not btn-outline-dark', () => {
+      const cards = fixture.nativeElement.querySelectorAll('.tier-card');
+      const t1Btn = cards[1].querySelector('button.tier-action-btn');
+      expect(t1Btn).not.toBeNull();
+      expect(t1Btn!.classList).not.toContain('btn-outline-dark');
+    });
+
+    it('Select Premium Tier 2 button should carry tier-action-btn, not btn-outline-dark', () => {
+      const cards = fixture.nativeElement.querySelectorAll('.tier-card');
+      const t2Btn = cards[2].querySelector('button.tier-action-btn');
+      expect(t2Btn).not.toBeNull();
+      expect(t2Btn!.classList).not.toContain('btn-outline-dark');
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // AC-02 — 6.5% fee disclosure present on each tier card (DOM-level)
   // The viewport-width / no-scroll requirement is a browser layout concern
   // that Karma does not verify; the DOM-level check confirms the text is
