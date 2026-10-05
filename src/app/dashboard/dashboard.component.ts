@@ -46,6 +46,20 @@ export class DashboardComponent {
       this.storageService.userProfile = user
       this.analytics.logScreenView('dashboard', { user_role: user.role });
 
+      // Guard: On /business/ routes, WhatsApp OTP auto-creates a placeholder profile
+      // with role CUSTOMER. Such users must complete profile setup at /business/user
+      // (UserUpdateComponent, which assigns STORE_ADMIN) before reaching terms or the
+      // dashboard. Without this guard, new merchants bypass profile setup entirely and
+      // land on the driver/messenger dashboard with the wrong role.
+      const currentUrl = this.router.url;
+      if (currentUrl.includes('/business/') &&
+          user.role !== UserProfile.RoleEnum.STOREADMIN &&
+          user.role !== UserProfile.RoleEnum.STORE &&
+          user.role !== UserProfile.RoleEnum.ADMIN) {
+        this.router.navigate(['/business/user']);
+        return;
+      }
+
       // Check if user has accepted terms and conditions.
       // AMBASSADOR and REFERRAL_PARTNER both use the ICA acceptance fields
       // (icaAccepted / icaAcceptedDate / icaVersion) and have their own
@@ -93,7 +107,6 @@ export class DashboardComponent {
           return;
         }
         // Generic customer / store T&Cs route, maintaining current route context.
-        const currentUrl = this.router.url;
         if (currentUrl.includes('/indivisuals/')) {
           this.router.navigate(['/indivisuals/terms', user.id]);
         } else if (currentUrl.includes('/business/')) {

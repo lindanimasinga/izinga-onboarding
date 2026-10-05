@@ -272,6 +272,100 @@ describe('DashboardComponent — terms routing', () => {
 });
 
 // ---------------------------------------------------------------------------
+// ONB-STORE-ROLE — STORE_ADMIN role guard for the /business/ onboarding flow.
+//
+// TC-DASH-14  CUSTOMER on /business/dashboard is redirected to /business/user for profile setup.
+// TC-DASH-15  CUSTOMER on /business/dashboard is NOT routed to /business/terms (old broken path).
+// TC-DASH-16  STOREADMIN on /business/dashboard with termsAccepted proceeds normally (no redirect).
+// ---------------------------------------------------------------------------
+describe('DashboardComponent — business profile-setup guard', () => {
+  let component: DashboardComponent;
+  let fixture: ComponentFixture<DashboardComponent>;
+  let mockService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: Partial<StorageService>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockFirebase: jasmine.SpyObj<FirebaseService>;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  const buildUser = (role: UserProfile.RoleEnum, overrides: Partial<UserProfile> = {}): UserProfile => ({
+    id: 'user-biz-001',
+    role,
+    mobileNumber: '+27812819999',
+    ...overrides
+  } as UserProfile);
+
+  beforeEach(async () => {
+    // Simulate being on the /business/ route
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/dashboard' });
+    mockStorage = { phoneNumber: '+27812819999', userProfile: undefined as any };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockFirebase = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    mockFirebase.getCurrentToken.and.returnValue(null);
+    mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebase },
+        { provide: AnalyticsService, useValue: mockAnalytics }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardComponent);
+    component = fixture.componentInstance;
+  });
+
+  // TC-DASH-14: Primary regression guard — WhatsApp auto-created CUSTOMER on /business/
+  // must be redirected to profile setup, not past it.
+  it('TC-DASH-14: CUSTOMER on /business/dashboard is redirected to /business/user for profile setup', fakeAsync(() => {
+    // Simulate a WhatsApp-auto-created profile: role CUSTOMER, no terms accepted.
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER, { termsAccepted: false });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/business/user']);
+  }));
+
+  // TC-DASH-15: The WhatsApp auto-created CUSTOMER must NOT be sent to /business/terms —
+  // that route would show general T&Cs with the wrong role, producing the driver dashboard.
+  it('TC-DASH-15: CUSTOMER on /business/dashboard is NOT redirected to /business/terms', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER, { termsAccepted: false });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    const calls = mockRouter.navigate.calls.allArgs();
+    const wentToTerms = calls.some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0]?.includes('/terms');
+    });
+    expect(wentToTerms).toBeFalse();
+  }));
+
+  // TC-DASH-16: An existing STOREADMIN with accepted terms must pass through the new guard
+  // and proceed normally (no redirect to /business/user).
+  it('TC-DASH-16: STOREADMIN on /business/dashboard with termsAccepted proceeds normally (no redirect)', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+  }));
+});
+
+// ---------------------------------------------------------------------------
 // ONB-UX-01 — REQ-17, REQ-16 (driver toggle, empty state)
 // ---------------------------------------------------------------------------
 

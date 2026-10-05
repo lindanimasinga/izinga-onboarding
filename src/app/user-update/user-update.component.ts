@@ -121,7 +121,18 @@ export class UserUpdateComponent {
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
 
-    this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
+    // For the business/shop flow, assign STORE_ADMIN directly rather than relying
+    // on a UserConfig lookup. The UserConfig HTTP response may not have returned
+    // yet when the user submits the form (race condition), which would cause the
+    // lookup to return undefined and fall back to CUSTOMER.
+    // isShopFlow() guards this: it returns true only when the router URL starts
+    // with /business or userType is 'shop' — both unambiguous store-owner contexts.
+    this.userProfile.role = this.isShopFlow()
+      ? UserProfile.RoleEnum.STOREADMIN
+      : (this.isStoreAdmin()
+          ? UserProfile.RoleEnum.STOREADMIN
+          : this.userConfig.find(config => config.label === this.roleDescription)?.userRole
+            || UserProfile.RoleEnum.CUSTOMER);
 
     // Ensure tags field is initialized
     this.addDynamicFieldsToProfile();
