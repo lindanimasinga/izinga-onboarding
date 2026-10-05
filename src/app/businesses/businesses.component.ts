@@ -24,6 +24,8 @@ export class BusinessesComponent implements OnInit, OnDestroy {
   isLoaded: boolean = false;
   // REQ-04: loading state to prevent footer appearing above empty grid
   isLoadingShops: boolean = true;
+  // BUG7: userId required to route to /business/tier-select/:id (not the ungated /business/info)
+  userId: string | null = null;
 
 
   constructor(
@@ -43,8 +45,12 @@ export class BusinessesComponent implements OnInit, OnDestroy {
     this.analytics.logScreenView('store_list');
     // Get the store ID from the route parameters
     this.izingaOrderManagementService.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
-    .pipe( 
-        mergeMap(user => this.izingaOrderManagementService.getAllStoresSummary(user.id!))
+    .pipe(
+        // BUG7: capture userId before mergeMap discards the user object
+        mergeMap(user => {
+          this.userId = user.id ?? null;
+          return this.izingaOrderManagementService.getAllStoresSummary(user.id!);
+        })
     ).subscribe(
       stores => {
         this.stores = stores;
@@ -79,11 +85,6 @@ export class BusinessesComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.fixedBarService.release();
-  }
-
-  // Add a new stock item to the list
-  addNewStore() {
-
   }
 
 }
