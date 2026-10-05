@@ -13,8 +13,26 @@ function makeServiceStub(params: { [key: string]: string } = {}) {
   } as unknown as IzingaOrderManagementService;
 }
 
-function makeStorageStub(tier: string | null): StorageService {
-  return { selectedTier: tier } as unknown as StorageService;
+/**
+ * Build a StorageService stub for tests.
+ *
+ * emailAddress parameter semantics:
+ *  undefined (not passed)           — default to 'merchant@example.com' so existing tests
+ *                                     that do not care about the email gate still pass.
+ *  null                             — explicitly no emailAddress on userProfile (email gate fires).
+ *  '' | '   ' | 'valid@example.com' — that exact value (gate fires for blank/whitespace).
+ */
+function makeStorageStub(tier: string | null, emailAddress?: string | null): StorageService {
+  const resolvedEmail: string | undefined =
+    emailAddress === undefined ? 'merchant@example.com' :
+    emailAddress === null     ? undefined               :
+    emailAddress;
+
+  return {
+    selectedTier: tier,
+    userProfile: { emailAddress: resolvedEmail },
+    infoMessage: undefined
+  } as unknown as StorageService;
 }
 
 function makeAnalyticsStub(): AnalyticsService {
@@ -29,8 +47,8 @@ describe('SubscriptionCheckoutComponent', () => {
   let fixture: ComponentFixture<SubscriptionCheckoutComponent>;
   let router: Router;
 
-  function setup(tier: string | null, serviceStub?: IzingaOrderManagementService) {
-    const storageStub = makeStorageStub(tier);
+  function setup(tier: string | null, serviceStub?: IzingaOrderManagementService, emailAddress?: string | null) {
+    const storageStub = makeStorageStub(tier, emailAddress);
     const svc = serviceStub ?? makeServiceStub({ m_payment_id: 'pay-001', merchant_id: '16791971' });
 
     TestBed.configureTestingModule({
@@ -170,5 +188,86 @@ describe('SubscriptionCheckoutComponent', () => {
     fixture.detectChanges();
     component.initiateCheckout();
     expect(component.loading).toBeFalse();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bug #12 — email gate in ngOnInit
+// ---------------------------------------------------------------------------
+
+describe('SubscriptionCheckoutComponent — Bug #12 email gate', () => {
+  let component: SubscriptionCheckoutComponent;
+  let fixture: ComponentFixture<SubscriptionCheckoutComponent>;
+  let router: Router;
+
+  function setupEmailGate(emailAddress: string | null, tier = 'PREMIUM_1') {
+    const storageStub = makeStorageStub(tier, emailAddress);
+    const svc = makeServiceStub({ m_payment_id: 'pay-001', merchant_id: '16791971' });
+
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [SubscriptionCheckoutComponent],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: svc },
+        { provide: StorageService, useValue: storageStub },
+        { provide: AnalyticsService, useValue: makeAnalyticsStub() }
+      ]
+    });
+    fixture = TestBed.createComponent(SubscriptionCheckoutComponent);
+    component = fixture.componentInstance;
+    spyOn(component as any, 'submitPayFastForm').and.stub();
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+  }
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  // BUG12-EMAIL-01: a merchant WITH a valid email proceeds to the checkout card —
+  // no redirect, component renders normally.
+  it('BUG12-EMAIL-01: a merchant with a valid email proceeds to the checkout card without redirecting', () => {
+    setupEmailGate('merchant@example.com');
+    fixture.detectChanges();
+    expect(router.navigate).not.toHaveBeenCalledWith(['/business/user']);
+    expect(component).toBeTruthy();
+  });
+
+  // BUG12-EMAIL-02: a merchant WITHOUT an email (null/absent field) is redirected.
+  it('BUG12-EMAIL-02: a merchant without emailAddress is redirected to /business/user before the checkout card renders', () => {
+    setupEmailGate(null);
+    fixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/business/user']);
+  });
+
+  // BUG12-EMAIL-03: a merchant with an empty-string email is treated as missing.
+  it('BUG12-EMAIL-03: an empty emailAddress triggers the redirect (treated as missing)', () => {
+    setupEmailGate('');
+    fixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/business/user']);
+  });
+
+  // BUG12-EMAIL-04: a merchant with a whitespace-only email is treated as missing.
+  it('BUG12-EMAIL-04: a whitespace-only emailAddress triggers the redirect (treated as missing)', () => {
+    setupEmailGate('   ');
+    fixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/business/user']);
+  });
+
+  // BUG12-EMAIL-05: when the redirect fires, an infoMessage is set on StorageService
+  // so the profile page can surface the reason for the redirect.
+  it('BUG12-EMAIL-05: storageService.infoMessage is set when the email gate redirects', () => {
+    setupEmailGate(null);
+    const storageSvc = TestBed.inject(StorageService) as any;
+    fixture.detectChanges();
+    expect(storageSvc.infoMessage).toContain('email');
+  });
+
+  // BUG12-EMAIL-06: when the email gate fires, initiateSubscription is never called
+  // automatically (ngOnInit returns early after the redirect — no auto-initiation).
+  it('BUG12-EMAIL-06: initiateSubscription is not called automatically when the email gate redirects', () => {
+    setupEmailGate(null);
+    const svc = TestBed.inject(IzingaOrderManagementService) as jasmine.SpyObj<IzingaOrderManagementService>;
+    fixture.detectChanges();
+    // ngOnInit redirected early — no implicit call to initiateSubscription must have occurred
+    expect(svc.initiateSubscription).not.toHaveBeenCalled();
   });
 });

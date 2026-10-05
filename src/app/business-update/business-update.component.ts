@@ -258,7 +258,6 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     if (!this.shop.ownerId) {
       console.log(`setting store owner id to ${this.storageService?.userProfile?.id}`);
       this.shop.ownerId = this.storageService.userProfile?.id
-      this.shop.shortName = this.replaceSpecialChars(this.shop.name)
 
       // RP-005b: attach referral code on new store creation only.
       // The ref value was captured from ?ref= at the /business entry point and
@@ -268,6 +267,20 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
         this.shop.referralCode = rpRef;
         this.storageService.referralPartnerRef = null;
       }
+    }
+
+    // Bug #12 fix: recalculate shortName on every NEW-store attempt, not just the first.
+    // Previously this lived inside the !ownerId block above, which only runs once —
+    // ownerId is set client-side on the first attempt regardless of whether the HTTP
+    // call succeeds, so on any retry within the same page load the entire block was
+    // skipped and shortName was frozen at the first-attempt value even after the
+    // merchant corrected the business name.
+    // !shop.id is the correct predicate: it stays falsy for all retries within a single
+    // page load because the component never writes data.id back on the new-store path
+    // (a successful creation navigates away; a failed one leaves id undefined).
+    // Updates (shop.id already truthy from ngOnInit) are correctly excluded.
+    if (!this.shop.id) {
+      this.shop.shortName = this.replaceSpecialChars(this.shop.name);
     }
 
     // Issue #11: always send the full categories array to the backend

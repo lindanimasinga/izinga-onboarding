@@ -901,3 +901,102 @@ describe('BusinessUpdateComponent — Merchant ICA stamping (DEFECT-ONB02-01)', 
     expect(sentShop.icaVersion).toBeUndefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bug #12 — shortName recalculation fix
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — Bug #12 shortName recalculation', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // BUG12-SN-01: shortName is recalculated from the UPDATED name on retry
+  // (new store, shop.id is still falsy — server never returned one because first call failed).
+  it('BUG12-SN-01: shortName is recalculated from the current name on a retry after a failed first attempt', () => {
+    const { component, orderSvc, storageSvc, firebaseSvc } = buildComponent();
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: no id, no ownerId
+    component.shop.id = undefined;
+    component.shop.ownerId = undefined;
+    component.shop.name = 'My Test Shop';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    // First attempt — server returns a 500 (shortname collision)
+    orderSvc.createStore.and.returnValue(throwError(() => ({ status: 500 })));
+    component.registerBusinessAndStock();
+
+    // Verify first attempt used the original name-derived shortName
+    const firstCallShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(firstCallShop.shortName).toBe('My_Test_Shop');
+
+    // Merchant corrects the name and retries (no page reload)
+    component.shop.name = 'My Corrected Shop';
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    // Second attempt must use the NEW name-derived shortName, not the stale first-attempt value
+    const secondCallShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(secondCallShop.shortName).toBe('My_Corrected_Shop');
+    expect(secondCallShop.shortName).not.toBe('My_Test_Shop');
+  });
+
+  // BUG12-SN-02: shortName is NOT recalculated when updating an EXISTING store.
+  // shop.id is truthy (set from the backend payload in ngOnInit), so the !shop.id
+  // guard must be false and shortName must remain whatever the backend returned.
+  it('BUG12-SN-02: shortName is not recalculated when updating an existing store', () => {
+    const { component, orderSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    // Existing store
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.name = 'Updated Shop Name';
+    component.shop.shortName = 'backend_assigned_short_name';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.updateStore.calls.mostRecent().args[0];
+    // shortName must not have been touched — backend's original value preserved
+    expect(sentShop.shortName).toBe('backend_assigned_short_name');
+  });
+
+  // BUG12-SN-03: shortName is correctly derived from the name on the FIRST attempt
+  // (ownerId not yet set — both the ownerId block and the !shop.id block run).
+  it('BUG12-SN-03: shortName is correctly derived from shop.name on the very first submission attempt', () => {
+    const { component, orderSvc, storageSvc, firebaseSvc } = buildComponent();
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    component.shop.id = undefined;
+    component.shop.ownerId = undefined;
+    component.shop.name = 'Cafe and Bistro';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    const sentShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    // replaceSpecialChars replaces all non-alphanumeric characters with '_'
+    // 'Cafe and Bistro' — only spaces are non-alphanumeric → 'Cafe_and_Bistro'
+    expect(sentShop.shortName).toBe('Cafe_and_Bistro');
+  });
+});

@@ -51,6 +51,19 @@ export class SubscriptionCheckoutComponent implements OnInit {
   ngOnInit(): void {
     this.analytics.logScreenView('subscription_checkout');
     this.storeId = this.route.snapshot.paramMap.get('storeId');
+
+    // Bug #12 (email gate): PayFast rejects checkout with 400 when email_address is
+    // absent or not a valid email. The backend falls back to the Firebase UID string
+    // when no emailAddress is stored on the UserProfile — which PayFast refuses.
+    // Gate here before the checkout card renders so the failure is surfaced in-app
+    // with a clear message, not as a confusing 400 on PayFast's own hosted page.
+    if (!this.storageService.userProfile?.emailAddress?.trim()) {
+      this.storageService.infoMessage =
+        'Please add an email address to your profile before subscribing.';
+      this.router.navigate(['/business/user']);
+      return;
+    }
+
     // Do NOT call initiateCheckout() here. The checkout card (price, disclosure,
     // "Proceed to Payment" button) must render first so the merchant explicitly sees
     // and acknowledges the billing disclosure before any payment call is made.
