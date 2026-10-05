@@ -496,4 +496,95 @@ describe('TermsConditionsComponent', () => {
       expect(businessRouterSpy.navigate).toHaveBeenCalledWith(['/business/dashboard']);
     });
   });
+
+  // ── ngOnInit() skip-redirect tests ───────────────────────────────────────
+
+  // TC-25: STOREADMIN with termsAccepted=true on /business/ URL — ngOnInit() redirects to /business/dashboard
+  // Primary regression: existing STORE_ADMIN returning via tier-select to change tier must skip the terms page.
+  describe('TC-25: STOREADMIN with termsAccepted=true on /business/ URL — ngOnInit() redirects to /business/dashboard', () => {
+    it('should navigate to /business/dashboard in ngOnInit without calling updateCustomer', () => {
+      const businessRouterSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/terms/user-001' });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [FormsModule],
+        declarations: [TermsConditionsComponent],
+        schemas: [NO_ERRORS_SCHEMA],
+        providers: [
+          { provide: IzingaOrderManagementService, useValue: orderManagerSpy },
+          { provide: StorageService, useValue: storageServiceMock },
+          { provide: AnalyticsService, useValue: analyticsSpy },
+          { provide: Router, useValue: businessRouterSpy },
+          { provide: ActivatedRoute, useValue: { params: of({ id: 'user-001' }) } }
+        ]
+      }).compileComponents();
+
+      const user: UserProfile = { ...makeUser(UserProfile.RoleEnum.STOREADMIN), termsAccepted: true } as UserProfile;
+      storageServiceMock.userProfile = user;
+      fixture = TestBed.createComponent(TermsConditionsComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();  // triggers ngOnInit()
+
+      expect(businessRouterSpy.navigate).toHaveBeenCalledWith(['/business/dashboard']);
+      expect(orderManagerSpy.updateCustomer).not.toHaveBeenCalled();
+    });
+  });
+
+  // TC-26: STOREADMIN with termsAccepted=true on /indivisuals/ URL — ngOnInit() redirects to /indivisuals/dashboard
+  describe('TC-26: STOREADMIN with termsAccepted=true on /indivisuals/ URL — ngOnInit() redirects to /indivisuals/dashboard', () => {
+    it('should navigate to /indivisuals/dashboard in ngOnInit and not call updateCustomer', () => {
+      // Default routerSpy has url: '/indivisuals/terms' — no re-setup needed.
+      const user: UserProfile = { ...makeUser(UserProfile.RoleEnum.STOREADMIN), termsAccepted: true } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();  // triggers ngOnInit()
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/indivisuals/dashboard']);
+      expect(orderManagerSpy.updateCustomer).not.toHaveBeenCalled();
+    });
+  });
+
+  // TC-27: STOREADMIN with termsAccepted=false — ngOnInit() does NOT redirect; user stays on terms page
+  describe('TC-27: STOREADMIN with termsAccepted=false — ngOnInit() does not redirect (regression guard)', () => {
+    it('should not call router.navigate in ngOnInit when terms are not yet accepted', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);  // termsAccepted undefined/falsy
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  // TC-28: MESSENGER with current Driver ICA accepted — ngOnInit() redirects to /indivisuals/dashboard
+  // Covers the driver ICA dead-end gap (same pattern as the general-terms fix).
+  describe('TC-28: MESSENGER with current Driver ICA accepted — ngOnInit() redirects to /indivisuals/dashboard', () => {
+    it('should navigate to /indivisuals/dashboard in ngOnInit without calling updateCustomer', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.MESSENGER),
+        icaAccepted: true,
+        icaVersion: CURRENT_DRIVER_ICA_VERSION,
+        termsAccepted: true
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/indivisuals/dashboard']);
+      expect(orderManagerSpy.updateCustomer).not.toHaveBeenCalled();
+    });
+  });
+
+  // TC-29: AMBASSADOR with current ICA already accepted — ngOnInit() redirects to /indivisuals/training-guide
+  describe('TC-29: AMBASSADOR with current ICA accepted — ngOnInit() redirects to /indivisuals/training-guide', () => {
+    it('should navigate to /indivisuals/training-guide in ngOnInit without calling updateCustomer', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        icaAccepted: true,
+        icaVersion: CURRENT_ICA_VERSION
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/indivisuals/training-guide']);
+      expect(orderManagerSpy.updateCustomer).not.toHaveBeenCalled();
+    });
+  });
 });

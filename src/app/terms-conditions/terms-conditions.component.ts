@@ -137,6 +137,43 @@ export class TermsConditionsComponent implements OnInit {
       this.userId = params['id'];
     });
     this.user = this.storageService.userProfile!;
+
+    // Skip-redirect: if the user has already completed all required acceptances
+    // for their role, navigate forward immediately without rendering the terms.
+    // This covers STORE_ADMIN (and any non-driver, non-ambassador role) returning
+    // via tier-select to change their tier after having accepted terms in a prior
+    // session, as well as drivers and ambassadors who have already signed the
+    // current ICA version.
+    if (this.isAmbassador) {
+      if (!this.needsIcaAcceptance) {
+        this.router.navigate(['/indivisuals/training-guide']);
+        return;
+      }
+    } else if (this.isDriver) {
+      if (!this.needsDriverIcaAcceptance) {
+        this.navigateToDashboard();
+        return;
+      }
+    } else {
+      if (this.user?.termsAccepted) {
+        this.navigateToDashboard();
+        return;
+      }
+    }
+  }
+
+  /**
+   * Navigate to the appropriate dashboard after terms or ICA acceptance.
+   * Shared by ngOnInit() skip-redirect and acceptTerms() success handlers.
+   * Routes /business/* users to /business/dashboard; everyone else to
+   * /indivisuals/dashboard (the original fallback behaviour is preserved).
+   */
+  private navigateToDashboard(): void {
+    if (this.router.url.includes('/business/')) {
+      this.router.navigate(['/business/dashboard']);
+    } else {
+      this.router.navigate(['/indivisuals/dashboard']);
+    }
   }
 
   acceptTerms() {
@@ -170,12 +207,7 @@ export class TermsConditionsComponent implements OnInit {
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('driver_ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.DRIVER_ICA_VERSION });
-            const currentUrl = this.router.url;
-            if (currentUrl.includes('/business/')) {
-              this.router.navigate(['/business/dashboard']);
-            } else {
-              this.router.navigate(['/indivisuals/dashboard']);
-            }
+            this.navigateToDashboard();
           },
           error: () => { this.acceptError = true; }
         });
@@ -187,15 +219,7 @@ export class TermsConditionsComponent implements OnInit {
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('terms_accepted', { userId: this.userId });
-
-            const currentUrl = this.router.url;
-            if (currentUrl.includes('/indivisuals/')) {
-              this.router.navigate(['/indivisuals/dashboard']);
-            } else if (currentUrl.includes('/business/')) {
-              this.router.navigate(['/business/dashboard']);
-            } else {
-              this.router.navigate(['/indivisuals/dashboard']);
-            }
+            this.navigateToDashboard();
           },
           error: () => { this.acceptError = true; }
         });
