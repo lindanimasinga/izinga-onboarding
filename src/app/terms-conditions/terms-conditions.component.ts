@@ -75,6 +75,18 @@ export class TermsConditionsComponent implements OnInit {
    */
   static readonly DRIVER_ICA_VERSION = 'driver-v2';
 
+  /**
+   * Current Merchant/Store Partner Agreement version (ADR-017 pattern).
+   * Bump this constant when the Store Partner Agreement content changes.
+   *
+   * store-partner-v2 (2026-10-05): first embedded version. Drafted from
+   * izinga-legal/drafts/store-partner-agreement-draft-v2.md (PART B only).
+   * Attorney review by Jason van der Merwe pending — deployment authorised
+   * by Lindani Masinga (co-founder) for the feature/TIER-BILLING-01 branch
+   * while formal sign-off is arranged separately.
+   */
+  static readonly MERCHANT_ICA_VERSION = 'store-partner-v2';
+
   termsAccepted = false;
   acceptError = false;
   userId?: string;
@@ -106,6 +118,31 @@ export class TermsConditionsComponent implements OnInit {
 
   get isDriver(): boolean {
     return this.user?.role === UserProfile.RoleEnum.MESSENGER;
+  }
+
+  /**
+   * Returns true for users who should see the Merchant ICA.
+   * Mirrors DashboardComponent's isStoreAdmin check: STORE_ADMIN or ADMIN.
+   * ADMIN is included because admins can create stores and must also accept
+   * the merchant agreement before a store is created on their behalf.
+   */
+  get isStoreAdmin(): boolean {
+    return this.user?.role === UserProfile.RoleEnum.STOREADMIN
+      || this.user?.role === UserProfile.RoleEnum.ADMIN;
+  }
+
+  /**
+   * Returns true when a STORE_ADMIN/ADMIN must accept (or re-accept) the
+   * Store/Merchant Partner Agreement. Gates both new merchants (no icaAccepted)
+   * and any existing merchant whose stored icaVersion does not match the
+   * current version constant (e.g. after a material amendment).
+   */
+  get needsMerchantIcaAcceptance(): boolean {
+    if (!this.isStoreAdmin) {
+      return false;
+    }
+    return !this.user?.icaAccepted
+      || this.user?.icaVersion !== TermsConditionsComponent.MERCHANT_ICA_VERSION;
   }
 
   /**
@@ -151,6 +188,14 @@ export class TermsConditionsComponent implements OnInit {
       }
     } else if (this.isDriver) {
       if (!this.needsDriverIcaAcceptance) {
+        this.navigateToDashboard();
+        return;
+      }
+    } else if (this.isStoreAdmin) {
+      // Merchant ICA branch: skip-redirect if already on current version.
+      // needsMerchantIcaAcceptance returns false when icaAccepted=true and
+      // icaVersion matches MERCHANT_ICA_VERSION — navigate forward immediately.
+      if (!this.needsMerchantIcaAcceptance) {
         this.navigateToDashboard();
         return;
       }
@@ -207,6 +252,24 @@ export class TermsConditionsComponent implements OnInit {
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('driver_ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.DRIVER_ICA_VERSION });
+            this.navigateToDashboard();
+          },
+          error: () => { this.acceptError = true; }
+        });
+      } else if (this.isStoreAdmin) {
+        // Merchant ICA: set ICA fields (ADR-017) AND termsAccepted in one PATCH.
+        // The merchant agreement supersedes generic consumer terms for this role —
+        // both flags are set together so no separate general-terms step is required.
+        this.user.icaAccepted = true;
+        this.user.icaAcceptedDate = new Date();
+        this.user.icaVersion = TermsConditionsComponent.MERCHANT_ICA_VERSION;
+        this.user.termsAccepted = true;
+        this.user.termsAcceptedDate = new Date();
+
+        this.izingaOrderManager.updateCustomer(this.user).subscribe({
+          next: (updatedUser: UserProfile) => {
+            this.storageService.userProfile = updatedUser;
+            this.analytics.logEvent('merchant_ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION });
             this.navigateToDashboard();
           },
           error: () => { this.acceptError = true; }

@@ -276,6 +276,26 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     const originalHours = this.shop.businessHours;
     this.shop.businessHours = this.buildPayloadHours();
 
+    // Merchant ICA gate: stamp acceptance fields onto the store payload before
+    // POST /store. The backend StoreService.create() reads icaAccepted /
+    // icaAcceptedDate / icaVersion from the payload and returns 403
+    // MERCHANT_ICA_NOT_ACCEPTED when they are absent or at a stale version.
+    // Only applies to NEW store creation (shop.id is falsy); updates are exempt.
+    if (!this.shop.id) {
+      const userProfile = this.storageService.userProfile;
+      if (!userProfile?.icaAccepted || !userProfile?.icaVersion) {
+        // ICA fields missing — redirect back to the merchant ICA acceptance screen.
+        // This state should not arise given the TermsConditionsComponent gate, but
+        // prevents a doomed 403 if the session storage is in an unexpected state.
+        this.router.navigate(['/business/terms', userProfile?.id]);
+        this.shop.businessHours = originalHours;
+        return;
+      }
+      this.shop.icaAccepted = true;
+      this.shop.icaAcceptedDate = userProfile.icaAcceptedDate;
+      this.shop.icaVersion = userProfile.icaVersion;
+    }
+
     var call = this.selectedFile ? this.uploadImage() : of("")
       call.pipe(
         mergeMap(() => this.shop.id ? this.izingaOrderManagementService.updateStore(this.shop) : this.izingaOrderManagementService.createStore(this.shop))

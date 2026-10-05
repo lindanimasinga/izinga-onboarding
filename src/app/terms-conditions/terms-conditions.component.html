@@ -115,9 +115,9 @@
   </div>
 </ng-container>
 
-<!-- Driver ICA or General T&Cs -->
+<!-- Driver ICA or Merchant ICA or General T&Cs -->
 <ng-template #driverOrGeneral>
-<ng-container *ngIf="isDriver; else generalTerms">
+<ng-container *ngIf="isDriver; else merchantOrGeneral">
   <div class="container py-4">
     <div class="text-center mb-4">
       <h2 class="fw-bold">Driver Independent Contractor Agreement</h2>
@@ -285,6 +285,277 @@
   </div>
 
   <div class="row fixed-bottom" *ngIf="needsDriverIcaAcceptance">
+    <button
+      class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
+      type="submit"
+      [disabled]="!termsAccepted"
+      (click)="acceptTerms()">
+      Accept Agreement &amp; Continue
+    </button>
+  </div>
+</ng-container>
+</ng-template>
+
+<!-- Merchant ICA or General T&Cs -->
+<ng-template #merchantOrGeneral>
+<ng-container *ngIf="isStoreAdmin; else generalTerms">
+  <div class="container py-4">
+    <div class="text-center mb-4">
+      <h2 class="fw-bold">Store/Merchant Partner Agreement</h2>
+      <p class="text-muted">Please read and accept this agreement to activate your store on iZinga</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body ica-body">
+
+        <p><strong>iZinga</strong>, a product brand operated by <strong>Curiousoft (Pty) Ltd</strong>, registration number 2016/429327/07, a private company incorporated in the Republic of South Africa, with its registered address at 68 Jacaranda Avenue, Olivedale, Randburg, 2188 ("<strong>iZinga</strong>"); and the merchant who has accepted this Agreement electronically through iZinga's merchant onboarding process at biz.izinga.co.za ("<strong>the Merchant</strong>"). iZinga and the Merchant are referred to individually as "<strong>a Party</strong>" and collectively as "<strong>the Parties</strong>."</p>
+
+        <h5>1. DEFINITIONS</h5>
+        <p><strong>"Agreement"</strong> means this Store/Merchant Partner Agreement together with Schedule 1 (Commercial Terms) and, where applicable, Schedule 2 (Data Processing Schedule).</p>
+        <p><strong>"Acceptance Date"</strong> means the date and time at which the Merchant clicks the acceptance button and accepts this Agreement electronically.</p>
+        <p><strong>"Business Day"</strong> means any day other than a Saturday, Sunday, or South African public holiday.</p>
+        <p><strong>"Customer"</strong> means an end-customer who places an Order through the Merchant's Storefront on the Platform.</p>
+        <p><strong>"Delivery Fee"</strong> means the fee charged by iZinga to the Customer for a Delivery arranged through the Platform.</p>
+        <p><strong>"Delivery"</strong> means the collection and transportation of Goods by a Driver, arranged through the iZinga Platform on behalf of the Customer following an Order.</p>
+        <p><strong>"Driver"</strong> means an independent contractor who provides delivery services through the iZinga platform under a Driver Independent Contractor Agreement. Drivers are not employees or agents of iZinga.</p>
+        <p><strong>"Goods"</strong> means the items listed by the Merchant on its Storefront for purchase and delivery by Customers.</p>
+        <p><strong>"iZinga Platform"</strong> or <strong>"Platform"</strong> means the iZinga web applications, mobile applications, and backend systems through which Storefronts are hosted, Orders are placed, Deliveries are arranged, and payments are processed.</p>
+        <p><strong>"Merchant Payout"</strong> means the amount payable by iZinga to the Merchant in respect of completed Orders, calculated in accordance with clause 7 and Schedule 1.</p>
+        <p><strong>"Order"</strong> means a purchase placed by a Customer through the Merchant's Storefront on the Platform.</p>
+        <p><strong>"Order Total"</strong> means the total amount paid by the Customer for an Order, comprising the price of the Goods, the Delivery Fee, and iZinga's Service Fee.</p>
+        <p><strong>"Service Fee"</strong> means iZinga's fee of 6.5% (six point five percent) of the Order Total, charged to the Customer at checkout.</p>
+        <p><strong>"Storefront"</strong> means the Merchant's digital shop page hosted on the iZinga Platform.</p>
+        <p><strong>"Subscription Tier"</strong> means the tier of service selected by the Merchant, as set out in Schedule 1: Free Tier, Premium Tier 1, or Premium Tier 2.</p>
+
+        <h5>2. NATURE OF RELATIONSHIP</h5>
+        <p>2.1 This Agreement establishes a commercial platform-access arrangement between iZinga and the Merchant. Nothing in this Agreement creates an employment relationship, a partnership, a joint venture, an agency, or any other relationship between the Parties other than that of platform operator and merchant partner.</p>
+        <p>2.2 The Merchant is not an employee, agent, or representative of iZinga. The Merchant does not have authority to bind iZinga contractually.</p>
+        <p>2.3 iZinga is a platform operator and logistics intermediary. iZinga is not the seller of the Goods listed by the Merchant. All sales of Goods are transactions between the Merchant (as seller) and the Customer (as buyer).</p>
+        <p>2.4 <strong>Registering on biz.izinga.co.za does not create a binding agreement.</strong> A binding agreement is formed only when the Merchant expressly accepts this Agreement through the click-wrap acceptance mechanism described in clause 20.</p>
+
+        <h5>3. PLATFORM ACCESS AND STOREFRONT</h5>
+        <p>3.1 Subject to the Merchant's acceptance of this Agreement and ongoing compliance with its terms, iZinga grants the Merchant access to the Platform for the purpose of listing and selling Goods to Customers through the Merchant's Storefront.</p>
+        <p>3.2 The features available to the Merchant depend on the Merchant's Subscription Tier, as set out in Schedule 1. iZinga reserves the right to modify tier features on 30 (thirty) calendar days' written notice.</p>
+        <p>3.3 iZinga retains the right to approve, reject, modify, or delist any Merchant application, Storefront, or individual product listing at its discretion.</p>
+        <p>3.4 Platform fees and delivery cost structures are set automatically by iZinga's platform and are not configurable by the Merchant.</p>
+
+        <h5>4. MERCHANT OBLIGATIONS</h5>
+        <p>4.1 The Merchant must:</p>
+        <ul>
+          <li>(a) provide accurate, complete, and current information about its business when registering on the Platform;</li>
+          <li>(b) list only Goods that the Merchant is lawfully authorised to sell and deliver in the Republic of South Africa;</li>
+          <li>(c) ensure that all Goods listed are accurately described, including their price, condition, and any applicable restrictions;</li>
+          <li>(d) ensure that all Goods listed are available for collection when the Driver arrives;</li>
+          <li>(e) comply with all applicable South African laws and regulations governing the sale and supply of the Goods it lists;</li>
+          <li>(f) comply with POPIA in respect of any Customer personal information it holds or processes independently;</li>
+          <li>(g) maintain the contact and banking details registered on biz.izinga.co.za in an accurate and current state at all times.</li>
+        </ul>
+        <p>4.2 The Merchant warrants that:</p>
+        <ul>
+          <li>(a) it is a duly registered entity or sole trader lawfully permitted to conduct business in the Republic of South Africa;</li>
+          <li>(b) it holds all licences, permits, registrations, and regulatory approvals required to sell the categories of Goods it lists;</li>
+          <li>(c) the Goods it lists are of merchantable quality and comply with the Consumer Protection Act 68 of 2008;</li>
+          <li>(d) no listing on the Merchant's Storefront constitutes a misrepresentation under the Consumer Protection Act 68 of 2008.</li>
+        </ul>
+
+        <h5>5. WHAT IZINGA PROVIDES</h5>
+        <p>5.1 Subject to the Merchant's Subscription Tier and ongoing compliance, iZinga will host the Merchant's Storefront, process Customer payments through Yoco, arrange Deliveries by allocating available Drivers, and provide order management and reporting tools.</p>
+        <p>5.2 iZinga does not guarantee a minimum number of Orders, Customers, or revenue; Driver availability at any particular time; or that the Platform will be available without interruption.</p>
+
+        <h5>6. SERVICE FEE</h5>
+        <p>6.1 iZinga charges Customers a Service Fee of <strong>6.5% (six point five percent)</strong> of the Order Total on each completed Order. The Service Fee is charged to the Customer at checkout.</p>
+        <p>6.2 The Service Fee is paid by the Customer, not by the Merchant. The Merchant Payout is calculated on the Goods price component of the Order only.</p>
+        <p>6.3 Monthly subscription fees for Premium Tier 1 and Premium Tier 2 are set out in Schedule 1. All amounts are VAT-exclusive.</p>
+
+        <h5>7. MERCHANT PAYOUT</h5>
+        <p>7.1 iZinga will pay the Merchant the Merchant Payout in respect of each completed Order. The Merchant Payout for each Order is the Goods price component of that Order, less any applicable deductions under clause 7.4.</p>
+        <p>7.2 For the avoidance of doubt, the Merchant Payout does not include the Delivery Fee or the Service Fee.</p>
+        <p>7.3 <strong>Payout mechanics:</strong> iZinga initiates Merchant Payouts on each Business Day, covering Orders confirmed as completed as at the end of the preceding Business Day. Payment is made by EFT to the bank account registered by the Merchant. Bank processing and settlement is expected to take up to 3 (three) Business Days — this is not guaranteed by iZinga.</p>
+        <p>7.4 iZinga may deduct from a Merchant Payout: amounts refunded to a Customer where the refund arose from the Merchant's breach; chargebacks attributable to the Merchant's conduct; any outstanding subscription fees.</p>
+        <p>7.5 iZinga will provide the Merchant with a payout statement for each payout cycle through the Merchant's account on biz.izinga.co.za.</p>
+        <p>7.6 The Merchant is responsible for all taxes applicable to amounts received. iZinga will not deduct PAYE, UIF, or SDL from Merchant Payouts.</p>
+
+        <h5>8. PAYMENT PROCESSING</h5>
+        <p>8.1 All Customer payments for Orders are processed exclusively through Yoco, iZinga's payment provider. iZinga does not store Customers' card details — card processing is handled by Yoco under its PCI-DSS compliance framework.</p>
+        <p>8.2 iZinga collects each Customer's payment on behalf of the Merchant as collection agent. Collection does not constitute payment to the Merchant — the Merchant is entitled to the Merchant Payout only in accordance with clause 7.</p>
+
+        <h5>9. DELIVERY SERVICES AND DRIVER ARRANGEMENTS</h5>
+        <p>9.1 Physical Delivery is performed by a Driver who is an independent contractor under a Driver Independent Contractor Agreement. Drivers are not employees, agents, or representatives of iZinga or the Merchant.</p>
+        <p>9.2 The Merchant acknowledges that iZinga does not guarantee Driver availability; that estimated Delivery timeframes are indicative only; and that Drivers are required to hold valid goods-in-transit ("GIT") insurance as a condition of their platform access.</p>
+        <p>9.3 <strong>Goods-in-Transit insurance — no iZinga warranty:</strong> iZinga requires Drivers to hold GIT insurance as a condition of platform access. However, <strong>iZinga makes no warranty that any individual Driver holds adequate in-force GIT insurance at the time of any particular Delivery.</strong> In the event of damage to or loss of Goods in transit, iZinga's maximum liability to the Merchant is limited to the Delivery Fee for the affected Order, in accordance with clause 16.1.</p>
+
+        <h5>10. SUBSCRIPTION TIERS</h5>
+        <p>10.1 The Merchant selects a Subscription Tier at onboarding. The features and monthly fees for each tier are set out in Schedule 1:</p>
+        <ul>
+          <li>(a) <strong>Free Tier</strong> — no monthly fee; standard Storefront template; standard platform features.</li>
+          <li>(b) <strong>Premium Tier 1</strong> — R800 (eight hundred rand) per month, VAT-exclusive; branded Storefront, custom domain, dedicated WhatsApp order notification line, and regulated-industry product category filtering.</li>
+          <li>(c) <strong>Premium Tier 2</strong> — R3,000 (three thousand rand) per month, VAT-exclusive; all Premium Tier 1 features plus the AI WhatsApp assistant described in clause 12.</li>
+        </ul>
+        <p>10.2 <strong>Billing and tier changes:</strong></p>
+        <ul>
+          <li>(a) Subscription fees are billed monthly in advance on the anniversary date of the Merchant's Acceptance Date.</li>
+          <li>(b) <strong>Upgrade:</strong> takes effect immediately; pro-rata charge for the remainder of the current billing period.</li>
+          <li>(c) <strong>Downgrade:</strong> takes effect at the end of the current billing period; no refund for unused days. Custom domain returned within 30 days. iZinga-issued WhatsApp numbers remain iZinga's property.</li>
+        </ul>
+        <p>10.3 The Merchant may cancel its subscription at any time by providing 30 (thirty) calendar days' written notice. iZinga reserves the right to change subscription fees on 30 calendar days' written notice.</p>
+
+        <h5>11. REGULATED-INDUSTRY PRODUCT FILTERING (PREMIUM TIER 1 AND ABOVE)</h5>
+        <p>11.1 Premium Tier 1 and Premium Tier 2 Merchants may access iZinga's regulated-industry product category filtering feature, which allows the Merchant to configure and restrict product categories on its Storefront.</p>
+        <p>11.2 iZinga's provision of this feature is limited to making the configuration tool available. iZinga does not represent or warrant that the feature will comply with any specific regulatory requirement, and does not verify whether any product listed by the Merchant complies with applicable law.</p>
+        <p>11.3 The Merchant warrants that it holds all licences and regulatory approvals required to sell each category of Goods it lists, and is solely responsible for ensuring no listing violates any applicable law or licence condition.</p>
+        <p>11.4 iZinga may suspend or remove a Merchant's Storefront or any product listing if iZinga has reasonable grounds to believe that a listed product is being sold without required regulatory licences.</p>
+        <p>11.5 The Merchant indemnifies iZinga against any loss, claim, penalty, fine, or expense arising from the sale of Goods without required regulatory licences.</p>
+
+        <h5>12. AI WHATSAPP ASSISTANT (PREMIUM TIER 2 ONLY)</h5>
+        <p>12.1 Premium Tier 2 Merchants have access to iZinga's 24/7 AI WhatsApp assistant feature. The AI Assistant operates in Default Mode or, where the Merchant has satisfied the conditions in clause 12.4, Advice-Enabled Mode. The Merchant is responsible for configuring, monitoring, and managing the AI Assistant's responses to Customers.</p>
+        <p><strong>Default Mode</strong></p>
+        <p>12.2 In Default Mode, the AI Assistant is designed to respond only to Customers' queries about: the status of active Orders; the Merchant's Storefront hours and contact information; factual product information as configured by the Merchant; and general iZinga Platform information. In Default Mode, the AI Assistant must not provide any form of advice, recommendation, or guidance on whether a Customer should purchase, use, or consume any particular product.</p>
+        <p><strong>Advice-Enabled Mode</strong></p>
+        <p>12.3 A Merchant may apply to iZinga to activate Advice-Enabled Mode, which permits the AI Assistant to respond to product queries beyond factual product information. iZinga grants access at its sole discretion.</p>
+        <p>12.4 A Merchant may apply for Advice-Enabled Mode only if it holds and can evidence all licences required by applicable South African law for the type of advice the AI Assistant will deliver; submits written confirmation of each licence; warrants ongoing monitoring of AI outputs; accepts full responsibility for all outputs; accepts the indemnity obligation in clause 12.8; and ensures the mandatory AI disclosure in clause 12.5 is enabled.</p>
+        <p>12.5 <strong>Mandatory customer-facing AI disclosure:</strong> In both modes, the AI Assistant must display the following disclosure at the start of each session: <em>"I am an AI assistant. I provide information about this store and your orders. I am not a person and my responses may not always be accurate. For professional advice on health products, medicines, or other regulated items, consult a qualified professional."</em></p>
+        <p>12.6 The Merchant is responsible for configuring, reviewing, and monitoring all AI Assistant outputs. iZinga provides the AI Assistant as a platform feature; the accuracy and legal compliance of the AI Assistant's responses is the Merchant's responsibility.</p>
+        <p>12.7 iZinga may immediately disable the AI Assistant feature without notice if a Customer complaint is received that may constitute harm or misrepresentation; the Merchant fails to provide evidence of required licences on request; the Merchant fails to comply with its monitoring obligation; or iZinga determines the feature creates a legal or reputational risk.</p>
+        <p>12.8 <strong>Merchant indemnity for AI Assistant outputs:</strong> The Merchant indemnifies iZinga against any loss, claim, penalty, fine, liability, regulatory action, or expense arising from any AI Assistant response to a Customer in Advice-Enabled Mode; the Merchant's failure to hold required licences; the Merchant's failure to monitor AI outputs; or any regulatory action arising from the Merchant's use of the AI Assistant in connection with regulated products.</p>
+        <p>12.9 iZinga's maximum liability to the Merchant for an error in Default Mode is limited to the subscription fee paid by the Merchant in the calendar month in which the error occurred.</p>
+
+        <h5>13. DATA SHARING AND POPIA OBLIGATIONS</h5>
+        <p>13.1 <strong>iZinga as Responsible Party:</strong> iZinga is the Responsible Party under POPIA for all Customer personal information collected and processed through the iZinga Platform.</p>
+        <p>13.2 <strong>Merchant as Operator:</strong> Where the Merchant accesses Customer personal information through a Platform integration, the Merchant acts as an Operator under POPIA, and Schedule 2 (Data Processing Schedule) is mandatory.</p>
+        <p>13.3 The Merchant must: use Customer personal information only for fulfilling the specific Order; not share, sell, or transfer Customer personal information to any third party; implement appropriate technical and organisational measures to protect Customer personal information; and notify iZinga within 24 hours of any actual or suspected security breach involving Customer personal information.</p>
+        <p>13.4 On termination, the Merchant must delete or return all Customer personal information within 30 (thirty) calendar days, unless retention is required by law.</p>
+        <p>13.5 <strong>iZinga's POPIA disclosure to the Merchant's representatives:</strong> By accepting this Agreement, the Merchant's authorised representative(s) consent to iZinga processing the following personal information:</p>
+        <table class="table table-sm table-bordered mt-2 mb-3">
+          <thead><tr><th>Category</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Full name, identity number, and role</td><td>Verification of authority to bind the Merchant</td></tr>
+            <tr><td>Contact details (mobile, email)</td><td>Communication about this Agreement, Orders, and Payouts</td></tr>
+            <tr><td>Bank account details</td><td>Processing Merchant Payouts</td></tr>
+            <tr><td>Storefront activity and order data</td><td>Platform performance reporting; compliance monitoring</td></tr>
+          </tbody>
+        </table>
+        <p>Lawful bases: contractual necessity and consent. Retention: 5 (five) years from termination. Data subject rights apply under POPIA. Queries: privacy@izinga.co.za. Information Officer: Lindani Masinga.</p>
+
+        <h5>14. INTELLECTUAL PROPERTY</h5>
+        <p>14.1 All intellectual property in the iZinga Platform, brand assets, trademarks, logos, and software remains the exclusive property of iZinga.</p>
+        <p>14.2 All intellectual property in the Merchant's brand assets, product images, and product descriptions remains the exclusive property of the Merchant.</p>
+        <p>14.3 The Merchant grants iZinga a non-exclusive, royalty-free licence to display the Merchant's brand assets and product information on the Platform for the purpose of hosting the Merchant's Storefront during the Term. This licence terminates on the termination of this Agreement.</p>
+        <p>14.4 On termination: the Merchant must cease using iZinga's brand assets within 7 (seven) calendar days; remove all iZinga marks from its own digital properties within 10 (ten) Business Days; and iZinga will remove the Merchant's Storefront within a reasonable time.</p>
+
+        <h5>15. CONFIDENTIALITY</h5>
+        <p>15.1 The Merchant must keep confidential all non-public information about iZinga's business, platform technology, commission structures, and partner relationships. iZinga must keep confidential the Merchant's non-public business information, pricing structures, sales data, and banking details. These obligations survive termination for 2 (two) years.</p>
+
+        <h5>16. LIABILITY AND INDEMNITY</h5>
+        <p>16.1 <strong>iZinga's liability cap — per Order:</strong> iZinga's total liability to the Merchant for any claim arising out of any single Order is limited to the Delivery Fee paid by the Customer for that specific Order.</p>
+        <p>16.2 <strong>iZinga's liability cap — subscription and platform claims:</strong> iZinga's total liability for any claim arising out of the Platform, the Storefront, or any Subscription Tier feature (other than an individual Order) is limited to the subscription fee paid by the Merchant in the calendar month in which the claim arose.</p>
+        <p>16.3 <strong>Excluded losses:</strong> To the maximum extent permitted by applicable law, iZinga is not liable to the Merchant for any loss of profit, revenue, or customers; any loss arising from the Merchant's failure to comply with clause 4; any loss arising from a Driver's conduct during a Delivery beyond the cap in clause 16.1; or any regulatory penalty arising from the Merchant's product listings or sales activities.</p>
+        <p>16.4 <strong>Merchant indemnity:</strong> The Merchant indemnifies iZinga against any loss, claim, penalty, fine, or expense arising from the Merchant's breach of this Agreement or applicable South African law; any claim by a Customer arising from the quality or safety of Goods supplied by the Merchant; the Merchant's failure to hold required licences; any misrepresentation by the Merchant to a Customer; or any AI Assistant output for which the Merchant is liable under clause 12.8.</p>
+        <p>16.5 Nothing in this clause limits either Party's liability for fraud or wilful misconduct, or any liability that cannot be excluded by applicable South African law.</p>
+
+        <h5>17. SUSPENSION OF STOREFRONT</h5>
+        <p>17.1 iZinga may immediately suspend the Merchant's Storefront without prior notice if it has reasonable grounds to believe the Merchant is selling Goods without required regulatory licences; the Merchant has made material misrepresentations to Customers; the Merchant has failed to pay a subscription fee for more than 14 (fourteen) calendar days; or a court order, regulatory authority, or applicable law requires suspension.</p>
+        <p>17.2 iZinga will notify the Merchant of the reason for a suspension where reasonably practicable. The Storefront will be reinstated once the cause is remedied.</p>
+
+        <h5>18. DISPUTE RESOLUTION</h5>
+        <p>18.1 <strong>Internal resolution:</strong> Any dispute must first be escalated in writing to a senior iZinga representative. iZinga will acknowledge within 2 (two) Business Days and endeavour to resolve within 14 (fourteen) Business Days.</p>
+        <p>18.2 <strong>AFSA Arbitration:</strong> If unresolved, either Party may refer the dispute to expedited arbitration administered by the <strong>Arbitration Foundation of Southern Africa (AFSA)</strong>, with a single arbitrator, in English, in Johannesburg or Durban (at iZinga's election). The arbitrator's award is final, binding, and may be made an order of court.</p>
+        <p>18.3 Nothing in this clause prevents either Party from approaching a court of competent jurisdiction for urgent interim relief.</p>
+        <p>18.4 <strong>Governing law:</strong> This Agreement is governed by the laws of the Republic of South Africa. <strong>Jurisdiction:</strong> Subject to clauses 18.2 and 18.3, the Parties consent to the non-exclusive jurisdiction of the High Court of South Africa, Gauteng Division, Johannesburg.</p>
+
+        <h5>19. TERMINATION</h5>
+        <p>19.1 Either Party may terminate this Agreement on 30 (thirty) calendar days' written notice.</p>
+        <p>19.2 <strong>Immediate termination by iZinga:</strong> iZinga may terminate immediately if the Merchant sells Goods without required licences; makes material misrepresentations to Customers; commits fraud; engages in conduct likely to cause material reputational harm to iZinga; or fails to pay subscription fees for more than 30 (thirty) calendar days.</p>
+        <p>19.3 <strong>Consequences of termination:</strong> iZinga will process and pay any Merchant Payout due for Orders completed before the termination date. The Merchant must comply with IP wind-down obligations. Orders confirmed before the termination date must be fulfilled. Each Party must comply with data deletion obligations within 30 (thirty) calendar days of termination. Clauses 13, 14 (wind-down), 15, 16, 18, and 19.3 survive termination.</p>
+
+        <h5>20. ELECTRONIC ACCEPTANCE AND CLICK-WRAP</h5>
+        <p>20.1 This Agreement is concluded electronically when the Merchant completes the merchant registration process and clicks the acceptance button confirming acceptance of this Agreement at the acceptance step of the onboarding process. Electronic acceptance constitutes a valid and binding signature under the <strong>Electronic Communications and Transactions Act 25 of 2002</strong>.</p>
+        <p>20.2 iZinga retains a timestamped record of each Merchant's acceptance comprising: (a) a boolean acceptance flag (<code>icaAccepted</code>); (b) the date and time of acceptance (<code>icaAcceptedDate</code>); and (c) the version identifier of the Agreement accepted (<code>icaVersion</code>). These records constitute prima facie proof of acceptance under the ECT Act.</p>
+
+        <h5>21. AMENDMENTS</h5>
+        <p>21.1 iZinga may amend this Agreement on 30 (thirty) calendar days' written notice via the Merchant's biz.izinga.co.za account or email. Continued use after the effective date constitutes acceptance of the amended terms.</p>
+
+        <h5>22. GENERAL</h5>
+        <p>22.1 <strong>Entire agreement:</strong> This Agreement constitutes the entire agreement between the Parties in respect of the Merchant's access to and use of the iZinga Platform. No oral variation is binding.</p>
+        <p>22.2 <strong>Severability:</strong> If any provision is found invalid or unenforceable, the remaining provisions continue in full force.</p>
+        <p>22.3 <strong>No waiver:</strong> Failure to enforce any provision does not constitute a waiver.</p>
+        <p>22.4 <strong>Assignment:</strong> The Merchant may not assign any rights or obligations without iZinga's prior written consent.</p>
+        <p>22.5 <strong>Domicilium:</strong> iZinga / Curiousoft (Pty) Ltd — 68 Jacaranda Avenue, Olivedale, Randburg, 2188. The Merchant's domicilium is the address provided during onboarding.</p>
+
+        <h5>SCHEDULE 1 — COMMERCIAL TERMS</h5>
+        <p><strong>Part A — Subscription Tiers</strong></p>
+        <table class="table table-sm table-bordered mt-2 mb-3">
+          <thead>
+            <tr><th>Feature</th><th>Free Tier</th><th>Premium Tier 1</th><th>Premium Tier 2</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Monthly fee (VAT-exclusive)</td><td>R0</td><td>R800</td><td>R3,000</td></tr>
+            <tr><td>Service fee (paid by Customer)</td><td>6.5% of Order Total</td><td>6.5% of Order Total</td><td>6.5% of Order Total</td></tr>
+            <tr><td>Storefront</td><td>Standard iZinga template</td><td>Custom branding</td><td>Custom branding</td></tr>
+            <tr><td>Custom domain</td><td>No</td><td>Yes — returned within 30 days of downgrade</td><td>Yes — returned within 30 days of downgrade</td></tr>
+            <tr><td>Dedicated WhatsApp order line</td><td>No</td><td>iZinga-issued number (remains iZinga's property)</td><td>As Tier 1</td></tr>
+            <tr><td>Regulated-industry product filtering</td><td>No</td><td>Yes — configuration tool; merchant warrants licences</td><td>Yes</td></tr>
+            <tr><td>AI WhatsApp assistant</td><td>No</td><td>No</td><td>Yes — Default Mode; Advice-Enabled Mode on application</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Part B — Payout Terms</strong></p>
+        <table class="table table-sm table-bordered mt-2 mb-3">
+          <thead><tr><th>Term</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Payout cadence</td><td>Daily initiation by iZinga on each Business Day</td></tr>
+            <tr><td>Payout trigger</td><td>Orders confirmed as completed as at the end of the preceding Business Day</td></tr>
+            <tr><td>Payout method</td><td>EFT to Merchant's registered bank account</td></tr>
+            <tr><td>Bank settlement</td><td>Up to 3 Business Days from initiation (bank processing times; not guaranteed by iZinga)</td></tr>
+            <tr><td>Weekends / public holidays</td><td>No payout initiation; carried to next Business Day</td></tr>
+            <tr><td>Payout statement</td><td>Available on biz.izinga.co.za within 1 Business Day of each payout initiation</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Part C — VAT:</strong> All amounts in this Agreement are stated exclusive of VAT.</p>
+
+        <h5>SCHEDULE 2 — DATA PROCESSING SCHEDULE</h5>
+        <p><em>This Schedule applies where the Merchant accesses Customer Personal Information through a Platform integration (i.e. where the Merchant acts as an Operator under POPIA in respect of Customer data).</em></p>
+        <p><strong>2.1 Scope:</strong> This Schedule governs the processing of Customer Personal Information by the Merchant on behalf of iZinga as Responsible Party.</p>
+        <p><strong>2.2 Nature and Purpose of Processing:</strong></p>
+        <table class="table table-sm table-bordered mt-2 mb-3">
+          <thead><tr><th>Category of Personal Information</th><th>Purpose</th><th>Duration</th></tr></thead>
+          <tbody>
+            <tr><td>Customer name and contact details</td><td>Fulfilling the specific Order placed through the Merchant's Storefront</td><td>Duration of the Order, plus 12 months for records</td></tr>
+            <tr><td>Delivery address</td><td>Providing the Delivery address for the specific Order</td><td>As above</td></tr>
+            <tr><td>Order details</td><td>Order fulfilment and dispute resolution</td><td>As above</td></tr>
+          </tbody>
+        </table>
+        <p><strong>2.3 Merchant's Obligations as Operator:</strong> The Merchant must: process Customer Personal Information only for the purposes in this Schedule; implement and maintain appropriate technical and organisational security measures; not engage any sub-processor without iZinga's prior written consent; assist iZinga in responding to POPIA data subject requests; notify iZinga within 24 hours of any actual or suspected Personal Information breach; and on termination, delete or return all Customer Personal Information within 30 calendar days and confirm deletion in writing.</p>
+        <p><strong>2.4 Permitted Sub-Processors:</strong></p>
+        <table class="table table-sm table-bordered mt-2 mb-3">
+          <thead><tr><th>Sub-processor</th><th>Entity</th><th>Services</th><th>Location</th></tr></thead>
+          <tbody>
+            <tr><td>Firebase / Google Cloud Platform</td><td>Google LLC</td><td>Cloud infrastructure, database, authentication</td><td>United States (and other Google Cloud regions)</td></tr>
+            <tr><td>Yoco</td><td>Yoco Technologies (Pty) Ltd</td><td>Payment processing</td><td>South Africa</td></tr>
+          </tbody>
+        </table>
+        <p>iZinga will notify the Merchant at least 30 (thirty) calendar days before any material change to sub-processor arrangements.</p>
+
+        <p class="mt-4"><em>Accepted electronically by the Merchant through the iZinga merchant onboarding process at biz.izinga.co.za. iZinga — operated by Curiousoft (Pty) Ltd | Registration No. 2016/429327/07</em></p>
+
+      </div>
+    </div>
+
+    <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Something went wrong saving your agreement. Please try again.
+    </div>
+
+    <div class="card mt-4" *ngIf="needsMerchantIcaAcceptance">
+      <div class="card-body">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" [(ngModel)]="termsAccepted" id="merchantIcaCheck">
+          <label class="form-check-label" for="merchantIcaCheck">
+            I have read and agree to the iZinga Store/Merchant Partner Agreement, including Schedule 1 (Commercial Terms) and Schedule 2 (Data Processing Schedule). I understand that I am entering into a binding commercial agreement with Curiousoft (Pty) Ltd t/a iZinga.
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row fixed-bottom" *ngIf="needsMerchantIcaAcceptance">
     <button
       class="col btn btn-lg btn-block bg-dark mt-5 shadow-sm"
       type="submit"

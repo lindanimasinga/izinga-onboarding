@@ -10,6 +10,7 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { Category, StoreProfile } from '../model/storeProfile';
+import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -702,5 +703,94 @@ describe('BusinessUpdateComponent — ONB-UX-02', () => {
     component.businessHoursClosed['MONDAY'] = false;
     component.toggleDayClosed('MONDAY');
     expect(component.businessHoursClosed['MONDAY']).toBe(false); // unchanged
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Merchant ICA stamping tests (DEFECT-ONB02-01)
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — Merchant ICA stamping (DEFECT-ONB02-01)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // ICA-01: new store creation stamps icaAccepted, icaAcceptedDate, icaVersion from userProfile
+  it('ICA-01: registerBusinessAndStock stamps ICA fields from userProfile onto shop payload for a new store', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+
+    const acceptedDate = new Date('2026-10-05T10:00:00');
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: acceptedDate,
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: shop.id is falsy
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.createStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(sentShop.icaAccepted).toBeTrue();
+    expect(sentShop.icaAcceptedDate).toEqual(acceptedDate);
+    expect(sentShop.icaVersion).toBe(TermsConditionsComponent.MERCHANT_ICA_VERSION);
+  });
+
+  // ICA-02: new store creation redirects to terms page and does not call createStore when icaAccepted is missing
+  it('ICA-02: registerBusinessAndStock redirects to /business/terms and does not call createStore when icaAccepted is missing', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+    const routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN'
+      // icaAccepted is missing
+    } as any;
+
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    component.registerBusinessAndStock();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/business/terms', 'user-1']);
+    expect(orderSvc.createStore).not.toHaveBeenCalled();
+  });
+
+  // ICA-03: updating an existing store does NOT stamp ICA fields (shop.id is present)
+  it('ICA-03: registerBusinessAndStock does NOT stamp ICA fields when updating an existing store', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // Existing store: shop.id is present
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.updateStore.calls.mostRecent().args[0];
+    // ICA fields must NOT be stamped by the component on updates — the backend does not re-check them
+    expect(sentShop.icaAccepted).toBeUndefined();
+    expect(sentShop.icaVersion).toBeUndefined();
   });
 });
