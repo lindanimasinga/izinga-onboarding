@@ -31,7 +31,8 @@ function makeStorageStub(tier: string | null, emailAddress?: string | null): Sto
   return {
     selectedTier: tier,
     userProfile: { emailAddress: resolvedEmail },
-    infoMessage: undefined
+    infoMessage: undefined,
+    pendingInfoMessage: undefined
   } as unknown as StorageService;
 }
 
@@ -252,13 +253,24 @@ describe('SubscriptionCheckoutComponent — Bug #12 email gate', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/business/user']);
   });
 
-  // BUG12-EMAIL-05: when the redirect fires, an infoMessage is set on StorageService
-  // so the profile page can surface the reason for the redirect.
-  it('BUG12-EMAIL-05: storageService.infoMessage is set when the email gate redirects', () => {
+  // BUG12-EMAIL-05: when the redirect fires, a pendingInfoMessage is set on StorageService
+  // so the NavigationEnd handler can promote it to the visible infoMessage banner after
+  // the navigation completes — avoiding the 1 ms race that would wipe a directly-set
+  // infoMessage before the merchant ever sees it.
+  it('BUG12-EMAIL-05: storageService.pendingInfoMessage is set when the email gate redirects', () => {
     setupEmailGate(null);
     const storageSvc = TestBed.inject(StorageService) as any;
     fixture.detectChanges();
-    expect(storageSvc.infoMessage).toContain('email');
+    expect(storageSvc.pendingInfoMessage).toContain('email');
+  });
+
+  // BUG12-EMAIL-07: the email gate must NOT set infoMessage directly — doing so races
+  // with the 1 ms NavigationEnd reset timer in AppComponent and the merchant never sees it.
+  it('BUG12-EMAIL-07: storageService.infoMessage is NOT set directly by the email gate (uses pendingInfoMessage instead)', () => {
+    setupEmailGate(null);
+    const storageSvc = TestBed.inject(StorageService) as any;
+    fixture.detectChanges();
+    expect(storageSvc.infoMessage).toBeUndefined();
   });
 
   // BUG12-EMAIL-06: when the email gate fires, initiateSubscription is never called

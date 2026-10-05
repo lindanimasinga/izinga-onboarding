@@ -41,6 +41,32 @@ export class StorageService {
   _phoneNumber?: string | undefined
   errorMessage: string | undefined;
   infoMessage: string | undefined;
+  /**
+   * A message set by a component that is about to redirect the user.  The
+   * `NavigationEnd` handler in `AppComponent` promotes this value into
+   * `infoMessage` after the navigation that carries the redirect completes,
+   * so the message survives the 1 ms reset timer that would otherwise wipe
+   * a message written directly to `infoMessage` before the redirect fires.
+   * Set this instead of `infoMessage` whenever you need a message to be
+   * visible on the redirect destination page.
+   *
+   * Implementation note: AppComponent uses a per-NavigationEnd generation
+   * counter (_navGen) so that intermediate NavigationEnd timers (e.g. the
+   * one for the source page that triggered the redirect) are silently skipped
+   * and only the FINAL NavigationEnd timer promotes this into infoMessage.
+   */
+  pendingInfoMessage: string | undefined;
+  /**
+   * Monotonically incrementing counter advanced on every NavigationEnd event.
+   * Each timer callback captures its own generation at scheduling time and
+   * skips execution if the counter has since advanced (meaning a newer
+   * navigation has already handled cleanup or promotion).  This ensures that
+   * when two NavigationEnd events fire in quick succession (e.g. a component
+   * redirect in ngOnInit), only the timer for the LAST event applies state,
+   * preventing an earlier stale timer from immediately undoing what the final
+   * timer just set.
+   */
+  _navGen: number = 0;
   DEVICE_KEY = "skjda287nndfsd";
   USER_TYPE_KEY = "kjsdfkjsdf_user_type";
   _payouts: Payout[] | undefined;

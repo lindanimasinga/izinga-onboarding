@@ -58,7 +58,11 @@ export class SubscriptionCheckoutComponent implements OnInit {
     // Gate here before the checkout card renders so the failure is surfaced in-app
     // with a clear message, not as a confusing 400 on PayFast's own hosted page.
     if (!this.storageService.userProfile?.emailAddress?.trim()) {
-      this.storageService.infoMessage =
+      // Use pendingInfoMessage so the message survives the NavigationEnd 1 ms
+      // reset timer in AppComponent.  Setting infoMessage directly would cause
+      // a race where the timer fires immediately after the redirect and wipes
+      // the message before the merchant sees it on /business/user.
+      this.storageService.pendingInfoMessage =
         'Please add an email address to your profile before subscribing.';
       this.router.navigate(['/business/user']);
       return;

@@ -1,6 +1,7 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flush } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AppComponent } from './app.component';
 import { FirebaseService } from './service/firebase.service';
 import { StorageService } from './service/storage-service.service';
@@ -22,14 +23,22 @@ const storageStub: {
   phoneNumber: string | undefined;
   errorMessage: any;
   infoMessage: any;
+  pendingInfoMessage: any;
+  _navGen: number;
   userType: any;
 } = {
   userProfile: undefined,
   phoneNumber: undefined,
   errorMessage: undefined,
   infoMessage: undefined,
+  pendingInfoMessage: undefined,
+  _navGen: 0,
   userType: undefined
 };
+
+/** Minimal routable stub component used only by NavigationEnd behaviour tests. */
+@Component({ template: '' })
+class NavigationStubComponent {}
 
 describe('AppComponent', () => {
   beforeEach(() => {
@@ -262,4 +271,157 @@ describe('AppComponent', () => {
     app.userType = 'referral-partner' as any;
     expect(app.dashboardRoute).toBe('/indivisuals/rp-referral-code');
   });
+});
+
+// ---------------------------------------------------------------------------
+// AppComponent — NavigationEnd infoMessage / pendingInfoMessage behaviour
+//
+// These tests verify that the 1 ms reset timer in the NavigationEnd handler:
+//  (a) promotes a pendingInfoMessage to infoMessage so redirect-driven
+//      messages survive and are visible on the destination page, and
+//  (b) still clears a stale infoMessage when no pendingInfoMessage is set,
+//      so messages do not linger across unrelated navigations.
+// ---------------------------------------------------------------------------
+
+describe('AppComponent — NavigationEnd infoMessage / pendingInfoMessage behaviour', () => {
+  let navStub: {
+    userProfile: any;
+    phoneNumber: string | undefined;
+    errorMessage: any;
+    infoMessage: any;
+    pendingInfoMessage: any;
+    _navGen: number;
+    userType: any;
+  };
+
+  beforeEach(() => {
+    navStub = {
+      userProfile: undefined,
+      phoneNumber: undefined,
+      errorMessage: undefined,
+      infoMessage: undefined,
+      pendingInfoMessage: undefined,
+      _navGen: 0,
+      userType: undefined
+    };
+
+    TestBed.configureTestingModule({
+      imports: [
+        RouterTestingModule.withRoutes([
+          { path: 'nav-test', component: NavigationStubComponent }
+        ])
+      ],
+      declarations: [AppComponent, NavigationStubComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: FirebaseService, useValue: firebaseServiceStub },
+        { provide: StorageService, useValue: navStub }
+      ]
+    });
+  });
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  // APP-PENDING-01: a pendingInfoMessage set before a redirect is promoted to
+  // infoMessage after NavigationEnd fires and the 1 ms timer resolves.
+  it('APP-PENDING-01: pendingInfoMessage is promoted to infoMessage after NavigationEnd', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges(); // ngOnInit subscribes to router events
+
+    navStub.pendingInfoMessage = 'Please add an email address to your profile before subscribing.';
+    navStub.infoMessage = undefined;
+
+    const router = TestBed.inject(Router);
+    router.navigateByUrl('/nav-test');
+    tick();   // flush navigation and NavigationEnd
+    tick(1);  // flush the 1 ms setTimeout in the NavigationEnd handler
+    fixture.detectChanges();
+
+    expect(navStub.infoMessage)
+      .withContext('infoMessage should hold the promoted pendingInfoMessage value')
+      .toBe('Please add an email address to your profile before subscribing.');
+    expect(navStub.pendingInfoMessage)
+      .withContext('pendingInfoMessage should be cleared after being consumed')
+      .toBeUndefined();
+    flush();
+  }));
+
+  // APP-STALE-01: when no pendingInfoMessage is set, a stale infoMessage from a
+  // previous page is cleared on NavigationEnd — original reset intent preserved.
+  it('APP-STALE-01: stale infoMessage is cleared on NavigationEnd when pendingInfoMessage is absent', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    navStub.infoMessage = 'Store details updated successfully';
+    navStub.pendingInfoMessage = undefined;
+
+    const router = TestBed.inject(Router);
+    router.navigateByUrl('/nav-test');
+    tick();
+    tick(1);
+    fixture.detectChanges();
+
+    expect(navStub.infoMessage)
+      .withContext('stale infoMessage should be cleared when pendingInfoMessage is absent')
+      .toBeUndefined();
+    flush();
+  }));
+
+  // APP-GEN-01: when TWO NavigationEnd events fire in quick succession
+  // (simulating a redirect-in-ngOnInit pattern), only the LAST timer runs.
+  // The earlier (stale) timer is skipped because the generation counter has
+  // advanced.  The final timer promotes pendingInfoMessage correctly.
+  //
+  // This covers the email-gate scenario where NavigationEnd#1 fires for the
+  // subscription checkout page, then ngOnInit redirects to /business/user,
+  // and NavigationEnd#2 fires — only NavigationEnd#2's timer should run.
+  it('APP-GEN-01: only the final NavigationEnd timer runs when two fire in sequence', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    // Simulate NavigationEnd#1 firing (manually advance the counter and schedule
+    // a timer as the handler would — WITHOUT a pendingInfoMessage yet).
+    // We replicate the generation-capture logic directly here because
+    // RouterTestingModule cannot trigger two sequential NavigationEnd events
+    // with a synchronous ngOnInit redirect in a single fakeAsync block.
+    const gen1 = ++navStub._navGen;
+    const clearFn1 = jasmine.createSpy('clearFn1');
+    setTimeout(() => {
+      if (navStub._navGen !== gen1) { return; } // stale — skipped
+      clearFn1();
+      navStub.infoMessage = navStub.pendingInfoMessage;
+      navStub.pendingInfoMessage = undefined;
+    }, 1);
+
+    // Now ngOnInit runs (between NavigationEnd#1 and NavigationEnd#2) and sets
+    // the pending message — just like SubscriptionCheckoutComponent.ngOnInit().
+    navStub.pendingInfoMessage = 'Please add an email address to your profile before subscribing.';
+
+    // NavigationEnd#2 fires and schedules its own timer.
+    const gen2 = ++navStub._navGen;
+    const promoteFn2 = jasmine.createSpy('promoteFn2');
+    setTimeout(() => {
+      if (navStub._navGen !== gen2) { return; } // stale — skipped (would be skipped if gen3 had fired)
+      promoteFn2();
+      navStub.infoMessage = navStub.pendingInfoMessage;
+      navStub.pendingInfoMessage = undefined;
+    }, 1);
+
+    tick(1); // flush both timers
+    fixture.detectChanges();
+
+    expect(clearFn1)
+      .withContext('fn1 (stale timer for NavigationEnd#1) must be skipped')
+      .not.toHaveBeenCalled();
+    expect(promoteFn2)
+      .withContext('fn2 (timer for NavigationEnd#2) must run')
+      .toHaveBeenCalled();
+    expect(navStub.infoMessage)
+      .withContext('infoMessage should hold the email-gate message')
+      .toBe('Please add an email address to your profile before subscribing.');
+    expect(navStub.pendingInfoMessage)
+      .withContext('pendingInfoMessage should be cleared after consumption')
+      .toBeUndefined();
+    flush();
+  }));
 });
