@@ -92,14 +92,31 @@ export class TierSelectionComponent implements OnInit {
   }
 
   /**
-   * Store the selected tier in session state and advance to the terms step.
+   * Store the selected tier in session state and advance to the next step.
    * Valid tier values match the backend SubscriptionTier enum: FREE | PREMIUM_1 | PREMIUM_2.
    * Null subscriptionTier on an existing store is treated as FREE — no special handling
    * needed here since this component always writes an explicit value.
+   *
+   * Routing decision (TIER-BILLING-01 bug fix — sixth bug in family):
+   *   - termsAccepted falsy (first-time path): navigate to /business/terms/:id as before.
+   *     TermsConditionsComponent.acceptTerms() success chains to the dashboard, then the
+   *     merchant clicks their way to /business/info/:id (store creation).
+   *   - termsAccepted already true (returning user with no store): skip the terms step
+   *     entirely and navigate directly to /business/info/:id. The TierSelectedGuard on
+   *     that route passes because selectedTier is now set in session. Routing through terms
+   *     when termsAccepted is already true causes c8d964e's skip-redirect to fire, which
+   *     sends the user to the dashboard and silently discards the tier selection.
    */
   selectTier(tier: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2'): void {
     this.storageService.selectedTier = tier;
     this.analytics.logEvent('tier_selected', { tier, userId: this.userId });
-    this.router.navigate(['/business/terms', this.userId || '']);
+
+    if (this.storageService.userProfile?.termsAccepted) {
+      // Returning user who already accepted terms — go straight to store creation.
+      this.router.navigate(['/business/info', this.userId || '']);
+    } else {
+      // First-time path — terms acceptance needed first.
+      this.router.navigate(['/business/terms', this.userId || '']);
+    }
   }
 }

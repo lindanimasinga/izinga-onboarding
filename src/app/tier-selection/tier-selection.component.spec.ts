@@ -181,6 +181,8 @@ describe('TierSelectionComponent', () => {
   describe('onContinue()', () => {
     beforeEach(() => {
       component.userId = 'user-abc';
+      // Default: termsAccepted falsy (first-time path).
+      mockStorageService.userProfile = undefined;
     });
 
     it('should store the selectedTier in storageService and navigate', () => {
@@ -195,6 +197,37 @@ describe('TierSelectionComponent', () => {
       const navigateSpy = spyOn(router, 'navigate');
       component.onContinue();
       expect(mockStorageService.selectedTier).toBe('FREE');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/terms', 'user-abc']);
+    });
+
+    // TIER-BILLING-01 regression — sixth bug in family.
+    // Returning STORE_ADMIN with termsAccepted:true should bypass terms and go
+    // straight to store creation (/business/info/:id). Routing through terms would
+    // trigger c8d964e's skip-redirect → navigateToDashboard(), silently discarding
+    // the tier selection.
+    it('should navigate to /business/info/:id when userProfile.termsAccepted is true (returning user)', () => {
+      mockStorageService.userProfile = { termsAccepted: true } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectedTier = 'PREMIUM_1';
+      component.onContinue();
+      expect(mockStorageService.selectedTier).toBe('PREMIUM_1');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/info', 'user-abc']);
+    });
+
+    it('should navigate to /business/info/:id for FREE tier when userProfile.termsAccepted is true', () => {
+      mockStorageService.userProfile = { termsAccepted: true } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectedTier = 'FREE';
+      component.onContinue();
+      expect(mockStorageService.selectedTier).toBe('FREE');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/info', 'user-abc']);
+    });
+
+    it('should still navigate to /business/terms/:id when userProfile.termsAccepted is false (first-time path unchanged)', () => {
+      mockStorageService.userProfile = { termsAccepted: false } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectedTier = 'PREMIUM_1';
+      component.onContinue();
       expect(navigateSpy).toHaveBeenCalledWith(['/business/terms', 'user-abc']);
     });
   });
@@ -244,11 +277,15 @@ describe('TierSelectionComponent', () => {
 
   // -------------------------------------------------------------------------
   // selectTier() — existing behaviour preserved (regression guard)
+  // All tests here run with userProfile undefined (termsAccepted falsy) so
+  // navigation goes to /business/terms/:id as before.
   // -------------------------------------------------------------------------
 
   describe('selectTier()', () => {
     beforeEach(() => {
       component.userId = 'test-user-id';
+      // First-time path: no user profile in session (termsAccepted falsy).
+      mockStorageService.userProfile = undefined;
     });
 
     it('should store FREE in storageService', () => {
@@ -269,13 +306,13 @@ describe('TierSelectionComponent', () => {
       expect(mockStorageService.selectedTier).toBe('PREMIUM_2');
     });
 
-    it('should navigate to /business/terms/:id after selection', () => {
+    it('should navigate to /business/terms/:id after selection when termsAccepted is falsy', () => {
       const navigateSpy = spyOn(router, 'navigate');
       component.selectTier('FREE');
       expect(navigateSpy).toHaveBeenCalledWith(['/business/terms', 'test-user-id']);
     });
 
-    it('should navigate with empty string when userId is undefined', () => {
+    it('should navigate with empty string when userId is undefined and termsAccepted is falsy', () => {
       component.userId = undefined;
       const navigateSpy = spyOn(router, 'navigate');
       component.selectTier('PREMIUM_1');
@@ -289,6 +326,29 @@ describe('TierSelectionComponent', () => {
         'tier_selected',
         { tier: 'PREMIUM_2', userId: 'test-user-id' }
       );
+    });
+
+    // TIER-BILLING-01 regression — returning user route (termsAccepted: true).
+    it('should navigate to /business/info/:id when userProfile.termsAccepted is true', () => {
+      mockStorageService.userProfile = { termsAccepted: true } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectTier('PREMIUM_1');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/info', 'test-user-id']);
+    });
+
+    it('should navigate to /business/info/:id for FREE tier when userProfile.termsAccepted is true', () => {
+      mockStorageService.userProfile = { termsAccepted: true } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectTier('FREE');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/info', 'test-user-id']);
+    });
+
+    it('should navigate to /business/info with empty string when userId is undefined and termsAccepted is true', () => {
+      component.userId = undefined;
+      mockStorageService.userProfile = { termsAccepted: true } as any;
+      const navigateSpy = spyOn(router, 'navigate');
+      component.selectTier('PREMIUM_2');
+      expect(navigateSpy).toHaveBeenCalledWith(['/business/info', '']);
     });
   });
 
