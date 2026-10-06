@@ -132,8 +132,13 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="firstName">First name</label>
-                        <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" value="" #name="ngModel" required>
-                        <div *ngIf="name.invalid && (name.dirty || name.touched)">
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" id="firstName" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName">Last name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.surname" name="surname" id="lastName" required>
+                        <div *ngIf="showSurnameError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Last name is required.</strong> Please enter your last name before saving.</small>
                         </div>
                     </div>
                 </div>
@@ -162,9 +167,6 @@
                     <div class="input-group">
                         <input type="text" class="form-control" [value]="phoneNumber || ''" name="mobileNumber"
                             placeholder="cellphone" disabled>
-                        <div class="invalid-feedback" style="width: 100%;">
-                            Your cellphone number is required.
-                        </div>
                     </div>
                 </div>
 
@@ -179,10 +181,13 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="cellphone">Email Address</label>
+                    <label for="emailAddress">Email Address <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <input type="text" class="form-control" [(ngModel)]="userProfile.emailAddress" name="emailAddress"
-                            placeholder="Optional Email Address">
+                        <input type="email" class="form-control" [(ngModel)]="userProfile.emailAddress" name="emailAddress" id="emailAddress"
+                            placeholder="Email Address" required>
+                    </div>
+                    <div *ngIf="showEmailError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                        <small><strong>Email address is required.</strong> Please enter your email address before saving.</small>
                     </div>
                 </div>
                 
@@ -201,9 +206,12 @@
                 
 
                 <div class="mb-3">
-                    <label for="cityPicker">Town, township or village you provide services</label>
+                    <label for="cityPicker">Town, township or village you provide services <span class="text-danger">*</span></label>
                     <app-place-autocomplete [address]="city!" (addressChanged)="city = $event" (latitudeChanged)="newAddressLatitude = $event" (longitudeChanged)="newAddressLongitude = $event"></app-place-autocomplete>
                     <small class="text-muted">Search for your town, city, or village using Google Places</small>
+                    <div *ngIf="showCityError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                        <small><strong>Town is required.</strong> Please select your town or city before saving.</small>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -242,7 +250,7 @@
                 </div>
                 <div id="bank-account--data" *ngIf="paymentType == 'BANK_ACC'">
                     <div class="mb-3">
-                        <label for="bankSelect">Bank Name</label>
+                        <label for="bankSelect">Bank Name <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <select id="bankSelect" class="form-control" name="bankSelect"
                                 [(ngModel)]="selectedBankConfig"
@@ -250,6 +258,9 @@
                                 <option [ngValue]="undefined" disabled>Select your bank</option>
                                 <option *ngFor="let bank of bankConfigs" [ngValue]="bank">{{ bank.bankName }}</option>
                             </select>
+                        </div>
+                        <div *ngIf="showBankNameError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Bank name is required.</strong> Please select your bank before saving.</small>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -262,31 +273,40 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="accountType">Account Type</label>
+                        <label for="accountType">Account Type <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <select id="accountType" class="form-control" [(ngModel)]="userProfile.bank.type" name="accountType">
+                            <select id="accountType" class="form-control" [(ngModel)]="userProfile.bank.type" name="accountType" required>
                                 <option [ngValue]="'CHEQUE'">Cheque</option>
                                 <option [ngValue]="'SAVINGS'">Savings</option>
                                 <option [ngValue]="'TRANSMISSION'">Transmission</option>
                                 <option [ngValue]="'EWALLET'">eWallet</option>
                             </select>
                         </div>
+                        <div *ngIf="showAccountTypeError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Account type is required.</strong> Please select your account type before saving.</small>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="branch">Branch Code</label>
+                        <label for="branch">Branch Code <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <input type="text" class="form-control" [(ngModel)]="userProfile.bank.branchCode" name="branch"
                                 [readonly]="!!selectedBankConfig"
                                 [class.bg-light]="!!selectedBankConfig">
                         </div>
                         <small *ngIf="selectedBankConfig" class="text-muted">Auto-filled from selected bank</small>
+                        <div *ngIf="showBranchCodeError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Branch code is required.</strong> Please select a bank to auto-fill this field.</small>
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label for="bankPhone">Bank Phone Number</label>
+                        <label for="bankPhone">Bank Phone Number <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="tel" class="form-control" [(ngModel)]="bankPhone" name="bankPhone" id="bankPhone">
+                            <input type="tel" class="form-control" [(ngModel)]="bankPhone" name="bankPhone" id="bankPhone" required>
                         </div>
                         <small class="text-muted">Mobile number linked to this bank account</small>
+                        <div *ngIf="showBankPhoneError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Bank phone number is required.</strong> Please enter the mobile number linked to this bank account.</small>
+                        </div>
                     </div>
                 </div>
 

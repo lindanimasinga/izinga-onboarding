@@ -59,6 +59,15 @@ export class UserUpdateComponent {
   // Bank account number validation
   showAccountNumberError = false;
 
+  // Required-field validation flags
+  showSurnameError = false;
+  showEmailError = false;
+  showCityError = false;
+  showBankNameError = false;
+  showAccountTypeError = false;
+  showBranchCodeError = false;
+  showBankPhoneError = false;
+
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
     role: UserProfile.RoleEnum.MESSENGER,
@@ -124,14 +133,51 @@ export class UserUpdateComponent {
   createCustomer() {
     this.showProfilePictureError = false;
     this.showAccountNumberError = false;
+    this.showSurnameError = false;
+    this.showEmailError = false;
+    this.showCityError = false;
+    this.showBankNameError = false;
+    this.showAccountTypeError = false;
+    this.showBranchCodeError = false;
+    this.showBankPhoneError = false;
     if (!this.profilePictureUploaded) {
       this.showProfilePictureError = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    if (this.paymentType === 'BANK_ACC' && !this.accountNumber?.trim()) {
-      this.showAccountNumberError = true;
+    if (!this.userProfile.surname?.trim()) {
+      this.showSurnameError = true;
       return;
+    }
+    if (!this.userProfile.emailAddress?.trim()) {
+      this.showEmailError = true;
+      return;
+    }
+    if (!this.city?.trim()) {
+      this.showCityError = true;
+      return;
+    }
+    if (this.paymentType === 'BANK_ACC') {
+      if (!this.selectedBankConfig) {
+        this.showBankNameError = true;
+        return;
+      }
+      if (!this.accountNumber?.trim()) {
+        this.showAccountNumberError = true;
+        return;
+      }
+      if (!this.userProfile.bank.type) {
+        this.showAccountTypeError = true;
+        return;
+      }
+      if (!this.userProfile.bank.branchCode?.trim()) {
+        this.showBranchCodeError = true;
+        return;
+      }
+      if (!this.bankPhone?.trim()) {
+        this.showBankPhoneError = true;
+        return;
+      }
     }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
@@ -187,9 +233,46 @@ export class UserUpdateComponent {
 
   updateCustomer() {
     this.showAccountNumberError = false;
-    if (this.paymentType === 'BANK_ACC' && !this.accountNumber?.trim()) {
-      this.showAccountNumberError = true;
+    this.showSurnameError = false;
+    this.showEmailError = false;
+    this.showCityError = false;
+    this.showBankNameError = false;
+    this.showAccountTypeError = false;
+    this.showBranchCodeError = false;
+    this.showBankPhoneError = false;
+    if (!this.userProfile.surname?.trim()) {
+      this.showSurnameError = true;
       return;
+    }
+    if (!this.userProfile.emailAddress?.trim()) {
+      this.showEmailError = true;
+      return;
+    }
+    if (!this.city?.trim()) {
+      this.showCityError = true;
+      return;
+    }
+    if (this.paymentType === 'BANK_ACC') {
+      if (!this.selectedBankConfig) {
+        this.showBankNameError = true;
+        return;
+      }
+      if (!this.accountNumber?.trim()) {
+        this.showAccountNumberError = true;
+        return;
+      }
+      if (!this.userProfile.bank.type) {
+        this.showAccountTypeError = true;
+        return;
+      }
+      if (!this.userProfile.bank.branchCode?.trim()) {
+        this.showBranchCodeError = true;
+        return;
+      }
+      if (!this.bankPhone?.trim()) {
+        this.showBankPhoneError = true;
+        return;
+      }
     }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
@@ -387,16 +470,36 @@ export class UserUpdateComponent {
     return this.router.url.startsWith('/business') || this.storageService.userType === 'shop';
   }
 
+  /**
+   * Returns true when the signing-up user is a delivery driver / messenger.
+   * Identified by storageService.userType === 'driver', which is set by the welcome
+   * entry flow when the user selects the driver option.
+   */
+  isDriverFlow(): boolean {
+    return this.storageService.userType === 'driver';
+  }
+
   loadUserConfig() {
     console.log("Loading user config...")
     this.izingaOrderManager.getUserConfig()
     .subscribe(config => {
       console.log("Loaded user config: ", config)
-      this.userConfig = this.isShopFlow()
-        ? config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN)
-        : config;
-      // One store-owner type: pick it for the user instead of making them choose from a list of one.
-      if (this.isShopFlow() && this.userConfig.length === 1 && !this._roleDescription) {
+      // Filter the global UserConfig list to only the entries relevant to the
+      // current signup context, mirroring the existing shop-flow pattern.
+      if (this.isShopFlow()) {
+        this.userConfig = config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN);
+      } else if (this.isDriverFlow()) {
+        // MESSENGER and MESSENGER_ADMIN both represent driver service types on the backend.
+        this.userConfig = config.filter(
+          c => c.userRole === UserProfile.RoleEnum.MESSENGER ||
+               c.userRole === UserProfile.RoleEnum.MESSENGERADMIN
+        );
+      } else {
+        this.userConfig = config;
+      }
+      // Auto-select the service type when there is exactly one match for the current flow —
+      // saves the user a redundant click. Mirrors the existing shop-flow convenience.
+      if ((this.isShopFlow() || this.isDriverFlow()) && this.userConfig.length === 1 && !this._roleDescription) {
         this.roleDescription = this.userConfig[0].label;
       }
       // Refresh cached fields now that config is available — roleDescription may
