@@ -158,6 +158,11 @@ export class UserUpdateComponent {
       this.userProfile = user
       return user;
     })).subscribe(resp => {
+      // Bug 15: write the fresh server response back to the shared cache so every
+      // subsequent component (SignupWelcomeComponent, TermsConditionsComponent, etc.)
+      // reads the correct role — especially STORE_ADMIN — rather than the stale
+      // CUSTOMER placeholder that was in storage before this call.
+      this.storageService.userProfile = resp;
       console.log(`customer ${this.userProfile.id} created or updated`)
       this.storageService.ambassadorRef = null;
       if (this.cardId) {
@@ -189,6 +194,14 @@ export class UserUpdateComponent {
       this.userProfile = user
       return user;
     })).subscribe(resp => {
+      // Bug 15: write the fresh server response back to the shared StorageService cache.
+      // The component's local this.userProfile was already updated by the map() above, but
+      // storageService.userProfile (the inter-component cache that TermsConditionsComponent,
+      // DashboardComponent, etc. all read from via this.storageService.userProfile) still held
+      // the stale pre-update profile — e.g. role: CUSTOMER — even though the backend now has
+      // role: STORE_ADMIN. TermsConditionsComponent.isStoreAdmin evaluated the stale value,
+      // which caused the generic consumer terms to render instead of the Merchant ICA.
+      this.storageService.userProfile = resp;
       console.log(`customer ${this.userProfile.id} created or updated`)
       if (this.cardId) {
         this.linkCode()

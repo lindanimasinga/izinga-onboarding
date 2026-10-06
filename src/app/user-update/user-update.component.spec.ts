@@ -766,3 +766,122 @@ describe('UserUpdateComponent — bank.phone field (Bug 9)', () => {
     expect(payload.bank.phone).toBe('+27899999999');
   });
 });
+
+// ---------------------------------------------------------------------------
+// Bug 15 — storageService.userProfile must be updated with fresh server
+// response after updateCustomer() and createCustomer() success handlers run.
+//
+// Root cause: the success handlers only updated the component's own local
+// this.userProfile field, leaving storageService.userProfile (the shared
+// inter-component cache) at the stale pre-update value. TermsConditionsComponent
+// reads storageService.userProfile in ngOnInit; when the role was still CUSTOMER
+// in the cache, isStoreAdmin evaluated false and the generic consumer terms
+// rendered instead of the Merchant ICA branch.
+//
+// TC-B15-UPD-01  updateCustomer() writes the fresh resp to storageService.userProfile
+// TC-B15-UPD-02  the fresh resp role (STORE_ADMIN) is the value in storage, not stale CUSTOMER
+// TC-B15-CRT-01  createCustomer() writes the fresh resp to storageService.userProfile
+// TC-B15-CRT-02  storageService.userProfile is set even when the fresh role differs from the stale cached role
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — storageService.userProfile cache sync on save (Bug 15)', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  beforeEach(async () => {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber',
+      'registerCustomer',
+      'updateCustomer',
+      'getUserConfig',
+      'getBankConfigs',
+      'uploadFile'
+    ]);
+    // Seed storage with a stale CUSTOMER-role profile — the pre-update state that
+    // triggered Bug 15 in the live first-time-signup flow.
+    const staleProfile = buildUser({ id: 'u-stale', role: UserProfile.RoleEnum.CUSTOMER });
+    mockStorage = {
+      phoneNumber: '+27820000000',
+      userProfile: staleProfile,
+      selectedTier: null,
+      ambassadorRef: null,
+      logout: jasmine.createSpy('logout')
+    };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+
+    // ngOnInit will use the cached profile from storageService rather than fetching
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  // TC-B15-UPD-01: updateCustomer() must write the fresh server response to storageService.userProfile
+  it('TC-B15-UPD-01: updateCustomer() writes fresh server response to storageService.userProfile', () => {
+    const freshProfile = buildUser({ id: 'u-stale', role: UserProfile.RoleEnum.STOREADMIN });
+    mockOrderService.updateCustomer.and.returnValue(of(freshProfile));
+
+    component.updateCustomer();
+
+    expect(mockStorage.userProfile).toEqual(freshProfile);
+  });
+
+  // TC-B15-UPD-02: the stale CUSTOMER role must not remain in storage after a successful update
+  // that returns STORE_ADMIN — this is the precise regression that caused Bug 15
+  it('TC-B15-UPD-02: storageService.userProfile.role is STORE_ADMIN (not stale CUSTOMER) after updateCustomer() success', () => {
+    const freshProfile = buildUser({ id: 'u-stale', role: UserProfile.RoleEnum.STOREADMIN });
+    mockOrderService.updateCustomer.and.returnValue(of(freshProfile));
+
+    // Verify the stale state is in storage before the call
+    expect(mockStorage.userProfile.role).toBe(UserProfile.RoleEnum.CUSTOMER);
+
+    component.updateCustomer();
+
+    // After the call the cache must reflect the server-confirmed role
+    expect(mockStorage.userProfile.role).toBe(UserProfile.RoleEnum.STOREADMIN);
+  });
+
+  // TC-B15-CRT-01: createCustomer() must also write the fresh server response to storageService.userProfile
+  it('TC-B15-CRT-01: createCustomer() writes fresh server response to storageService.userProfile', () => {
+    component.profilePictureUploaded = true;
+    const freshProfile = buildUser({ id: 'u-new', role: UserProfile.RoleEnum.STOREADMIN, name: 'New Merchant' });
+    mockOrderService.registerCustomer.and.returnValue(of(freshProfile));
+
+    component.createCustomer();
+
+    expect(mockStorage.userProfile).toEqual(freshProfile);
+  });
+
+  // TC-B15-CRT-02: when the stale cache has CUSTOMER and the fresh response has STORE_ADMIN,
+  // createCustomer() must propagate the new role to storage
+  it('TC-B15-CRT-02: storageService.userProfile.role is updated to the fresh role returned by createCustomer() success', () => {
+    component.profilePictureUploaded = true;
+    const freshProfile = buildUser({ id: 'u-new', role: UserProfile.RoleEnum.STOREADMIN, name: 'New Merchant' });
+    mockOrderService.registerCustomer.and.returnValue(of(freshProfile));
+
+    // Confirm stale CUSTOMER state before the call
+    expect(mockStorage.userProfile.role).toBe(UserProfile.RoleEnum.CUSTOMER);
+
+    component.createCustomer();
+
+    expect(mockStorage.userProfile.role).toBe(UserProfile.RoleEnum.STOREADMIN);
+  });
+});
