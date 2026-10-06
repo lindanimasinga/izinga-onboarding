@@ -253,9 +253,12 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="cellphone">Account Number</label>
+                        <label for="accountNumber">Account Number <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber">
+                            <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" id="accountNumber" required>
+                        </div>
+                        <div *ngIf="showAccountNumberError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                            <small><strong>Account Number is required.</strong> Please enter your bank account number before saving.</small>
                         </div>
                     </div>
                     <div class="mb-3">

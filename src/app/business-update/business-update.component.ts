@@ -9,6 +9,8 @@ import { from, Observable, of, throwError } from 'rxjs';
 import { Category, StoreProfile } from '../model/storeProfile';
 import { Stock } from '../model/stock';
 import { BusinessHours } from '../model/businessHours';
+import { Bank } from '../model/bank';
+import { BankConfig } from '../model/bank-config';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { FixedBarService } from '../service/fixed-bar.service';
@@ -52,7 +54,14 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
       ratePerVolumeCM2: 0,
       ratePerWeightKg: 0,
       labourRatePerFloor: 0
-    }
+    },
+    // Initialise bank to an empty-but-defined object so the Payout Bank Account
+    // section in the template (guarded by *ngIf="shop.bank") always renders,
+    // even before ngOnInit's async calls (getStoreById, loadBankConfigs) resolve
+    // and even when the merchant's user profile has no bank saved (Profile.bank
+    // defaults to null on fresh signup per izinga-commons Profile.kt line 30).
+    // prePopulateStoreBankIfNeeded() will overwrite this with real data once it loads.
+    bank: { type: 'CHEQUE' as any, name: '', accountId: '', branchCode: '', phone: '' }
   }
 
   stockList: Stock[] = [];
@@ -78,6 +87,14 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
   /** Per-category image load error flag for placeholder fallback. */
   categoryImageError: { [id: string]: boolean } = {};
 
+  // --- Store bank account ---
+  /** Available bank configurations loaded from /bank/config/all. */
+  bankConfigs: BankConfig[] = [];
+  /** The BankConfig entry currently selected in the store's bank name dropdown. */
+  selectedStoreBankConfig?: BankConfig;
+  /** True when the merchant submits with BANK_ACC type but a blank Account Number. */
+  showStoreBankAccountNumberError = false;
+
 
   constructor(
     private route: ActivatedRoute,
@@ -94,38 +111,51 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     // FAIL-01: use FixedBarService counter so router-transition order does not strip the class.
     this.fixedBarService.acquire();
     this.analytics.logScreenView('store_menu');
+    this.loadBankConfigs();
     // Get the store ID from the route parameters
     this.route.params.subscribe(params => {
       this.izingaOrderManagementService.getStoreById(params['id'])
-      .subscribe(store => {
-        this.shop = store
-        this.categories = new Set(this.shop?.stockList?.sort((a, b) => this.isPromotion(a) ? -1 : 1).map(stk => stk.group))
-        this.stockList = this.shop.stockList!
-        // FIX-02: initialise closed state from days absent in the backend response.
-        // Any DayOfWeek absent from businessHours is treated as closed by the backend
-        // (StoreProfile.isStoreOffline). We add a placeholder entry (disabled in UI)
-        // so the row is always rendered; buildPayloadHours() excludes closed days.
-        this.initBusinessHoursClosed();
-        // Issue #11: initialise delivery categories — treat missing as empty
-        this.deliveryCategories = this.shop.categories ? [...this.shop.categories] : [];
-        console.log('Store details fetched successfully:', this.shop);
-        if (this.shop.rates == undefined) {
-          this.shop.rates = {
-            standardDeliveryPrice: 0,
-            standardDeliveryKm: 0,
-            ratePerKmBike: 0,
-            ratePerKmCar: 0,
-            ratePerKmBakkie: 0,
-            ratePerKmTruck: 0,
-            ratePerKm: 0,
-            ratePerVolumeCM2: 0,
-            ratePerWeightKg: 0,
-            labourRatePerFloor: 0,
-            standardDeliveryPriceBike: 0,
-            standardDeliveryPriceCar: 0,
-            standardDeliveryPriceBakkie: 0,
-            standardDeliveryPriceTruck: 0,
+      .subscribe({
+        next: store => {
+          this.shop = store
+          this.categories = new Set(this.shop?.stockList?.sort((a, b) => this.isPromotion(a) ? -1 : 1).map(stk => stk.group))
+          this.stockList = this.shop.stockList!
+          // FIX-02: initialise closed state from days absent in the backend response.
+          // Any DayOfWeek absent from businessHours is treated as closed by the backend
+          // (StoreProfile.isStoreOffline). We add a placeholder entry (disabled in UI)
+          // so the row is always rendered; buildPayloadHours() excludes closed days.
+          this.initBusinessHoursClosed();
+          // Issue #11: initialise delivery categories — treat missing as empty
+          this.deliveryCategories = this.shop.categories ? [...this.shop.categories] : [];
+          console.log('Store details fetched successfully:', this.shop);
+          if (this.shop.rates == undefined) {
+            this.shop.rates = {
+              standardDeliveryPrice: 0,
+              standardDeliveryKm: 0,
+              ratePerKmBike: 0,
+              ratePerKmCar: 0,
+              ratePerKmBakkie: 0,
+              ratePerKmTruck: 0,
+              ratePerKm: 0,
+              ratePerVolumeCM2: 0,
+              ratePerWeightKg: 0,
+              labourRatePerFloor: 0,
+              standardDeliveryPriceBike: 0,
+              standardDeliveryPriceCar: 0,
+              standardDeliveryPriceBakkie: 0,
+              standardDeliveryPriceTruck: 0,
+            }
           }
+          // Pre-populate store bank from the owner's user profile when the store
+          // has no bank of its own (e.g. first load of an existing store that was
+          // created before store-level bank capture was added).
+          this.prePopulateStoreBankIfNeeded();
+        },
+        error: () => {
+          // getStoreById 404/error means this is a NEW merchant with no store yet.
+          // Pre-populate the store's bank section from their user profile so they
+          // don't have to re-enter details they already provided.
+          this.prePopulateStoreBankIfNeeded();
         }
       })
     })
@@ -291,6 +321,20 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
     const originalHours = this.shop.businessHours;
     this.shop.businessHours = this.buildPayloadHours();
 
+    // Bank account number validation: the store form now captures a bank section
+    // (pre-populated from the merchant's user profile but independently editable).
+    // When the merchant has selected a bank account type (not EWALLET) the account
+    // number is required — the backend StoreService.validateBankForCreate() will
+    // reject a blank accountId with 400 {"error":"Bank account ID is required"}.
+    // Validate here so the error is surfaced inline rather than from a failed POST.
+    // Only applies to NEW stores (shop.id falsy); updates may already have a valid bank.
+    this.showStoreBankAccountNumberError = false;
+    if (!this.shop.id && this.shop.bank?.type !== 'EWALLET' && !this.shop.bank?.accountId?.trim()) {
+      this.showStoreBankAccountNumberError = true;
+      this.shop.businessHours = originalHours;
+      return;
+    }
+
     // Merchant ICA gate: stamp acceptance fields onto the store payload before
     // POST /store. The backend StoreService.create() reads icaAccepted /
     // icaAcceptedDate / icaVersion from the payload and returns 403
@@ -354,7 +398,14 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
       (error) => {
         // FIX-02: restore full hours array (including closed-day placeholders) so UI is intact
         this.shop.businessHours = originalHours;
-        this.storageService.errorMessage = "Updated store details failed"
+        // Extract the real backend error message when present (e.g. "Bank account ID is required"
+        // from StoreService.validateBankForCreate()) so the merchant sees actionable guidance
+        // rather than a generic "Updated store details failed". Fall back to the generic message
+        // only when the backend didn't send an error body (network failures, 5xx, etc.).
+        const backendMessage: string | undefined = error?.error?.error;
+        this.storageService.errorMessage = backendMessage?.trim()
+          ? backendMessage.trim()
+          : 'Updated store details failed';
       }
     );
   }
@@ -379,6 +430,66 @@ export class BusinessUpdateComponent implements OnInit, OnDestroy {
       return input?.replace(/[^a-zA-Z0-9]/g, '_');
     }
 
+  /**
+   * Pre-populates the store's bank from the owner's user profile when the store
+   * has no bank set. Uses a shallow copy so editing the store's copy does not
+   * mutate the cached user profile. Also matches selectedStoreBankConfig so the
+   * Bank Name dropdown shows the correct value.
+   */
+  private prePopulateStoreBankIfNeeded(): void {
+    // Always ensure shop.bank is defined (the class-level default handles this for
+    // the synchronous render, but async paths — getStoreById returning a store with
+    // no bank, or the error path for a brand-new merchant — need this guard too).
+    if (!this.shop.bank) {
+      this.shop.bank = { type: 'CHEQUE' as any, name: '', accountId: '', branchCode: '', phone: '' };
+    }
+    // If the store has no meaningful bank data yet, copy from the owner's user
+    // profile bank (shallow copy — mutating the store's copy must not affect the
+    // cached user profile). If the user profile also has no bank, the empty default
+    // stays so the section is still visible and the merchant can fill it in.
+    if (!this.shop.bank.accountId?.trim()) {
+      const userBank = this.storageService.userProfile?.bank;
+      if (userBank) {
+        this.shop.bank = { ...userBank };
+      }
+    }
+    // Sync the Bank Name dropdown selection to whatever bank is now on the store.
+    if (this.shop.bank?.name && this.bankConfigs.length > 0) {
+      this.selectedStoreBankConfig = this.bankConfigs.find(b =>
+        b.bankName === this.shop.bank?.name || b.branchCode === this.shop.bank?.branchCode
+      );
+    }
+  }
+
+  /** Called when the merchant selects a bank from the Bank Name dropdown. */
+  onStoreBankSelected(bankConfig: BankConfig): void {
+    if (!this.shop.bank) {
+      this.shop.bank = { accountId: '', name: '', branchCode: '', type: 'CHEQUE' as Bank.AccountTypeEnum };
+    }
+    this.shop.bank.name = bankConfig.bankName;
+    this.shop.bank.branchCode = bankConfig.branchCode;
+    // Preserve an existing account number; keep phone from existing value or mobile number.
+    this.shop.bank.accountId = this.shop.bank.accountId || '';
+    this.shop.bank.phone = this.shop.bank.phone || this.storageService.userProfile?.mobileNumber || '';
+  }
+
+  /** Loads available bank configurations from the backend for the Bank Name dropdown. */
+  private loadBankConfigs(): void {
+    this.izingaOrderManagementService.getBankConfigs().subscribe({
+      next: (banks) => {
+        this.bankConfigs = banks;
+        // Re-sync dropdown selection now that configs are loaded.
+        if (this.shop.bank?.name) {
+          this.selectedStoreBankConfig = banks.find(b =>
+            b.bankName === this.shop.bank?.name || b.branchCode === this.shop.bank?.branchCode
+          );
+        }
+      },
+      error: () => {
+        console.error('Error loading bank configs for store form');
+      }
+    });
+  }
 
   /** REQ-22: true only when the logged-in user has platform ADMIN role. */
   get isAdmin(): boolean {

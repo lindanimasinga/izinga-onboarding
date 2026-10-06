@@ -56,6 +56,9 @@ export class UserUpdateComponent {
   showProfilePictureError = false;
   private readonly DEFAULT_PROFILE_PIC = 'https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg';
 
+  // Bank account number validation
+  showAccountNumberError = false;
+
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
     role: UserProfile.RoleEnum.MESSENGER,
@@ -120,9 +123,14 @@ export class UserUpdateComponent {
 
   createCustomer() {
     this.showProfilePictureError = false;
+    this.showAccountNumberError = false;
     if (!this.profilePictureUploaded) {
       this.showProfilePictureError = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (this.paymentType === 'BANK_ACC' && !this.accountNumber?.trim()) {
+      this.showAccountNumberError = true;
       return;
     }
     this.syncAddressCoordinates()
@@ -178,6 +186,11 @@ export class UserUpdateComponent {
   }
 
   updateCustomer() {
+    this.showAccountNumberError = false;
+    if (this.paymentType === 'BANK_ACC' && !this.accountNumber?.trim()) {
+      this.showAccountNumberError = true;
+      return;
+    }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
     this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
