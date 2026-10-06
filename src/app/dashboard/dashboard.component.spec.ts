@@ -13,6 +13,7 @@ import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.c
 
 const CURRENT_AMBASSADOR_ICA_VERSION = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
 const CURRENT_DRIVER_ICA_VERSION = TermsConditionsComponent.DRIVER_ICA_VERSION;
+const CURRENT_MERCHANT_ICA_VERSION = TermsConditionsComponent.MERCHANT_ICA_VERSION;
 
 /**
  * TC-DASH-01  REFERRAL_PARTNER without icaAccepted: redirected to /referral-partner/enroll.
@@ -352,10 +353,14 @@ describe('DashboardComponent — business profile-setup guard', () => {
     expect(wentToTerms).toBeFalse();
   }));
 
-  // TC-DASH-16: An existing STOREADMIN with accepted terms AND an existing store must pass
-  // through the new guards and proceed normally (no redirect to /business/user or tier-select).
-  it('TC-DASH-16: STOREADMIN on /business/dashboard with termsAccepted and storeId proceeds normally (no redirect)', fakeAsync(() => {
-    const user = buildUser(UserProfile.RoleEnum.STOREADMIN, { termsAccepted: true, storeId: 'store-biz-001' });
+  // TC-DASH-16: An existing STOREADMIN with accepted ICA (merchant version) AND an existing
+  // store must pass through the new guards and proceed normally (no redirect).
+  it('TC-DASH-16: STOREADMIN on /business/dashboard with accepted ICA and storeId proceeds normally (no redirect)', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.STOREADMIN, {
+      icaAccepted: true,
+      icaVersion: CURRENT_MERCHANT_ICA_VERSION,
+      storeId: 'store-biz-001'
+    });
     mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
 
     fixture.detectChanges();
@@ -464,11 +469,16 @@ describe('DashboardComponent — merchant funnel completeness gate', () => {
   let mockFirebase: jasmine.SpyObj<FirebaseService>;
   let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
 
+  // Merchant users complete onboarding via the ICA flow (icaAccepted + icaVersion),
+  // NOT termsAccepted. Use icaAccepted + CURRENT_MERCHANT_ICA_VERSION as the defaults
+  // so hasAcceptedTerms evaluates true for STOREADMIN — the funnel completeness gate
+  // (storeId / selectedTier check) is what these tests are actually exercising.
   const buildUser = (overrides: Partial<UserProfile> = {}): UserProfile => ({
     id: 'user-funnel-01',
     role: UserProfile.RoleEnum.STOREADMIN,
     mobileNumber: '+27812810000',
-    termsAccepted: true,
+    icaAccepted: true,
+    icaVersion: CURRENT_MERCHANT_ICA_VERSION,
     ...overrides
   } as UserProfile);
 
@@ -551,5 +561,149 @@ describe('DashboardComponent — merchant funnel completeness gate', () => {
       return Array.isArray(route) && route[0]?.includes('/business/tier-select');
     });
     expect(wentToTierSelect).toBeFalse();
+  }));
+});
+
+// ---------------------------------------------------------------------------
+// ONB-DRIVER-GATE — driver profile-setup guard for /indivisuals/ routes.
+//
+// TC-DASH-20  CUSTOMER + userType='driver' on /indivisuals/dashboard → redirected to /indivisuals/user.
+// TC-DASH-21  CUSTOMER + userType='driver' → NOT redirected to /indivisuals/terms (must go to user form, not T&Cs).
+// TC-DASH-22  MESSENGER + userType='driver' → NOT redirected (existing driver, correct role already).
+// TC-DASH-23  CUSTOMER + userType='individual' → NOT redirected (plain individual, not a driver-flow user).
+// TC-DASH-24  CUSTOMER + userType='ambassador' → NOT redirected by this guard (ambassador flow is separate).
+// ---------------------------------------------------------------------------
+describe('DashboardComponent — driver profile-setup guard', () => {
+  let component: DashboardComponent;
+  let fixture: ComponentFixture<DashboardComponent>;
+  let mockService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: Partial<StorageService>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockFirebase: jasmine.SpyObj<FirebaseService>;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  const buildUser = (role: UserProfile.RoleEnum, overrides: Partial<UserProfile> = {}): UserProfile => ({
+    id: 'user-driver-001',
+    role,
+    mobileNumber: '+27812811111',
+    ...overrides
+  } as UserProfile);
+
+  const buildTestBed = async (routerUrl: string, userType: string | undefined) => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], { url: routerUrl });
+    mockStorage = {
+      phoneNumber: '+27812811111',
+      userProfile: undefined as any,
+      userType
+    };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockFirebase = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    mockFirebase.getCurrentToken.and.returnValue(null);
+    mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebase },
+        { provide: AnalyticsService, useValue: mockAnalytics }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardComponent);
+    component = fixture.componentInstance;
+  };
+
+  // TC-DASH-20: Primary fix — brand-new CUSTOMER who entered via the driver door must be
+  // redirected to the driver profile form, not left on the dashboard with the wrong role.
+  it('TC-DASH-20: CUSTOMER + userType="driver" on /indivisuals/dashboard → redirected to /indivisuals/user', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'driver');
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER);
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+  }));
+
+  // TC-DASH-21: The CUSTOMER driver must NOT be sent to /indivisuals/terms — that shows generic
+  // T&Cs with the wrong role, producing a functional-looking dashboard for an unregistered user.
+  it('TC-DASH-21: CUSTOMER + userType="driver" → NOT redirected to /indivisuals/terms', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'driver');
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER);
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    const calls = mockRouter.navigate.calls.allArgs();
+    const wentToTerms = calls.some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0]?.includes('/terms');
+    });
+    expect(wentToTerms).toBeFalse();
+  }));
+
+  // TC-DASH-22: An existing driver (role already MESSENGER) must never be redirected to profile
+  // setup — they completed onboarding and their role was upgraded when they submitted the form.
+  it('TC-DASH-22: MESSENGER + userType="driver" → NOT redirected (existing driver, correct role)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'driver');
+    const user = buildUser(UserProfile.RoleEnum.MESSENGER, {
+      icaAccepted: true,
+      icaVersion: TermsConditionsComponent.DRIVER_ICA_VERSION
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
+  }));
+
+  // TC-DASH-23: A plain individual (userType='individual') with CUSTOMER role is a legitimate
+  // customer, NOT a driver who bypassed setup — must not be gated to the driver profile form.
+  it('TC-DASH-23: CUSTOMER + userType="individual" → NOT redirected to /indivisuals/user (plain individual)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'individual');
+    // termsAccepted=true so the terms gate doesn't fire either; we only want to verify
+    // the driver profile-setup guard ignores userType !== 'driver'
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER, { termsAccepted: true });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    fixture.detectChanges();
+    tick();
+
+    const calls = mockRouter.navigate.calls.allArgs();
+    const wentToDriverUser = calls.some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0] === '/indivisuals/user';
+    });
+    expect(wentToDriverUser).toBeFalse();
+  }));
+
+  // TC-DASH-24: An ambassador (userType='ambassador') with CUSTOMER role has their own
+  // enrollment flow; the driver guard must not capture them and send them to the driver form.
+  it('TC-DASH-24: CUSTOMER + userType="ambassador" → NOT redirected to /indivisuals/user by driver guard', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'ambassador');
+    const user = buildUser(UserProfile.RoleEnum.CUSTOMER, { icaAccepted: false });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    const calls = mockRouter.navigate.calls.allArgs();
+    const wentToDriverUser = calls.some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0] === '/indivisuals/user';
+    });
+    expect(wentToDriverUser).toBeFalse();
   }));
 });

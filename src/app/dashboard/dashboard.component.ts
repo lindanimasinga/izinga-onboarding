@@ -60,6 +60,30 @@ export class DashboardComponent {
         return;
       }
 
+      // Guard: On /indivisuals/ routes, the same WhatsApp OTP placeholder profile
+      // leaves the user with role CUSTOMER. A user who entered through the driver door
+      // (storageService.userType === 'driver', set by ?userType=driver or the
+      // driver.izinga.co.za hostname) but whose role is still CUSTOMER has never
+      // completed UserUpdateComponent — the form that upgrades the role to MESSENGER
+      // and collects First Name, Last Name, email, town, bank, and service-type.
+      // Without this guard, such users land on a fully-rendered driver dashboard with
+      // the wrong role and zero profile data submitted.
+      //
+      // Scoped to userType === 'driver' only:
+      //   - plain individuals (userType === 'individual') have CUSTOMER role legitimately
+      //     and are NOT sent through the driver profile form
+      //   - ambassadors (userType === 'ambassador') and referral-partners have their own
+      //     purpose-built flows; the isIcaRole and REFERRALPARTNER branches further down
+      //     handle them once their role is set — they are not gated here
+      //   - existing MESSENGER/MESSENGER_ADMIN drivers already have the correct role and
+      //     are never caught by this condition
+      if (currentUrl.includes('/indivisuals/') &&
+          this.storageService.userType === 'driver' &&
+          user.role === UserProfile.RoleEnum.CUSTOMER) {
+        this.router.navigate(['/indivisuals/user']);
+        return;
+      }
+
       // Check if user has accepted terms and conditions.
       // AMBASSADOR and REFERRAL_PARTNER both use the ICA acceptance fields
       // (icaAccepted / icaAcceptedDate / icaVersion) and have their own
