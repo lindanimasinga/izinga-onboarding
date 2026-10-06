@@ -89,6 +89,7 @@ export class TermsConditionsComponent implements OnInit {
 
   termsAccepted = false;
   acceptError = false;
+  isLoading = true;
   userId?: string;
   user: UserProfile | undefined;
 
@@ -172,24 +173,58 @@ export class TermsConditionsComponent implements OnInit {
     this.analytics.logScreenView('terms_conditions');
     this.route.params.subscribe(params => {
       this.userId = params['id'];
+      if (this.userId) {
+        // Always fetch a fresh profile from the backend before rendering or
+        // submitting anything. Never rely solely on storageService.userProfile:
+        //   • localStorage may have been cleared (new device / cache wipe).
+        //   • The in-memory cache may lag behind a concurrent DashboardComponent
+        //     redirect that sets the cache just before navigation fires.
+        // Either condition leaves this.user = undefined, causing every role
+        // getter (isAmbassador, isDriver, isStoreAdmin) to evaluate false —
+        // the component falls through to #generalTerms, the generic screen
+        // renders, and acceptTerms() sends a PATCH built from an undefined/stale
+        // object that overwrites the user's real role and ICA fields on the
+        // backend. The fresh fetch prevents this entirely.
+        this.izingaOrderManager.getCustomerById(this.userId).subscribe({
+          next: (freshUser: UserProfile) => {
+            this.user = freshUser;
+            this.storageService.userProfile = freshUser;
+            this.isLoading = false;
+            this.performSkipRedirect();
+          },
+          error: () => {
+            // On network failure fall back to the cached profile. The screen
+            // will render with whatever is in cache (degraded but not silent-
+            // data-corruption risk — PATCH will use the same cached object,
+            // so no fields are silently worse than the current cache state).
+            this.user = this.storageService.userProfile;
+            this.isLoading = false;
+            this.performSkipRedirect();
+          }
+        });
+      } else {
+        // No userId in route params — fall back to cache and try to proceed.
+        this.user = this.storageService.userProfile;
+        this.isLoading = false;
+        this.performSkipRedirect();
+      }
     });
-    this.user = this.storageService.userProfile!;
+  }
 
-    // Skip-redirect: if the user has already completed all required acceptances
-    // for their role, navigate forward immediately without rendering the terms.
-    // This covers STORE_ADMIN (and any non-driver, non-ambassador role) returning
-    // via tier-select to change their tier after having accepted terms in a prior
-    // session, as well as drivers and ambassadors who have already signed the
-    // current ICA version.
+  /**
+   * Skip-redirect: if the user has already completed all required acceptances
+   * for their role, navigate forward immediately without rendering the terms.
+   * Extracted from ngOnInit() so it runs AFTER the async fresh-profile fetch,
+   * ensuring this.user is always authoritative before any role check.
+   */
+  private performSkipRedirect(): void {
     if (this.isAmbassador) {
       if (!this.needsIcaAcceptance) {
         this.router.navigate(['/indivisuals/training-guide']);
-        return;
       }
     } else if (this.isDriver) {
       if (!this.needsDriverIcaAcceptance) {
         this.navigateToDashboard();
-        return;
       }
     } else if (this.isStoreAdmin) {
       // Merchant ICA branch: skip-redirect if already on current version.
@@ -197,24 +232,29 @@ export class TermsConditionsComponent implements OnInit {
       // icaVersion matches MERCHANT_ICA_VERSION — navigate forward immediately.
       if (!this.needsMerchantIcaAcceptance) {
         this.navigateToDashboard();
-        return;
       }
     } else {
       if (this.user?.termsAccepted) {
         this.navigateToDashboard();
-        return;
       }
     }
   }
 
   /**
    * Navigate to the appropriate dashboard after terms or ICA acceptance.
-   * Shared by ngOnInit() skip-redirect and acceptTerms() success handlers.
-   * Routes /business/* users to /business/dashboard; everyone else to
-   * /indivisuals/dashboard (the original fallback behaviour is preserved).
+   * Shared by performSkipRedirect() and acceptTerms() success handlers.
+   *
+   * STORE_ADMIN and ADMIN always route to /business/dashboard regardless of
+   * the URL context. Without this, a merchant who enters via /indivisuals/
+   * (e.g. after clearing localStorage and picking the wrong entry point)
+   * and is redirected to /indivisuals/terms/:id would land on the driver
+   * dashboard after accepting — or worse, be caught in a redirect loop.
+   *
+   * For all other roles, route to /business/dashboard if the current URL
+   * is in the /business/ context, otherwise /indivisuals/dashboard.
    */
   private navigateToDashboard(): void {
-    if (this.router.url.includes('/business/')) {
+    if (this.isStoreAdmin || this.router.url.includes('/business/')) {
       this.router.navigate(['/business/dashboard']);
     } else {
       this.router.navigate(['/indivisuals/dashboard']);

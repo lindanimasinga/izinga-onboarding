@@ -82,15 +82,29 @@ export class DashboardComponent {
       const isIcaRole = user.role === UserProfile.RoleEnum.AMBASSADOR
         || user.role === UserProfile.RoleEnum.REFERRALPARTNER;
       const isDriverRole = user.role === UserProfile.RoleEnum.MESSENGER;
+      // BUG FIX (ONB-REGRESSION-01): STORE_ADMIN and ADMIN were previously falling
+      // through to the generic `!!user.termsAccepted` check, which is the wrong
+      // field for merchant roles. Merchants accept the Store/Merchant Partner
+      // Agreement (ICA), stored in icaAccepted + icaVersion, NOT termsAccepted.
+      // A merchant whose termsAccepted was null/false would be incorrectly redirected
+      // to the terms screen, where a stale storageService cache could cause
+      // isStoreAdmin to evaluate false, showing generic T&Cs and allowing a PATCH
+      // that wiped role + ICA fields. Adding an explicit isMerchantRole branch here
+      // prevents that redirect entirely for merchants who have already signed the ICA.
+      const isMerchantRole = user.role === UserProfile.RoleEnum.STOREADMIN
+        || user.role === UserProfile.RoleEnum.ADMIN;
       const ambassadorIcaCurrentVersion = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
       const driverIcaCurrentVersion = TermsConditionsComponent.DRIVER_ICA_VERSION;
+      const merchantIcaCurrentVersion = TermsConditionsComponent.MERCHANT_ICA_VERSION;
       const hasAcceptedTerms = isDriverRole
         ? (!!user.icaAccepted && user.icaVersion === driverIcaCurrentVersion)
         : isIcaRole
           ? (user.role === UserProfile.RoleEnum.AMBASSADOR
               ? !!user.icaAccepted && user.icaVersion === ambassadorIcaCurrentVersion
               : !!user.icaAccepted)
-          : !!user.termsAccepted;
+          : isMerchantRole
+            ? (!!user.icaAccepted && user.icaVersion === merchantIcaCurrentVersion)
+            : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
           // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).
@@ -106,7 +120,16 @@ export class DashboardComponent {
           this.router.navigate(['/indivisuals/terms', user.id]);
           return;
         }
-        // Generic customer / store T&Cs route, maintaining current route context.
+        // STORE_ADMIN and ADMIN always route to /business/terms regardless of the
+        // URL context they arrived from. Their ICA is the Store/Merchant Partner
+        // Agreement on the business-side terms screen. Routing them to /indivisuals/terms
+        // by mistake (e.g. if they enter via /indivisuals/ after clearing localStorage)
+        // would show the generic T&Cs and risk a bad PATCH — route them correctly here.
+        if (isMerchantRole) {
+          this.router.navigate(['/business/terms', user.id]);
+          return;
+        }
+        // Generic customer T&Cs route, maintaining current route context.
         if (currentUrl.includes('/indivisuals/')) {
           this.router.navigate(['/indivisuals/terms', user.id]);
         } else if (currentUrl.includes('/business/')) {

@@ -1,3 +1,14 @@
+<!-- Loading state while fetching fresh profile from backend (Issue ONB-REGRESSION-01).
+     The role-branch chain below only fires after isLoading=false; the generic T&Cs
+     template (#generalTerms) is separately guarded with *ngIf="!isLoading" so that
+     an undefined user during the fetch window cannot cause the generic acceptance
+     UI to appear and allow a role-corrupting PATCH. -->
+<div *ngIf="isLoading" class="py-4 text-center">
+  <div class="spinner-border text-secondary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+</div>
+
 <!-- Ambassador ICA branch -->
 <ng-container *ngIf="isAmbassador; else driverOrGeneral">
   <div class="container py-4">
@@ -569,6 +580,10 @@
 
 <!-- General T&Cs for all other roles -->
 <ng-template #generalTerms>
+<!-- Guard: while isLoading=true, user is undefined, all role getters are false,
+     and the chain falls through here. Hide content until the profile fetch
+     completes so acceptTerms() never runs against an undefined user object. -->
+<ng-container *ngIf="!isLoading">
 <div class="container py-4">
     <div class="text-center mb-4">
         <h2 class="fw-bold">Terms and Conditions</h2>
@@ -752,4 +767,5 @@
         Accept Terms & Continue
     </button>
 </div>
+</ng-container>
 </ng-template>
