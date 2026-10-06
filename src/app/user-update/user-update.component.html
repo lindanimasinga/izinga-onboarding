@@ -131,8 +131,11 @@
                 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="firstName">First name</label>
+                        <label for="firstName">First name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" id="firstName" required>
+                        <div *ngIf="showFirstNameError" class="field-error">
+                            <small><strong>First name is required.</strong> Please enter your first name before saving.</small>
+                        </div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="lastName">Last name <span class="text-danger">*</span></label>
