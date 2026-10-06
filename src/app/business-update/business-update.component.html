@@ -136,7 +136,7 @@
                     <input type="text" class="form-control" id="storeBankAccountNumber"
                         [(ngModel)]="shop.bank.accountId" name="storeBankAccountNumber" required>
                 </div>
-                <div *ngIf="showStoreBankAccountNumberError" class="mt-2" style="border-left: 4px solid #dc3545; padding: 8px 12px; color: var(--text-color); background: #fff5f5;">
+                <div *ngIf="showStoreBankAccountNumberError" class="mt-2" class="field-error">
                     <small><strong>Account Number is required.</strong> Please enter your bank account number before saving the store.</small>
                 </div>
             </div>

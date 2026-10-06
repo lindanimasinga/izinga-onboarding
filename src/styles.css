@@ -261,6 +261,16 @@ body.individual {
 
 
 
+/* Inline validation error block — theme-aware translucent red tint.
+   Uses rgba so the tint reads correctly over both light (#f3f2f2) and dark
+   (#2D2D2D) card backgrounds. Do NOT replace with a fixed hex color. */
+.field-error {
+    border-left: 4px solid #dc3545;
+    padding: 8px 12px;
+    color: var(--text-color);
+    background: rgba(220, 53, 69, 0.12);
+}
+
 /*animations*/
 .digit {
     opacity: 0;
