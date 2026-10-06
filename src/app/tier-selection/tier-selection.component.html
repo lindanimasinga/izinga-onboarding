@@ -161,7 +161,7 @@
 
   <!-- Continue button — shared action, text is reactive to the current card selection -->
   <div class="mt-4">
-    <button class="btn btn-dark w-100" type="button" (click)="onContinue()">
+    <button class="btn w-100" [ngClass]="continueBtnClass" type="button" (click)="onContinue()">
       {{ continueBtnText }}
     </button>
     <p class="text-center text-muted small mt-2 mb-0">

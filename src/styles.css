@@ -18,6 +18,18 @@
     color: var(--text-color);
 }
 
+/* Bug-fix: readonly inputs inherit the card background and text colour.
+   Bootstrap 4's .bg-light and .form-control[readonly] both apply !important
+   backgrounds, but a compound selector beats a single class in specificity,
+   so this rule wins regardless of which decorating class is on the element.
+   opacity: 0.75 preserves the visual "non-editable" affordance that .bg-light
+   was providing without causing white-on-white contrast in dark mode. */
+.form-control[readonly] {
+    background-color: var(--bkg-card-color) !important;
+    color: var(--text-color) !important;
+    opacity: 0.75;
+}
+
 .card {
     border: none !important;
     background: var(--bkg-card-color);

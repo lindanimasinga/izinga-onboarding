@@ -92,6 +92,15 @@ export class TierSelectionComponent implements OnInit {
   }
 
   /**
+   * CSS class applied to the shared Continue button so its background
+   * dynamically matches the selected tier's brand colour.
+   * FREE → teal; PREMIUM_1 / PREMIUM_2 → gold.
+   */
+  get continueBtnClass(): string {
+    return this.selectedTier === 'FREE' ? 'continue-btn--teal' : 'continue-btn--gold';
+  }
+
+  /**
    * Store the selected tier in session state and advance to the next step.
    * Valid tier values match the backend SubscriptionTier enum: FREE | PREMIUM_1 | PREMIUM_2.
    * Null subscriptionTier on an existing store is treated as FREE — no special handling

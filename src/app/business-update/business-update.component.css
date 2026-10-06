@@ -1,3 +1,15 @@
+/* Desktop max-width for the basic-info single-column section.
+   izinga-form-container caps the whole page at 960 px; individual text inputs
+   at that width look stretched on desktop (confirmed at 1440 px during audit).
+   Constraining the basic-info section to 640 px and centering it matches the
+   single-column card pattern used by subscription-checkout and terms-conditions.
+   On mobile (< 640 px) the section is full-width — no change. */
+.business-details-section {
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .category {
     background: var(--nav-bg-color);
 }

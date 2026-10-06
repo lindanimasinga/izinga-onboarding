@@ -273,3 +273,29 @@ li.tier-divider::before { display: none; }
     margin-bottom: 0;
   }
 }
+
+/* ---- Continue button — dynamic tier colour (Bug 2 fix) ----
+   The shared Continue button below the card row reflects the currently
+   selected tier's brand accent so it reads as the same call-to-action
+   as the card's own Select button.
+   FREE → teal; PREMIUM_1 / PREMIUM_2 → gold.
+   Hover: brightness(0.9) per iZinga convention — never --btn-bg-hover-color. */
+.continue-btn--teal {
+  background-color: var(--tier-teal);
+  color: #fff;
+  transition: filter 0.15s ease;
+}
+
+.continue-btn--gold {
+  background-color: var(--tier-gold);
+  color: #fff;
+  transition: filter 0.15s ease;
+}
+
+.continue-btn--teal:hover,
+.continue-btn--teal:focus-visible,
+.continue-btn--gold:hover,
+.continue-btn--gold:focus-visible {
+  filter: brightness(0.9);
+  color: #fff;
+}
