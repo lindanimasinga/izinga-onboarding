@@ -60,6 +60,7 @@ export class UserUpdateComponent {
   showAccountNumberError = false;
 
   // Required-field validation flags
+  showRoleDescriptionError = false;
   showFirstNameError = false;
   showSurnameError = false;
   showEmailError = false;
@@ -134,6 +135,7 @@ export class UserUpdateComponent {
   createCustomer() {
     this.showProfilePictureError = false;
     this.showAccountNumberError = false;
+    this.showRoleDescriptionError = false;
     this.showFirstNameError = false;
     this.showSurnameError = false;
     this.showEmailError = false;
@@ -145,6 +147,10 @@ export class UserUpdateComponent {
     if (!this.profilePictureUploaded) {
       this.showProfilePictureError = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!this.roleDescription?.trim()) {
+      this.showRoleDescriptionError = true;
       return;
     }
     if (!this.userProfile.name?.trim()) {
@@ -239,6 +245,7 @@ export class UserUpdateComponent {
 
   updateCustomer() {
     this.showAccountNumberError = false;
+    this.showRoleDescriptionError = false;
     this.showFirstNameError = false;
     this.showSurnameError = false;
     this.showEmailError = false;
@@ -247,6 +254,10 @@ export class UserUpdateComponent {
     this.showAccountTypeError = false;
     this.showBranchCodeError = false;
     this.showBankPhoneError = false;
+    if (!this.roleDescription?.trim()) {
+      this.showRoleDescriptionError = true;
+      return;
+    }
     if (!this.userProfile.name?.trim()) {
       this.showFirstNameError = true;
       return;

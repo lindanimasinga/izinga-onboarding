@@ -89,6 +89,9 @@
                             <option *ngFor="let config of userConfig" [value]="config.label">{{ config.label }}</option>
                         </select>
                     </div>
+                    <div *ngIf="showRoleDescriptionError" class="field-error">
+                        <small><strong>Service type is required.</strong> Please select your service type before saving.</small>
+                    </div>
                     <!-- ask for the required and optional information based on the user type config selected -->
                     <div *ngIf="cachedConfigFields.length > 0">
                         <div *ngFor="let field of cachedConfigFields" class="mb-3">
