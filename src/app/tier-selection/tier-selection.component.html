@@ -159,14 +159,19 @@
     iZinga does not guarantee same-day receipt.
   </div>
 
-  <!-- Continue button — shared action, text is reactive to the current card selection -->
-  <div class="mt-4">
-    <button class="btn w-100" [ngClass]="continueBtnClass" type="button" (click)="onContinue()">
-      {{ continueBtnText }}
-    </button>
-    <p class="text-center text-muted small mt-2 mb-0">
-      You can upgrade at any time from your dashboard.
-    </p>
-  </div>
+  <!-- Helper text in scrollable area — established convention keeps fixed bars buttons-only -->
+  <p class="text-center text-muted small mt-4 mb-0">
+    You can upgrade at any time from your dashboard.
+  </p>
 
+  <!-- Spacer so fixed bar does not cover last page content — matches business-update.component.html REQ-14 pattern -->
+  <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
+
+</div>
+
+<!-- Continue button — pinned to viewport bottom, matching business-update.component.html fixed-bottom pattern -->
+<div class="row fixed-bottom" style="background: var(--bkg-card-color, #fff); border-top: 1px solid #dee2e6;">
+  <button class="col btn" [ngClass]="continueBtnClass" type="button" (click)="onContinue()">
+    {{ continueBtnText }}
+  </button>
 </div>
