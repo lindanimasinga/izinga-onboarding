@@ -55,10 +55,7 @@
          Copy source: store-draft.html, passed legal-compliance review.
          ---------------------------------------------------------------- -->
     <div class="col-12 col-lg-4 mb-3 mb-lg-0">
-      <div class="tier-card tier-card--gold d-flex flex-column h-100"
-           [class.tier-card--selected]="selectedTier === 'PREMIUM_1'"
-           (click)="chooseTier('PREMIUM_1')">
-        <span *ngIf="selectedTier === 'PREMIUM_1'" class="tier-selected-check" aria-hidden="true">&#x2713;</span>
+      <div class="tier-card tier-card--gold tier-card--coming-soon d-flex flex-column h-100">
         <span class="tier-badge tier-badge--gold">Premium Tier 1</span>
         <h3 class="tier-name">Your own brand</h3>
         <p class="tier-tagline">Includes all Free features — with your brand in front.</p>
@@ -88,9 +85,8 @@
           at customer checkout. This fee is paid by the customer, not deducted from your payout.
         </div>
 
-        <button class="btn tier-action-btn w-100 mt-2" type="button"
-                (click)="chooseTier('PREMIUM_1')">
-          Select Premium Tier 1
+        <button class="btn tier-action-btn w-100 mt-2" type="button" disabled>
+          Coming Soon
         </button>
       </div>
     </div>
@@ -100,11 +96,8 @@
          Copy source: store-draft.html, passed legal-compliance review.
          ---------------------------------------------------------------- -->
     <div class="col-12 col-lg-4 mb-3 mb-lg-0">
-      <div class="tier-card tier-card--gold tier-card--featured d-flex flex-column h-100"
-           [class.tier-card--selected]="selectedTier === 'PREMIUM_2'"
-           (click)="chooseTier('PREMIUM_2')">
+      <div class="tier-card tier-card--gold tier-card--featured tier-card--coming-soon d-flex flex-column h-100">
         <span class="tier-featured-ribbon" aria-label="Most complete tier">Full Platform</span>
-        <span *ngIf="selectedTier === 'PREMIUM_2'" class="tier-selected-check" aria-hidden="true">&#x2713;</span>
         <span class="tier-badge tier-badge--gold">Premium Tier 2</span>
         <h3 class="tier-name">AI-powered commerce</h3>
         <p class="tier-tagline">Includes all Tier 1 features — plus a 24/7 AI assistant on your WhatsApp line.</p>
@@ -138,9 +131,8 @@
           at customer checkout. This fee is paid by the customer, not deducted from your payout.
         </div>
 
-        <button class="btn tier-action-btn w-100 mt-2" type="button"
-                (click)="chooseTier('PREMIUM_2')">
-          Select Premium Tier 2
+        <button class="btn tier-action-btn w-100 mt-2" type="button" disabled>
+          Coming Soon
         </button>
       </div>
     </div>

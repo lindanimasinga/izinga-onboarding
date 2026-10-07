@@ -256,6 +256,23 @@ li.tier-divider::before { display: none; }
   border-color: var(--tier-gold);
 }
 
+/* ---- Coming-soon state on premium tier cards ----
+   Removes pointer cursor from the card (no click handler) and renders the
+   Select button as visually disabled/muted so it's immediately clear these
+   tiers are not yet available.  The native `disabled` attribute on the button
+   blocks all interaction; these rules only add the visual signal. */
+.tier-card--coming-soon {
+  cursor: default;
+}
+
+.tier-card--coming-soon .tier-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #888;
+  border-color: #aaa;
+  background: rgba(128, 128, 128, 0.08);
+}
+
 /* ---- Responsive: ensure equal-height row on lg+ ---- */
 /* NOTE on vertical card gaps (Bug 3 fix):
    Bootstrap 4.5 has no g-* gutter utilities — g-3 on the row was silently

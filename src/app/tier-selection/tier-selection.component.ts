@@ -50,8 +50,11 @@ export class TierSelectionComponent implements OnInit {
 
     // Pre-select from session state on the edit path.
     // storageService.selectedTier is null on a fresh sign-up; FREE stays as the default.
+    // Premium tiers are not yet available for selection — any PREMIUM_* value stored from
+    // a prior session is silently discarded and FREE is used instead, so the user never
+    // sees a selected-but-disabled card state.
     const stored = this.storageService.selectedTier;
-    if (stored === 'PREMIUM_1' || stored === 'PREMIUM_2') {
+    if (stored === 'FREE') {
       this.selectedTier = stored;
     }
 
