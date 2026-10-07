@@ -9,13 +9,13 @@
     </p>
   </div>
 
-  <div class="row g-3 mb-4">
+  <div class="row mb-4">
 
     <!-- ----------------------------------------------------------------
          FREE TIER — 7 bullets
          Copy source: store-draft.html, passed legal-compliance review.
          ---------------------------------------------------------------- -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
       <div class="tier-card tier-card--free d-flex flex-column h-100"
            [class.tier-card--selected]="selectedTier === 'FREE'"
            (click)="chooseTier('FREE')">
@@ -54,7 +54,7 @@
          PREMIUM TIER 1 — 7 base + divider + 4 = 11 bullets
          Copy source: store-draft.html, passed legal-compliance review.
          ---------------------------------------------------------------- -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
       <div class="tier-card tier-card--gold d-flex flex-column h-100"
            [class.tier-card--selected]="selectedTier === 'PREMIUM_1'"
            (click)="chooseTier('PREMIUM_1')">
@@ -99,7 +99,7 @@
          PREMIUM TIER 2 — 7 base + divider + 4 + divider + 3 = 14 bullets
          Copy source: store-draft.html, passed legal-compliance review.
          ---------------------------------------------------------------- -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
       <div class="tier-card tier-card--gold tier-card--featured d-flex flex-column h-100"
            [class.tier-card--selected]="selectedTier === 'PREMIUM_2'"
            (click)="chooseTier('PREMIUM_2')">

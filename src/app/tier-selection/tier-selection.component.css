@@ -256,21 +256,19 @@ li.tier-divider::before { display: none; }
   border-color: var(--tier-gold);
 }
 
-/* ---- Card gap (Bug 3 fix) ----
-   Bootstrap 4 has no g-* gutter utilities; the row g-3 in the template is
-   silently ignored. Add bottom margin directly on .tier-card so stacked cards
-   (mobile/tablet) have breathing room. On desktop (lg+) the cards are in a
-   three-column row so the bottom margin is harmless but cleared to keep the
-   row bottom flush with the payout note below. */
-.tier-card {
-  margin-bottom: 1rem;
-}
-
 /* ---- Responsive: ensure equal-height row on lg+ ---- */
+/* NOTE on vertical card gaps (Bug 3 fix):
+   Bootstrap 4.5 has no g-* gutter utilities — g-3 on the row was silently
+   ignored (gap property stays "normal"). margin-bottom on .tier-card also
+   failed because h-100 stretches the card to fill the column box, making the
+   margin invisible to the flex wrapping algorithm. The reliable fix is
+   mb-3 mb-lg-0 on the .col-12.col-lg-4 wrapper in the template — Bootstrap 4
+   applies margin-bottom: 1rem !important on the column itself, which is not
+   subject to the h-100 stretch problem. mb-lg-0 clears it at lg+ where the
+   three columns sit side-by-side. */
 @media (min-width: 992px) {
   .tier-card {
     min-height: 560px;
-    margin-bottom: 0;
   }
 }
 
