@@ -324,6 +324,10 @@
     </div>
 </div>
 
+<div *ngIf="submitErrorMessage" class="field-error mb-2 mx-2">
+    <small><strong>Registration failed.</strong> {{ submitErrorMessage }}</small>
+</div>
+
 <div class="row fixed-bottom">
     <button *ngIf="!userExist" class="col btn btn-lg btn-block bg-dark mt-5" type="submit" (click)="createCustomer()">Register</button>
     <button *ngIf="userExist" class="col btn btn-lg btn-block bg-dark mt-5 sendCode" type="submit" (click)="updateCustomer()">Update</button>

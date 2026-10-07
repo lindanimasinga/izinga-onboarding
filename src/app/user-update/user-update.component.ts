@@ -70,6 +70,9 @@ export class UserUpdateComponent {
   showBranchCodeError = false;
   showBankPhoneError = false;
 
+  // Whole-request submit failure (backend rejection or network error)
+  submitErrorMessage: string | undefined;
+
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
     role: UserProfile.RoleEnum.MESSENGER,
@@ -144,6 +147,7 @@ export class UserUpdateComponent {
     this.showAccountTypeError = false;
     this.showBranchCodeError = false;
     this.showBankPhoneError = false;
+    this.submitErrorMessage = undefined;
     if (!this.profilePictureUploaded) {
       this.showProfilePictureError = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -240,7 +244,12 @@ export class UserUpdateComponent {
         relativeTo: this.route,
         queryParams: { name: firstName }
       })
-    }, error => console.error(error))
+    }, error => {
+      console.error(error);
+      this.submitErrorMessage = error?.error?.error
+        || error?.error?.message
+        || 'Something went wrong saving your profile. Please try again.';
+    })
   }
 
   updateCustomer() {
@@ -254,6 +263,7 @@ export class UserUpdateComponent {
     this.showAccountTypeError = false;
     this.showBranchCodeError = false;
     this.showBankPhoneError = false;
+    this.submitErrorMessage = undefined;
     if (!this.roleDescription?.trim()) {
       this.showRoleDescriptionError = true;
       return;
@@ -341,7 +351,12 @@ export class UserUpdateComponent {
       } else {
         this.router.navigate(['../info'], { relativeTo: this.route });
       }
-    }, error => console.error(error))
+    }, error => {
+      console.error(error);
+      this.submitErrorMessage = error?.error?.error
+        || error?.error?.message
+        || 'Something went wrong updating your profile. Please try again.';
+    })
   }
 
   get userExist(): boolean {
