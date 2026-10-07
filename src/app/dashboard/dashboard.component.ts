@@ -79,7 +79,13 @@ export class DashboardComponent {
       //     are never caught by this condition
       if (currentUrl.includes('/indivisuals/') &&
           this.storageService.userType === 'driver' &&
-          user.role === UserProfile.RoleEnum.CUSTOMER) {
+          (user.role == null || user.role === UserProfile.RoleEnum.CUSTOMER)) {
+        // role == null   → brand-new OTP placeholder (backend now creates with role=null
+        //                   instead of role=CUSTOMER since commit 73ff2a9 in ijudi-api)
+        // role === CUSTOMER → legacy placeholder created before the backend fix, or any
+        //                     existing user who entered the driver door without completing
+        //                     the driver profile form
+        // Both cases must be sent to the driver profile form.
         this.router.navigate(['/indivisuals/user']);
         return;
       }

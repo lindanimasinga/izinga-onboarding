@@ -195,6 +195,85 @@ describe('UserUpdateComponent — profile picture validation', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Bug-fix: userExist getter must treat OTP placeholder (id + role=null) as a
+// new user, not an existing one. Backend change in ijudi-api commit 73ff2a9
+// means WhatsAppOtpService now creates the placeholder with role=null instead
+// of role=CUSTOMER, so the old `id != null` check was always routing new
+// signups into updateCustomer() instead of createCustomer().
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — userExist getter (OTP placeholder fix)', () => {
+  let component: UserUpdateComponent;
+  let fixture: ComponentFixture<UserUpdateComponent>;
+  let mockOrderService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: any;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  beforeEach(async () => {
+    mockOrderService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber',
+      'registerCustomer',
+      'updateCustomer',
+      'getUserConfig',
+      'getBankConfigs',
+      'uploadFile'
+    ]);
+    mockStorage = {
+      phoneNumber: '+27820000000',
+      userProfile: undefined,
+      ambassadorRef: null,
+      logout: jasmine.createSpy('logout')
+    };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockOrderService.getUserConfig.and.returnValue(of([]));
+    mockOrderService.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: AnalyticsService, useValue: mockAnalytics },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserUpdateComponent);
+    component = fixture.componentInstance;
+  });
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  // TC-UE-01: profile with id AND a real role → existing registered user, use update path
+  it('TC-UE-01: userExist is true when profile has both an id and a role', () => {
+    const registeredUser = buildUser({ id: 'u-registered', role: UserProfile.RoleEnum.MESSENGER });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(registeredUser));
+    fixture.detectChanges();
+
+    expect(component.userExist).toBeTrue();
+  });
+
+  // TC-UE-02: OTP placeholder has id but role is null → treat as new user, use create path
+  it('TC-UE-02: userExist is false when profile has an id but role is null (OTP placeholder)', () => {
+    const placeholder = buildUser({ id: 'u-otp-placeholder', role: undefined });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(placeholder));
+    fixture.detectChanges();
+
+    expect(component.userExist).toBeFalse();
+  });
+
+  // TC-UE-03: no id at all → definitely a new user
+  it('TC-UE-03: userExist is false when profile has no id', () => {
+    const blankProfile = buildUser({ id: undefined, role: undefined });
+    mockOrderService.getCustomerByPhoneNumber.and.returnValue(of(blankProfile));
+    fixture.detectChanges();
+
+    expect(component.userExist).toBeFalse();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // ADR-004 / T-13 — Ambassador ref attachment to POST /user
 //
 // TC-AMB-REG-01  Scenario 1/happy path: ambassadorRef in storage → included in POST payload.

@@ -706,4 +706,19 @@ describe('DashboardComponent — driver profile-setup guard', () => {
     });
     expect(wentToDriverUser).toBeFalse();
   }));
+
+  // TC-DASH-25: Backend change (ijudi-api commit 73ff2a9) — WhatsApp OTP placeholder now
+  // has role=null instead of role=CUSTOMER. The driver guard must catch null-role profiles
+  // on the driver door, not just CUSTOMER-role ones.
+  it('TC-DASH-25: null role + userType="driver" on /indivisuals/dashboard → redirected to /indivisuals/user (post-backend-fix placeholder)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard', 'driver');
+    // Simulate the new-backend OTP placeholder: id present, role absent/null
+    const user = { id: 'u-otp-placeholder', mobileNumber: '+27812815555', role: undefined } as unknown as UserProfile;
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+  }));
 });

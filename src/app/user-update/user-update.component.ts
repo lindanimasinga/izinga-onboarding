@@ -345,7 +345,14 @@ export class UserUpdateComponent {
   }
 
   get userExist(): boolean {
-    return this.userProfile.id != null;
+    // A profile created by WhatsAppOtpService at OTP-verification time has an id
+    // but no role (role === null). That is a placeholder — the user has not yet
+    // submitted the profile form. Only a profile with BOTH an id AND a role is
+    // a real, completed registration that warrants the "Update" path.
+    // Previously this returned `id != null`, which made every post-OTP visit
+    // fall into updateCustomer() instead of createCustomer(), permanently
+    // bypassing the signup-welcome → terms flow for new drivers and merchants.
+    return this.userProfile.id != null && this.userProfile.role != null;
   }
 
   get phoneNumber(): string | undefined {
