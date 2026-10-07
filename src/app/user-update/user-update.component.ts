@@ -222,7 +222,17 @@ export class UserUpdateComponent {
     console.log('User profile tags:', this.userProfile.tag);
     console.log('Ambassador ref:', this.userProfile.ambassadorId);
 
-    this.izingaOrderManager.registerCustomer(this.userProfile)
+    // When the WhatsApp OTP path has already created a placeholder UserProfile (id is
+    // set but role is null), POSTing to /user would collide with that placeholder and the
+    // backend rejects with 500 "User with phone number ... already exist."
+    // Use PATCH /user/{id} (updateCustomer) in that case so we update the placeholder
+    // in place.  Fall back to POST /user (registerCustomer) only when no id exists yet —
+    // this covers the SMS/Firebase phone-auth path where no placeholder is created.
+    const profileRequest$ = this.userProfile.id
+      ? this.izingaOrderManager.updateCustomer(this.userProfile)
+      : this.izingaOrderManager.registerCustomer(this.userProfile);
+
+    profileRequest$
     .pipe(
       map(user => {
       this.userProfile = user
