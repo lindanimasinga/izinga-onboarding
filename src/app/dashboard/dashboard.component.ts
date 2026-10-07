@@ -328,4 +328,23 @@ export class DashboardComponent {
     return !!(this.user?.tag && this.user.tag['blocked']);
   }
 
+  /** First segment of user.name, safe against null/undefined.
+   *  Used for the personalized greeting — never renders as "undefined". */
+  get firstNameOnly(): string {
+    const raw = this.user?.name;
+    if (!raw) return '';
+    return raw.split(' ')[0];
+  }
+
+  /** Short contextual subtitle for the dashboard greeting. */
+  get roleLabel(): string {
+    if (this.isAdmin) return 'Admin Dashboard';
+    if (this.isStoreAdmin) return 'Store Dashboard';
+    if (this.isMessengerAdmin) return 'Driver Manager Dashboard';
+    if (this.isMessenger) return 'Driver Dashboard';
+    if (this.isAmbassador) return 'Ambassador Dashboard';
+    if (this.isReferralPartner) return 'Referral Partner Dashboard';
+    return '';
+  }
+
 }
