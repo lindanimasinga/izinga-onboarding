@@ -89,6 +89,14 @@ export class TermsConditionsComponent implements OnInit {
 
   termsAccepted = false;
   acceptError = false;
+  /**
+   * Set to true when the PATCH fails with a 400 "is required" error, meaning
+   * the user's profile has a mandatory field (e.g. imageUrl) that was never
+   * provided. In this state the template shows an explanatory message with a
+   * CTA to navigate to the profile-update screen. Distinct from acceptError
+   * (which covers all other failure modes).
+   */
+  profileIncompleteError = false;
   isLoading = true;
   userId?: string;
   user: UserProfile | undefined;
@@ -261,8 +269,83 @@ export class TermsConditionsComponent implements OnInit {
     }
   }
 
+  /**
+   * Navigate to the profile-update screen so the user can complete mandatory
+   * fields (e.g. add a profile photo) before retrying the agreement acceptance.
+   * Uses the same URL-context heuristic as navigateToDashboard().
+   */
+  navigateToProfileUpdate(): void {
+    if (this.router.url.includes('/business')) {
+      this.router.navigate(['/business/user']);
+    } else {
+      this.router.navigate(['/indivisuals/user']);
+    }
+  }
+
+  /**
+   * Returns true when an HTTP error is a 400 that signals a missing required
+   * profile field. The backend (ijudi-api UserProfileService) throws
+   * ResponseStatusException(BAD_REQUEST, "<field> is required") for any blank
+   * required field — the phrase "is required" is the stable discriminator.
+   *
+   * Structure-agnostic: checks both a plain string body and a JSON object with
+   * a `message` or `error` key, since Spring Boot can return either depending
+   * on whether a custom handler is active.
+   */
+  private isRequiredFieldError(error: any): boolean {
+    if (!error || error.status !== 400) {
+      return false;
+    }
+    const body = error.error;
+    if (typeof body === 'string') {
+      return body.toLowerCase().includes('is required');
+    }
+    if (body && typeof body === 'object') {
+      const msg = String(body.message || body.error || '');
+      return msg.toLowerCase().includes('is required');
+    }
+    return false;
+  }
+
+  /**
+   * Centralised error handler for all four acceptTerms() PATCH branches.
+   *
+   * If the backend returned a 400 "is required" error (e.g. imageUrl blank for
+   * legacy users) set profileIncompleteError so the template can show the
+   * profile-completion CTA. For all other failures set acceptError (generic
+   * "please try again"). Only one flag is true at a time.
+   */
+  private handleAcceptError(error: any): void {
+    if (this.isRequiredFieldError(error)) {
+      this.profileIncompleteError = true;
+      this.acceptError = false;
+    } else {
+      this.acceptError = true;
+      this.profileIncompleteError = false;
+    }
+  }
+
+  /**
+   * Build a safe copy of the user profile for PATCH. Strips a blank imageUrl
+   * before the request is sent so it does not round-trip as "" and trigger the
+   * backend's "imageUrl is required" validation (added 2026-10-07 in ijudi-api
+   * commit 3340ec49). The backend treats null / omitted as "not changing this
+   * field", which is the correct semantic for users who have never set a photo.
+   *
+   * Only imageUrl is sanitised here; other string fields are sent as-is because
+   * the backend only validates imageUrl for blank at this time.
+   */
+  private buildSafePayload(user: UserProfile): UserProfile {
+    const payload: any = { ...user };
+    if (!payload.imageUrl) {
+      delete payload.imageUrl;
+    }
+    return payload as UserProfile;
+  }
+
   acceptTerms() {
     this.acceptError = false;
+    this.profileIncompleteError = false;
 
     if (this.termsAccepted && this.userId && this.user) {
       if (this.isAmbassador) {
@@ -270,13 +353,13 @@ export class TermsConditionsComponent implements OnInit {
         this.user.icaAcceptedDate = new Date();
         this.user.icaVersion = TermsConditionsComponent.AMBASSADOR_ICA_VERSION;
 
-        this.izingaOrderManager.updateCustomer(this.user).subscribe({
+        this.izingaOrderManager.updateCustomer(this.buildSafePayload(this.user)).subscribe({
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.AMBASSADOR_ICA_VERSION });
             this.router.navigate(['/indivisuals/training-guide']);
           },
-          error: () => { this.acceptError = true; }
+          error: (err: any) => { this.handleAcceptError(err); }
         });
       } else if (this.isDriver) {
         // Driver ICA: set both ICA fields (ADR-017) and termsAccepted in one PATCH.
@@ -288,13 +371,13 @@ export class TermsConditionsComponent implements OnInit {
         this.user.termsAccepted = true;
         this.user.termsAcceptedDate = new Date();
 
-        this.izingaOrderManager.updateCustomer(this.user).subscribe({
+        this.izingaOrderManager.updateCustomer(this.buildSafePayload(this.user)).subscribe({
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('driver_ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.DRIVER_ICA_VERSION });
             this.navigateToDashboard();
           },
-          error: () => { this.acceptError = true; }
+          error: (err: any) => { this.handleAcceptError(err); }
         });
       } else if (this.isStoreAdmin) {
         // Merchant ICA: set ICA fields (ADR-017) AND termsAccepted in one PATCH.
@@ -306,25 +389,25 @@ export class TermsConditionsComponent implements OnInit {
         this.user.termsAccepted = true;
         this.user.termsAcceptedDate = new Date();
 
-        this.izingaOrderManager.updateCustomer(this.user).subscribe({
+        this.izingaOrderManager.updateCustomer(this.buildSafePayload(this.user)).subscribe({
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('merchant_ica_accepted', { userId: this.userId, icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION });
             this.navigateToDashboard();
           },
-          error: () => { this.acceptError = true; }
+          error: (err: any) => { this.handleAcceptError(err); }
         });
       } else {
         this.user.termsAccepted = true;
         this.user.termsAcceptedDate = new Date();
 
-        this.izingaOrderManager.updateCustomer(this.user).subscribe({
+        this.izingaOrderManager.updateCustomer(this.buildSafePayload(this.user)).subscribe({
           next: (updatedUser: UserProfile) => {
             this.storageService.userProfile = updatedUser;
             this.analytics.logEvent('terms_accepted', { userId: this.userId });
             this.navigateToDashboard();
           },
-          error: () => { this.acceptError = true; }
+          error: (err: any) => { this.handleAcceptError(err); }
         });
       }
     }

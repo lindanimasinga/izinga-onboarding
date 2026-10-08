@@ -820,4 +820,253 @@ describe('TermsConditionsComponent', () => {
       expect(routerSpy.navigate).not.toHaveBeenCalled();
     });
   });
+
+  // ── Blank imageUrl / 400 required-field tests (TC-43 onwards) ─────────────
+
+  // TC-43: AMBASSADOR with a real imageUrl — regression guard that clean profiles still work
+  describe('TC-43: AMBASSADOR with real imageUrl — acceptance succeeds (regression guard)', () => {
+    it('should call updateCustomer with imageUrl present when it is a non-blank URL', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        imageUrl: 'https://storage.izinga.co.za/profile/user-001.jpg'
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      const sent: UserProfile = orderManagerSpy.updateCustomer.calls.mostRecent().args[0];
+      expect(sent.imageUrl).toBe('https://storage.izinga.co.za/profile/user-001.jpg');
+      expect(component.acceptError).toBeFalse();
+      expect(component.profileIncompleteError).toBeFalse();
+    });
+  });
+
+  // TC-44: AMBASSADOR with blank imageUrl — imageUrl is omitted from the PATCH body
+  describe('TC-44: AMBASSADOR with blank imageUrl — imageUrl omitted from PATCH', () => {
+    it('should not include imageUrl in the PATCH when it is an empty string', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        imageUrl: ''
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, icaAccepted: true } as UserProfile));
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      const sent: UserProfile = orderManagerSpy.updateCustomer.calls.mostRecent().args[0];
+      expect((sent as any).imageUrl).toBeUndefined();
+    });
+  });
+
+  // TC-45: MESSENGER (driver) with blank imageUrl — imageUrl is omitted from the PATCH body
+  describe('TC-45: MESSENGER with blank imageUrl — imageUrl omitted from PATCH', () => {
+    it('should not include imageUrl in the PATCH when it is an empty string (driver branch)', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.MESSENGER),
+        imageUrl: ''
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      orderManagerSpy.updateCustomer.and.returnValue(
+        of({ ...user, icaAccepted: true, termsAccepted: true } as UserProfile)
+      );
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      const sent: UserProfile = orderManagerSpy.updateCustomer.calls.mostRecent().args[0];
+      expect((sent as any).imageUrl).toBeUndefined();
+    });
+  });
+
+  // TC-46: AMBASSADOR — 400 "imageUrl is required" response sets profileIncompleteError, not acceptError
+  describe('TC-46: AMBASSADOR — 400 "imageUrl is required" sets profileIncompleteError', () => {
+    it('should set profileIncompleteError=true and acceptError=false for a 400 required-field response', () => {
+      const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 400, error: 'imageUrl is required' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeTrue();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-47: MESSENGER (driver) — 400 "imageUrl is required" response sets profileIncompleteError
+  describe('TC-47: MESSENGER — 400 "imageUrl is required" sets profileIncompleteError', () => {
+    it('should set profileIncompleteError=true and acceptError=false for a 400 required-field response', () => {
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 400, error: 'imageUrl is required' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeTrue();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-48: STOREADMIN — 400 "imageUrl is required" response sets profileIncompleteError
+  describe('TC-48: STOREADMIN — 400 "imageUrl is required" sets profileIncompleteError', () => {
+    it('should set profileIncompleteError=true and acceptError=false for a 400 required-field response', () => {
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 400, error: 'imageUrl is required' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeTrue();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-49: CUSTOMER (general terms) — 400 "imageUrl is required" response sets profileIncompleteError
+  describe('TC-49: CUSTOMER — 400 "imageUrl is required" sets profileIncompleteError', () => {
+    it('should set profileIncompleteError=true and acceptError=false for a 400 required-field response', () => {
+      const user = makeUser(UserProfile.RoleEnum.CUSTOMER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 400, error: 'imageUrl is required' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeTrue();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-50: Generic non-400 error still sets acceptError (not profileIncompleteError)
+  describe('TC-50: Generic 500 error sets acceptError, not profileIncompleteError', () => {
+    it('should set acceptError=true and profileIncompleteError=false for a 500 response (AMBASSADOR)', () => {
+      const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 500, error: 'Internal Server Error' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.acceptError).toBeTrue();
+      expect(component.profileIncompleteError).toBeFalse();
+    });
+  });
+
+  // TC-51: 400 with JSON body containing a "message" field matching "is required"
+  describe('TC-51: 400 with JSON body message field — sets profileIncompleteError', () => {
+    it('should handle a 400 whose body is a JSON object with message: "imageUrl is required"', () => {
+      const user = makeUser(UserProfile.RoleEnum.AMBASSADOR);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      const httpError = { status: 400, error: { message: 'imageUrl is required' } };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeTrue();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
+
+  // TC-52: navigateToProfileUpdate() on /indivisuals/ URL → /indivisuals/user
+  describe('TC-52: navigateToProfileUpdate() on /indivisuals/ URL navigates to /indivisuals/user', () => {
+    it('should navigate to /indivisuals/user when the current URL is in the indivisuals context', () => {
+      // Default routerSpy has url: '/indivisuals/terms' — no re-setup needed.
+      const user = makeUser(UserProfile.RoleEnum.MESSENGER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      component.navigateToProfileUpdate();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+    });
+  });
+
+  // TC-53: navigateToProfileUpdate() on /business/ URL → /business/user
+  describe('TC-53: navigateToProfileUpdate() on /business/ URL navigates to /business/user', () => {
+    it('should navigate to /business/user when the current URL is in the business context', () => {
+      const businessRouterSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/business/terms/user-001' });
+
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [FormsModule],
+        declarations: [TermsConditionsComponent],
+        schemas: [NO_ERRORS_SCHEMA],
+        providers: [
+          { provide: IzingaOrderManagementService, useValue: orderManagerSpy },
+          { provide: StorageService, useValue: storageServiceMock },
+          { provide: AnalyticsService, useValue: analyticsSpy },
+          { provide: Router, useValue: businessRouterSpy },
+          { provide: ActivatedRoute, useValue: { params: of({ id: 'user-001' }) } }
+        ]
+      }).compileComponents();
+
+      const user = makeUser(UserProfile.RoleEnum.STOREADMIN);
+      storageServiceMock.userProfile = user;
+      fixture = TestBed.createComponent(TermsConditionsComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+
+      component.navigateToProfileUpdate();
+
+      expect(businessRouterSpy.navigate).toHaveBeenCalledWith(['/business/user']);
+    });
+  });
+
+  // TC-54: profileIncompleteError is reset at the start of each acceptTerms() call
+  describe('TC-54: profileIncompleteError is reset to false at the start of acceptTerms()', () => {
+    it('should reset profileIncompleteError before a retry attempt', () => {
+      const user = makeUser(UserProfile.RoleEnum.CUSTOMER);
+      setupComponent(user);
+      fixture.detectChanges();
+
+      // First call triggers profileIncompleteError
+      const httpError = { status: 400, error: 'imageUrl is required' };
+      orderManagerSpy.updateCustomer.and.returnValue(throwError(() => httpError));
+      component.userId = 'user-001';
+      component.termsAccepted = true;
+      component.acceptTerms();
+      expect(component.profileIncompleteError).toBeTrue();
+
+      // Second call succeeds — profileIncompleteError must be false before and after
+      orderManagerSpy.updateCustomer.and.returnValue(of({ ...user, termsAccepted: true } as UserProfile));
+      component.acceptTerms();
+
+      expect(component.profileIncompleteError).toBeFalse();
+      expect(component.acceptError).toBeFalse();
+    });
+  });
 });
