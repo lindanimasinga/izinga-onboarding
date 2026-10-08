@@ -102,6 +102,12 @@
     <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
       Something went wrong saving your agreement. Please try again.
     </div>
+    <div *ngIf="profileIncompleteError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Your profile is incomplete — please add a profile photo before accepting this agreement.
+      <div class="mt-2">
+        <button class="btn btn-dark btn-sm" (click)="navigateToProfileUpdate()">Complete Profile</button>
+      </div>
+    </div>
 
     <div class="card mt-4" *ngIf="needsIcaAcceptance">
       <div class="card-body">
@@ -281,6 +287,12 @@
 
     <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
       Something went wrong saving your agreement. Please try again.
+    </div>
+    <div *ngIf="profileIncompleteError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Your profile is incomplete — please add a profile photo before accepting this agreement.
+      <div class="mt-2">
+        <button class="btn btn-dark btn-sm" (click)="navigateToProfileUpdate()">Complete Profile</button>
+      </div>
     </div>
 
     <div class="card mt-4" *ngIf="needsDriverIcaAcceptance">
@@ -553,6 +565,12 @@
     <div *ngIf="acceptError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
       Something went wrong saving your agreement. Please try again.
     </div>
+    <div *ngIf="profileIncompleteError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Your profile is incomplete — please add a profile photo before accepting this agreement.
+      <div class="mt-2">
+        <button class="btn btn-dark btn-sm" (click)="navigateToProfileUpdate()">Complete Profile</button>
+      </div>
+    </div>
 
     <div class="card mt-4" *ngIf="needsMerchantIcaAcceptance">
       <div class="card-body">
@@ -736,6 +754,12 @@
 
     <div *ngIf="acceptError" class="alert alert-danger mt-3">
       Something went wrong saving your acceptance. Please try again.
+    </div>
+    <div *ngIf="profileIncompleteError" class="alert mt-3" style="border-left: 4px solid #dc3545; color: var(--text-color);">
+      Your profile is incomplete — please add a profile photo before accepting these terms.
+      <div class="mt-2">
+        <button class="btn btn-dark btn-sm" (click)="navigateToProfileUpdate()">Complete Profile</button>
+      </div>
     </div>
 
     <!-- Fix 3 (TIER-BILLING-01 DS review): muted tier hint for premium merchants only -->
