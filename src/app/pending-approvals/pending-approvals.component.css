@@ -2,9 +2,12 @@
   transition: all 0.2s ease-in-out;
 }
 
+/* ---- Tabs: token colors replace hardcoded #495057 / white background ---- */
 .pending-tabs .nav-link {
   border: none;
-  color: #495057;
+  background: transparent;
+  color: var(--text-color);
+  opacity: 0.7;
   font-weight: 600;
 }
 
@@ -12,6 +15,7 @@
   border-bottom: 3px solid var(--btn-bg-color);
   color: var(--btn-bg-color);
   background-color: transparent;
+  opacity: 1;
 }
 
 .pending-users-map {
@@ -19,11 +23,13 @@
   height: 560px;
 }
 
+/* Map loading overlay — theme-aware translucent surface instead of hardcoded white */
 .map-loading-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: rgba(255, 255, 255, 0.75);
+  background: color-mix(in srgb, var(--bkg-card-color) 75%, transparent);
+  color: var(--text-color);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,23 +39,24 @@
 }
 
 /* ISSUE-1 FIX: replace hardcoded Bootstrap light-mode color (#f8f9fa = rgb(248,249,250)) with
-   design-system tokens so hover state renders correctly in dark theme.  The old hardcoded value
-   was the exact color measured as "wrong theme" in the live audit. */
+   design-system tokens so hover state renders correctly in dark theme.
+   brightness(0.95) replaces the old transform + box-shadow to match the dashboard hover language. */
 .list-group-item:hover {
   background-color: var(--bkg-card-color);
   color: var(--text-color);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  filter: brightness(0.95);
 }
 
+/* Selected row: CS-02 pattern — teal left-border + card background (no Bootstrap .active solid fill).
+   Teal matches the Pending Approvals tile accent on the dashboard. */
 .list-group-item.active {
-    background-color: var(--btn-bg-color) !important;
-    border-color: var(--btn-bg-color) !important;
+  border-left: 3px solid var(--btn-pill-color) !important;
+  background-color: var(--bkg-card-color) !important;
+  color: var(--text-color) !important;
+  border-color: transparent !important;
 }
 
-.card {
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+/* Card: no box-shadow — surfaces are flat per iZinga design language */
 
 .img-thumbnail {
   cursor: pointer;
@@ -68,26 +75,35 @@
   background: var(--bkg-card-color);
   color: var(--text-color);
   border: none;
+  border-radius: 8px;
 }
 
 .pending-user-modal .modal-header {
   background: var(--btn-bg-color);
   color: #fff;
+  border-radius: 8px 8px 0 0;
   border-bottom: none;
 }
 
+/* Modal header is always colored — keep invert for all themes */
 .pending-user-modal .modal-header .btn-close {
   filter: brightness(0) invert(1);
 }
 
 .pending-user-modal .modal-footer {
   background: var(--bkg-card-color);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
 }
 
 .pending-user-modal .modal-body {
   max-height: calc(100vh - 180px);
   overflow-y: auto;
+}
+
+/* Profile review card — teal left-border + 8px radius, no shadow */
+.profile-review-card {
+  border-left: 3px solid var(--btn-pill-color);
+  border-radius: 8px;
 }
 
 /* ISSUE-5 FIX: on narrow screens the "Pending Criminal Checks" tab overflows and wraps into the
@@ -126,7 +142,7 @@
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .fixed-bottom .d-flex > div:last-child {
     text-align: center;
   }

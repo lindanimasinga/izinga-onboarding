@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { ChatSession } from '../model/chatSession';
 import { of } from 'rxjs';
+import { getInitials as avatarGetInitials, getAvatarColor as avatarGetColor } from '../util/avatar.util';
 
 declare var google: any;
 
@@ -289,6 +290,16 @@ hasMissingFields(user: UserProfile): boolean {
 
   getObjectKeys(obj: any): string[] {
     return Object.keys(obj || {});
+  }
+
+  /** PENDING-AVATAR: Delegates to shared avatar.util — initials from name or phone. */
+  getInitials(name: string | undefined): string {
+    return avatarGetInitials(name);
+  }
+
+  /** PENDING-AVATAR: Delegates to shared avatar.util — deterministic colour from name hash. */
+  getAvatarColor(name: string | undefined): string {
+    return avatarGetColor(name);
   }
 
   private shouldLookupCoordinates(user: UserProfile): boolean {

@@ -143,4 +143,44 @@ describe('PendingApprovalsComponent', () => {
       expect(component.getFieldDisplayValue('https://example.com/doc.pdf')).toBe('Document uploaded');
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // getInitials / getAvatarColor — PENDING-AVATAR iz-* design-alignment pass
+  // ---------------------------------------------------------------------------
+  describe('getInitials — delegates to avatar.util', () => {
+    it('returns ? for undefined', () => {
+      expect(component.getInitials(undefined)).toBe('?');
+    });
+
+    it('returns single initial for one-word name', () => {
+      expect(component.getInitials('Sipho')).toBe('S');
+    });
+
+    it('returns first+last initials for two-word name', () => {
+      expect(component.getInitials('Sipho Nkosi')).toBe('SN');
+    });
+
+    it('returns ? for whitespace-only string', () => {
+      expect(component.getInitials('   ')).toBe('?');
+    });
+  });
+
+  describe('getAvatarColor — delegates to avatar.util', () => {
+    it('returns muted grey fallback for undefined', () => {
+      expect(component.getAvatarColor(undefined)).toBe('#6c757d');
+    });
+
+    it('returns muted grey fallback for empty string', () => {
+      expect(component.getAvatarColor('')).toBe('#6c757d');
+    });
+
+    it('is deterministic for the same input', () => {
+      const name = 'Hloniphani';
+      expect(component.getAvatarColor(name)).toBe(component.getAvatarColor(name));
+    });
+
+    it('returns a non-grey colour for a valid name', () => {
+      expect(component.getAvatarColor('TestDriver')).not.toBe('#6c757d');
+    });
+  });
 });

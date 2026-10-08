@@ -5,6 +5,7 @@ import { StorageService } from '../service/storage-service.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { map, Subscription } from 'rxjs';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
+import { getInitials as avatarGetInitials, getAvatarColor as avatarGetColor } from '../util/avatar.util';
 
 @Component({
   selector: 'app-chat-sessions',
@@ -459,22 +460,14 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
   }
 
   /** CS-01: Compute initials (up to 2 chars) from a contact name */
+  /** CS-01: Delegates to shared avatar.util — one implementation for all components. */
   getInitials(name: string | undefined): string {
-    if (!name || !name.trim()) return '?';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    return avatarGetInitials(name);
   }
 
-  /** CS-01: Deterministic background colour from name hash */
+  /** CS-01: Delegates to shared avatar.util — deterministic colour from name hash. */
   getAvatarColor(name: string | undefined): string {
-    const colours = ['#be833d', '#00a9a1', '#D66247', '#1083A5', '#127672', '#8e6bbf', '#c45b8a'];
-    if (!name || !name.trim()) return '#6c757d';
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return colours[Math.abs(hash) % colours.length];
+    return avatarGetColor(name);
   }
 
   /** CS-03: Format phone number as +27 XX XXX XXXX */

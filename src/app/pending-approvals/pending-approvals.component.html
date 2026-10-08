@@ -1,4 +1,11 @@
 <div>
+
+  <!-- Page header — matches dashboard/welcome pattern -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Pending Approvals</h2>
+    <p class="text-muted small mb-0">Review and approve user profiles awaiting verification.</p>
+  </div>
+
   <div class="row mb-3">
     <div class="col-md-6 col-lg-5">
       <label for="userConfigFilter" class="form-label mb-1">Filter by Service Type</label>
@@ -39,7 +46,7 @@
         Map View
       </button>
     </li>
-        <li class="nav-item">
+    <li class="nav-item">
       <button
         type="button"
         class="nav-link"
@@ -47,7 +54,8 @@
         (click)="setActiveTab('criminal-check')">
         <i class="fa fa-shield me-1"></i>
         Pending Criminal Checks
-        <span class="badge bg-secondary ms-1">{{criminalCheckPendingUsers.length}}</span>
+        <!-- Criminal check count — iz-badge--muted replaces badge bg-secondary -->
+        <span class="iz-badge iz-badge--muted ms-1">{{criminalCheckPendingUsers.length}}</span>
       </button>
     </li>
   </ul>
@@ -56,8 +64,12 @@
     <!-- Users List -->
     <div class="col-md-4">
       <div class="d-flex align-items-center justify-content-between mb-3">
-        <h4 class="mb-0">Pending Approvals({{filteredPendingUsers.length}})</h4>
-        <button class="btn btn-outline-dark btn-sm" (click)="loadPendingApprovals()" [disabled]="loading">
+        <!-- Count moved from h4 text to iz-badge--amber next to heading -->
+        <div class="d-flex align-items-center gap-2">
+          <h5 class="mb-0">Pending</h5>
+          <span class="iz-badge iz-badge--amber">{{filteredPendingUsers.length}}</span>
+        </div>
+        <button class="btn btn-sm btn-outline-brand" (click)="loadPendingApprovals()" [disabled]="loading">
           <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
         </button>
       </div>
@@ -85,73 +97,77 @@
           (click)="selectUser(user)">
           <div class="d-flex w-100 justify-content-between">
             <div class="d-flex align-items-center">
-              <img 
-                [src]="user.imageUrl" 
-                alt="Profile" 
+              <!-- Photo avatar -->
+              <img
+                [src]="user.imageUrl"
+                alt="Profile"
                 class="rounded-circle me-2"
                 style="width: 40px; height: 40px; object-fit: cover;"
                 *ngIf="user.imageUrl">
-              <!-- ISSUE-4 FIX: replaced bg-light (Bootstrap near-white, clashes with dark theme)
-                   with the same muted-gray token approach chat-sessions uses for unknown avatars.
-                   background:#6c757d matches getAvatarColor() fallback; icon is white for contrast. -->
+              <!-- Initials avatar — replaces flat grey silhouette (PENDING-AVATAR) -->
               <div *ngIf="!user.imageUrl"
-                   class="rounded-circle d-flex align-items-center justify-content-center me-2"
-                   style="width: 40px; height: 40px; background: #6c757d;">
-                <i class="fa fa-user text-white"></i>
+                   class="iz-avatar d-flex align-items-center justify-content-center me-2"
+                   [style.background]="getAvatarColor(user.name || user.mobileNumber)">
+                {{getInitials(user.name || user.mobileNumber)}}
               </div>
               <div>
                 <h6 class="mb-1">
                   {{user.name || 'No Name'}}
+                  <!-- Nationality badges — iz-badge pattern, no Bootstrap bg-success/bg-warning -->
                   <span *ngIf="user.tag?.['nationality']"
-                        class="badge ms-1"
+                        class="iz-badge ms-1"
                         [ngClass]="{
-                          'bg-success': user.tag['nationality'] === 'ZAF',
-                          'bg-warning text-dark': user.tag['nationality'] !== 'ZAF'
+                          'iz-badge--green': user.tag['nationality'] === 'ZAF',
+                          'iz-badge--amber': user.tag['nationality'] !== 'ZAF'
                         }">
                     {{user.tag['nationality']}}
                   </span>
-                  <span *ngIf="!user.tag?.['nationality']" class="badge bg-secondary ms-1">No nationality</span>
+                  <span *ngIf="!user.tag?.['nationality']" class="iz-badge iz-badge--muted ms-1">No nationality</span>
                 </h6>
                 <small class="">{{user.mobileNumber}}</small>
               </div>
             </div>
           </div>
           <p class="mb-1 small">{{user.description || 'No service description'}}</p>
-              <i *ngIf="!hasMissingFields(user)" class="fa fa-check-circle">Ready For App</i>
+          <i *ngIf="!hasMissingFields(user)" class="fa fa-check-circle">Ready For App</i>
         </button>
       </div>
     </div>
 
-    <!-- User Details -->
+    <!-- User Details (desktop panel) -->
+    <!-- ISSUE-6: Mobile modal below shares the same markup. Edits here must be kept identical
+         in the modal section. Full de-duplication via ng-template is deferred to Issue 6. -->
     <div class="col-md-8 d-none d-md-block">
       <div *ngIf="!selectedUser" class="text-center py-5">
-        <i class="fa fa-user-check fa-3x text-muted mb-3"></i>
+        <!-- Empty state icon chip: replaces fa-user-check silhouette -->
+        <div class="iz-icon-chip iz-icon-chip--teal mx-auto mb-3">👥</div>
         <h5>Select a user to review</h5>
         <p class="text-muted">Choose a user from the list to view their profile details and approval status.</p>
       </div>
 
-      <div *ngIf="selectedUser" class="card">
+      <div *ngIf="selectedUser" class="card profile-review-card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Profile Review</h5>
+          <!-- btn-close on card-header (not colored bg): covered by global body.dark-theme .btn-close rule -->
           <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
         </div>
-        
+
         <div class="card-body">
           <!-- Profile Header -->
           <div class="row mb-4">
             <div class="col-md-3 text-center">
-              <img 
-                [src]="selectedUser.imageUrl" 
-                alt="Profile Picture" 
+              <img
+                [src]="selectedUser.imageUrl"
+                alt="Profile Picture"
                 class="rounded-circle mb-2"
                 style="width: 100px; height: 100px; object-fit: cover;"
                 *ngIf="selectedUser.imageUrl">
-              <!-- ISSUE-4 FIX (desktop profile header): replaced bg-light with neutral gray matching
-                   chat-sessions avatar fallback; white icon for contrast in both themes. -->
+              <!-- Large initials avatar for profile header (PENDING-AVATAR) -->
               <div *ngIf="!selectedUser.imageUrl"
                    class="rounded-circle d-flex align-items-center justify-content-center mb-2 mx-auto"
-                   style="width: 100px; height: 100px; background: #6c757d;">
-                <i class="fa fa-user text-white fa-2x"></i>
+                   style="width: 100px; height: 100px; font-size: 2rem; font-weight: 700; color: #fff;"
+                   [style.background]="getAvatarColor(selectedUser.name || selectedUser.mobileNumber)">
+                {{getInitials(selectedUser.name || selectedUser.mobileNumber)}}
               </div>
             </div>
             <div class="col-md-9">
@@ -181,7 +197,8 @@
                 {{coordinateLookupError}}
               </p>
               <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning me-2">
+                <!-- Pending Approval badge — iz-badge--amber replaces bg-warning -->
+                <span class="iz-badge iz-badge--amber me-2">
                   <i class="fa fa-clock me-1"></i>
                   Pending Approval
                 </span>
@@ -196,7 +213,8 @@
           <!-- Basic Information -->
           <div class="row mb-4">
             <div class="col-md-6">
-              <h6>Basic Information</h6>
+              <!-- Section heading — iz-section-label replaces h6 -->
+              <div class="iz-section-label">Basic Information</div>
               <table class="table table-sm">
                 <tr *ngIf="selectedUser.name" class="text-muted">
                   <td><strong>Name:</strong></td>
@@ -225,7 +243,7 @@
               </table>
             </div>
             <div class="col-md-6">
-              <h6>Bank Information</h6>
+              <div class="iz-section-label">Bank Information</div>
               <table class="table table-sm" *ngIf="selectedUser.bank">
                 <tr class="text-muted">
                   <td><strong>Type:</strong></td>
@@ -248,8 +266,9 @@
           </div>
 
           <div *ngIf="selectedUser.description" class="mb-4">
-            <h6>Missing Required Fields</h6>
-            <div *ngIf="hasMissingFields(selectedUser)" class="alert alert-warning mb-0">
+            <div class="iz-section-label">Missing Required Fields</div>
+            <!-- Missing fields notice — iz-notice--review replaces alert-warning -->
+            <div *ngIf="hasMissingFields(selectedUser)" class="iz-notice iz-notice--review mb-0">
               <div class="fw-bold mb-2">Missing fields ({{getMissingFields(selectedUser).length}})</div>
               <ul class="mb-0 ps-3">
                 <li *ngFor="let field of getMissingFields(selectedUser)">
@@ -257,14 +276,15 @@
                 </li>
               </ul>
             </div>
-            <div *ngIf="!hasMissingFields(selectedUser)" class="alert alert-success mb-0">
+            <!-- All fields present notice — iz-notice--success replaces alert-success -->
+            <div *ngIf="!hasMissingFields(selectedUser)" class="iz-notice iz-notice--success mb-0">
               All mandatory service fields are present.
             </div>
           </div>
 
           <!-- Additional Fields from tag -->
           <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
-            <h6>Additional Information</h6>
+            <div class="iz-section-label">Additional Information</div>
             <div class="row">
               <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
                 <div class="mb-3" *ngIf="i % 2 === 0">
@@ -282,7 +302,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag])"
                       [href]="selectedUser.tag[tag]"
                       target="_blank"
-                      class="btn btn-sm btn-outline-dark">
+                      class="btn btn-sm btn-outline-brand">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -305,7 +325,7 @@
                       *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])"
                       [href]="selectedUser.tag[tag]"
                       target="_blank"
-                      class="btn btn-sm btn-outline-dark">
+                      class="btn btn-sm btn-outline-brand">
                       <i class="fa fa-download me-1"></i>
                       View Document
                     </a>
@@ -319,8 +339,9 @@
     </div>
   </div>
 
-  <!-- ISSUE-6: Mobile modal — shares the same markup as the desktop panel above.
-       Both use ng-template #profileReviewContent defined at end of file (Issue 6 fix). -->
+  <!-- Mobile profile review modal -->
+  <!-- ISSUE-6: Shares the same markup as the desktop panel above — de-duplication via ng-template
+       is deferred. Both copies must be kept identical; any change here must be mirrored above. -->
   <div class="modal fade pending-user-modal" [class.show]="showUserReviewModal" [style.display]="showUserReviewModal ? 'block' : 'none'" tabindex="-1" *ngIf="showUserReviewModal && selectedUser">
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -329,190 +350,190 @@
           <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
         </div>
         <div class="modal-body">
-                <div class="card">
-
-        <div class="card-body">
-          <!-- Profile Header -->
-          <div class="row mb-4">
-            <div class="col-md-3 text-center">
-              <img
-                [src]="selectedUser.imageUrl"
-                alt="Profile Picture"
-                class="rounded-circle mb-2"
-                style="width: 100px; height: 100px; object-fit: cover;"
-                *ngIf="selectedUser.imageUrl">
-              <!-- ISSUE-4 FIX (mobile modal): same neutral-gray fallback as desktop panel. -->
-              <div *ngIf="!selectedUser.imageUrl"
-                   class="rounded-circle d-flex align-items-center justify-content-center mb-2 mx-auto"
-                   style="width: 100px; height: 100px; background: #6c757d;">
-                <i class="fa fa-user text-white fa-2x"></i>
-              </div>
-            </div>
-            <div class="col-md-9">
-              <h4>{{selectedUser.name || 'No Name Provided'}}</h4>
-              <p class="text-muted mb-1">
-                <i class="fa fa-phone me-1"></i>
-                {{selectedUser.mobileNumber}}
-              </p>
-              <p class="text-muted mb-1" *ngIf="selectedUser.emailAddress">
-                <i class="fa fa-envelope me-1"></i>
-                {{selectedUser.emailAddress}}
-              </p>
-              <p class="text-muted" *ngIf="selectedUser.address">
-                <i class="fa fa-map-marker me-1"></i>
-                {{selectedUser.address}}
-              </p>
-              <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null">
-                <i class="fa fa-crosshairs me-1"></i>
-                {{selectedUser.latitude}}, {{selectedUser.longitude}}
-              </p>
-              <p class="text-muted mb-2" *ngIf="coordinateLookupInProgress">
-                <i class="fa fa-spinner fa-spin me-1"></i>
-                Looking up GPS coordinates from address...
-              </p>
-              <p class="text-danger mb-2" *ngIf="coordinateLookupError">
-                <i class="fa fa-exclamation-circle me-1"></i>
-                {{coordinateLookupError}}
-              </p>
-              <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-warning me-2">
-                  <i class="fa fa-clock me-1"></i>
-                  Pending Approval
-                </span>
-                <button class="btn bg-dark" title="Chat with applicant" (click)="startChat()">
-                  <i class="fa fa-comments me-1"></i>
-                  Chat
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Basic Information -->
-          <div class="row mb-4">
-            <div class="col-md-6">
-              <h6>Basic Information</h6>
-              <table class="table table-sm">
-                <tr *ngIf="selectedUser.name" class="text-muted">
-                  <td><strong>Name:</strong></td>
-                  <td>{{selectedUser.name}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.surname" class="text-muted">
-                  <td><strong>Surname:</strong></td>
-                  <td>{{selectedUser.surname}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.dateOfBirth" class="text-muted">
-                  <td><strong>Date of Birth:</strong></td>
-                  <td>{{selectedUser.dateOfBirth}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.idNumber" class="text-muted">
-                  <td><strong>ID Number:</strong></td>
-                  <td>{{selectedUser.idNumber}}</td>
-                </tr>
-                <tr class="text-muted">
-                  <td><strong>Role:</strong></td>
-                  <td>{{selectedUser.role}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.description" class="text-muted">
-                  <td><strong>Service Description:</strong></td>
-                  <td>{{selectedUser.description}}</td>
-                </tr>
-              </table>
-            </div>
-            <div class="col-md-6">
-              <h6>Bank Information</h6>
-              <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr class="text-muted">
-                  <td><strong>Type:</strong></td>
-                  <td>{{selectedUser.bank.type}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.name" class="text-muted">
-                  <td><strong>Bank:</strong></td>
-                  <td>{{selectedUser.bank.name}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
-                  <td><strong>Account:</strong></td>
-                  <td>{{selectedUser.bank.accountId}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
-                  <td><strong>Branch Code:</strong></td>
-                  <td>{{selectedUser.bank.branchCode}}</td>
-                </tr>
-              </table>
-            </div>
-          </div>
-
-          <div *ngIf="selectedUser.description" class="mb-4">
-            <h6>Missing Required Fields</h6>
-            <div *ngIf="hasMissingFields(selectedUser)" class="alert alert-warning mb-0">
-              <div class="fw-bold mb-2">Missing fields ({{getMissingFields(selectedUser).length}})</div>
-              <ul class="mb-0 ps-3">
-                <li *ngFor="let field of getMissingFields(selectedUser)">
-                  {{formatMissingFieldName(field) | titlecase}}
-                </li>
-              </ul>
-            </div>
-            <div *ngIf="!hasMissingFields(selectedUser)" class="alert alert-success mb-0">
-              All mandatory service fields are present.
-            </div>
-          </div>
-
-          <!-- Additional Fields from tag -->
-          <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
-            <h6>Additional Information</h6>
-            <div class="row">
-              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
-                <div class="mb-3" *ngIf="i % 2 === 0">
-                  <strong>{{tag | titlecase}}:</strong>
-                  <div class="mt-1">
-                    <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
-                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
+          <div class="card profile-review-card">
+            <div class="card-body">
+              <!-- Profile Header -->
+              <div class="row mb-4">
+                <div class="col-md-3 text-center">
+                  <img
+                    [src]="selectedUser.imageUrl"
+                    alt="Profile Picture"
+                    class="rounded-circle mb-2"
+                    style="width: 100px; height: 100px; object-fit: cover;"
+                    *ngIf="selectedUser.imageUrl">
+                  <!-- Large initials avatar for mobile modal profile header (PENDING-AVATAR) -->
+                  <div *ngIf="!selectedUser.imageUrl"
+                       class="rounded-circle d-flex align-items-center justify-content-center mb-2 mx-auto"
+                       style="width: 100px; height: 100px; font-size: 2rem; font-weight: 700; color: #fff;"
+                       [style.background]="getAvatarColor(selectedUser.name || selectedUser.mobileNumber)">
+                    {{getInitials(selectedUser.name || selectedUser.mobileNumber)}}
+                  </div>
+                </div>
+                <div class="col-md-9">
+                  <h4>{{selectedUser.name || 'No Name Provided'}}</h4>
+                  <p class="text-muted mb-1">
+                    <i class="fa fa-phone me-1"></i>
+                    {{selectedUser.mobileNumber}}
+                  </p>
+                  <p class="text-muted mb-1" *ngIf="selectedUser.emailAddress">
+                    <i class="fa fa-envelope me-1"></i>
+                    {{selectedUser.emailAddress}}
+                  </p>
+                  <p class="text-muted" *ngIf="selectedUser.address">
+                    <i class="fa fa-map-marker me-1"></i>
+                    {{selectedUser.address}}
+                  </p>
+                  <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null">
+                    <i class="fa fa-crosshairs me-1"></i>
+                    {{selectedUser.latitude}}, {{selectedUser.longitude}}
+                  </p>
+                  <p class="text-muted mb-2" *ngIf="coordinateLookupInProgress">
+                    <i class="fa fa-spinner fa-spin me-1"></i>
+                    Looking up GPS coordinates from address...
+                  </p>
+                  <p class="text-danger mb-2" *ngIf="coordinateLookupError">
+                    <i class="fa fa-exclamation-circle me-1"></i>
+                    {{coordinateLookupError}}
+                  </p>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="iz-badge iz-badge--amber me-2">
+                      <i class="fa fa-clock me-1"></i>
+                      Pending Approval
                     </span>
-                    <img
-                      *ngIf="isImageUrl(selectedUser.tag[tag])"
-                      [src]="selectedUser.tag[tag]"
-                      class="img-thumbnail"
-                      style="max-width: 150px; max-height: 100px;">
-                    <a
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag])"
-                      [href]="selectedUser.tag[tag]"
-                      target="_blank"
-                      class="btn btn-sm btn-outline-dark">
-                      <i class="fa fa-download me-1"></i>
-                      View Document
-                    </a>
+                    <button class="btn bg-dark" title="Chat with applicant" (click)="startChat()">
+                      <i class="fa fa-comments me-1"></i>
+                      Chat
+                    </button>
                   </div>
                 </div>
               </div>
-              <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
-                <div class="mb-3" *ngIf="i % 2 === 1">
-                  <strong>{{tag | titlecase}}:</strong>
-                  <div class="mt-1">
-                    <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
-                      {{getFieldDisplayValue(selectedUser.tag[tag])}}
-                    </span>
-                    <img
-                      *ngIf="isImageUrl(selectedUser.tag[tag])"
-                      [src]="selectedUser.tag[tag]"
-                      class="img-thumbnail"
-                      style="max-width: 150px; max-height: 100px;">
-                    <a
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])"
-                      [href]="selectedUser.tag[tag]"
-                      target="_blank"
-                      class="btn btn-sm btn-outline-dark">
-                      <i class="fa fa-download me-1"></i>
-                      View Document
-                    </a>
+
+              <!-- Basic Information -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="iz-section-label">Basic Information</div>
+                  <table class="table table-sm">
+                    <tr *ngIf="selectedUser.name" class="text-muted">
+                      <td><strong>Name:</strong></td>
+                      <td>{{selectedUser.name}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.surname" class="text-muted">
+                      <td><strong>Surname:</strong></td>
+                      <td>{{selectedUser.surname}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.dateOfBirth" class="text-muted">
+                      <td><strong>Date of Birth:</strong></td>
+                      <td>{{selectedUser.dateOfBirth}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.idNumber" class="text-muted">
+                      <td><strong>ID Number:</strong></td>
+                      <td>{{selectedUser.idNumber}}</td>
+                    </tr>
+                    <tr class="text-muted">
+                      <td><strong>Role:</strong></td>
+                      <td>{{selectedUser.role}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.description" class="text-muted">
+                      <td><strong>Service Description:</strong></td>
+                      <td>{{selectedUser.description}}</td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-md-6">
+                  <div class="iz-section-label">Bank Information</div>
+                  <table class="table table-sm" *ngIf="selectedUser.bank">
+                    <tr class="text-muted">
+                      <td><strong>Type:</strong></td>
+                      <td>{{selectedUser.bank.type}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.bank.name" class="text-muted">
+                      <td><strong>Bank:</strong></td>
+                      <td>{{selectedUser.bank.name}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
+                      <td><strong>Account:</strong></td>
+                      <td>{{selectedUser.bank.accountId}}</td>
+                    </tr>
+                    <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
+                      <td><strong>Branch Code:</strong></td>
+                      <td>{{selectedUser.bank.branchCode}}</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+
+              <div *ngIf="selectedUser.description" class="mb-4">
+                <div class="iz-section-label">Missing Required Fields</div>
+                <div *ngIf="hasMissingFields(selectedUser)" class="iz-notice iz-notice--review mb-0">
+                  <div class="fw-bold mb-2">Missing fields ({{getMissingFields(selectedUser).length}})</div>
+                  <ul class="mb-0 ps-3">
+                    <li *ngFor="let field of getMissingFields(selectedUser)">
+                      {{formatMissingFieldName(field) | titlecase}}
+                    </li>
+                  </ul>
+                </div>
+                <div *ngIf="!hasMissingFields(selectedUser)" class="iz-notice iz-notice--success mb-0">
+                  All mandatory service fields are present.
+                </div>
+              </div>
+
+              <!-- Additional Fields from tag -->
+              <div *ngIf="selectedUser.tag && getObjectKeys(selectedUser.tag).length > 0" class="mb-4">
+                <div class="iz-section-label">Additional Information</div>
+                <div class="row">
+                  <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
+                    <div class="mb-3" *ngIf="i % 2 === 0">
+                      <strong>{{tag | titlecase}}:</strong>
+                      <div class="mt-1">
+                        <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                          {{getFieldDisplayValue(selectedUser.tag[tag])}}
+                        </span>
+                        <img
+                          *ngIf="isImageUrl(selectedUser.tag[tag])"
+                          [src]="selectedUser.tag[tag]"
+                          class="img-thumbnail"
+                          style="max-width: 150px; max-height: 100px;">
+                        <a
+                          *ngIf="isDocumentUrl(selectedUser.tag[tag])"
+                          [href]="selectedUser.tag[tag]"
+                          target="_blank"
+                          class="btn btn-sm btn-outline-brand">
+                          <i class="fa fa-download me-1"></i>
+                          View Document
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6" *ngFor="let tag of getObjectKeys(selectedUser.tag); let i = index">
+                    <div class="mb-3" *ngIf="i % 2 === 1">
+                      <strong>{{tag | titlecase}}:</strong>
+                      <div class="mt-1">
+                        <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
+                          {{getFieldDisplayValue(selectedUser.tag[tag])}}
+                        </span>
+                        <img
+                          *ngIf="isImageUrl(selectedUser.tag[tag])"
+                          [src]="selectedUser.tag[tag]"
+                          class="img-thumbnail"
+                          style="max-width: 150px; max-height: 100px;">
+                        <a
+                          *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])"
+                          [href]="selectedUser.tag[tag]"
+                          target="_blank"
+                          class="btn btn-sm btn-outline-brand">
+                          <i class="fa fa-download me-1"></i>
+                          View Document
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-outline-dark" (click)="startChat()">
+          <button class="btn btn-outline-brand" (click)="startChat()">
             <i class="fa fa-comments me-1"></i>Chat
           </button>
           <button class="btn bg-dark" (click)="approveUser()" [disabled]="approving">
@@ -526,10 +547,12 @@
 
   <div class="modal-backdrop fade" [class.show]="showUserReviewModal" *ngIf="showUserReviewModal"></div>
 
+  <!-- Map view -->
   <div *ngIf="activeTab === 'map'" class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Pending Users Map</h5>
-      <span class="badge bg-warning text-dark">{{filteredPendingUsers.length}} Shown</span>
+      <!-- iz-badge--amber replaces badge bg-warning text-dark -->
+      <span class="iz-badge iz-badge--amber">{{filteredPendingUsers.length}} Shown</span>
     </div>
     <div class="card-body p-0 position-relative">
       <div class="map-loading-overlay" *ngIf="mapLoading">
@@ -541,7 +564,8 @@
       <div id="pending-users-map" class="pending-users-map"></div>
     </div>
     <div class="card-footer" *ngIf="mapError">
-      <div class="alert alert-warning mb-0">
+      <!-- iz-notice--blocked replaces alert-warning for map load error -->
+      <div class="iz-notice iz-notice--blocked mb-0">
         <i class="fa fa-exclamation-triangle me-1"></i>
         {{mapError}}
       </div>
@@ -553,9 +577,9 @@
 
 <div class="d-flex justify-content-between align-items-center">
     <div *ngIf="activeTab === 'list' && selectedUser" class="fixed-bottom">
-    <button 
-        type="button" 
-        class="btn btn-lg btn-block bg-dark" 
+    <button
+        type="button"
+        class="btn btn-lg btn-block bg-dark"
         (click)="approveUser()"
         [disabled]="approving">
         <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>

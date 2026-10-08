@@ -288,3 +288,153 @@ body.individual {
   .visible {
     opacity: 1;
   }
+
+/* ================================================================
+   iZinga Global Design Primitives — iz-* utility classes
+   Shared across all components so local component CSS only needs to
+   override what is truly component-specific.
+
+   NOTE: dashboard.component.css (.dash-card, .dash-card-icon, etc.)
+   and welcome.component.css (.welcome-badge--*) are the originals
+   these mirror. Alias those local classes to .iz-* in a follow-up
+   cleanup pass; do NOT modify those reference files now.
+   ================================================================ */
+
+/* ---- iz-card: tinted surface card — 3-px accent border, 8px radius ---- */
+.iz-card {
+  border-radius: 8px;
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  color: var(--text-color);
+  background: var(--bkg-card-color);
+}
+.iz-card:hover { filter: brightness(0.95); }
+
+.iz-card--teal  { background: color-mix(in srgb, var(--btn-pill-color)   12%, var(--bkg-card-color)); border-left: 3px solid var(--btn-pill-color); }
+.iz-card--green { background: color-mix(in srgb, var(--btn-green-color)  12%, var(--bkg-card-color)); border-left: 3px solid var(--btn-green-color); }
+.iz-card--gold  { background: color-mix(in srgb, var(--btn-bg-color)     12%, var(--bkg-card-color)); border-left: 3px solid var(--btn-bg-color); }
+.iz-card--coral { background: color-mix(in srgb, var(--btn-red-color)    12%, var(--bkg-card-color)); border-left: 3px solid var(--btn-red-color); }
+.iz-card--amber { background: color-mix(in srgb, var(--btn-amber-color)  12%, var(--bkg-card-color)); border-left: 3px solid var(--btn-amber-color); }
+.iz-card--muted {
+  background: var(--bkg-card-color);
+  border-left: 2px solid var(--btn-muted-color);
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+.iz-card--muted:hover { filter: brightness(0.97); }
+
+/* ---- iz-badge: pill-shaped status / role tags (welcome-badge pattern) ---- */
+.iz-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 50px;
+  line-height: 1.5;
+}
+.iz-badge--teal  { background: color-mix(in srgb, var(--btn-pill-color)  18%, transparent); color: var(--btn-pill-color);  border: 1px solid color-mix(in srgb, var(--btn-pill-color)  30%, transparent); }
+.iz-badge--green { background: color-mix(in srgb, var(--btn-green-color) 18%, transparent); color: var(--btn-green-color); border: 1px solid color-mix(in srgb, var(--btn-green-color) 30%, transparent); }
+.iz-badge--gold  { background: color-mix(in srgb, var(--btn-bg-color)    18%, transparent); color: var(--btn-bg-color);    border: 1px solid color-mix(in srgb, var(--btn-bg-color)    30%, transparent); }
+.iz-badge--coral { background: color-mix(in srgb, var(--btn-red-color)   18%, transparent); color: var(--btn-red-color);   border: 1px solid color-mix(in srgb, var(--btn-red-color)   30%, transparent); }
+.iz-badge--amber { background: color-mix(in srgb, var(--btn-amber-color) 18%, transparent); color: var(--btn-amber-color); border: 1px solid color-mix(in srgb, var(--btn-amber-color) 30%, transparent); }
+.iz-badge--muted { background: color-mix(in srgb, var(--btn-muted-color) 18%, transparent); color: var(--btn-muted-color); border: 1px solid color-mix(in srgb, var(--btn-muted-color) 30%, transparent); }
+
+/* ---- iz-notice: context-aware banner — replaces Bootstrap .alert-* ---- */
+.iz-notice {
+  padding: 12px 16px;
+  border-left: 4px solid;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-color);
+}
+.iz-notice--review  { background: color-mix(in srgb, var(--btn-amber-color) 14%, transparent); border-left-color: var(--btn-amber-color); }
+.iz-notice--blocked { background: color-mix(in srgb, var(--btn-red-color)   14%, transparent); border-left-color: var(--btn-red-color); }
+.iz-notice--success { background: color-mix(in srgb, var(--btn-green-color) 14%, transparent); border-left-color: var(--btn-green-color); }
+
+/* ---- iz-section-label (= .dashboard-section-label) ---- */
+.iz-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--btn-muted-color);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  margin-bottom: 8px;
+}
+
+/* ---- iz-icon-chip: 48px emoji circle (= .dash-card-icon) ---- */
+.iz-icon-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.iz-icon-chip--teal  { background: color-mix(in srgb, var(--btn-pill-color)   18%, transparent); }
+.iz-icon-chip--green { background: color-mix(in srgb, var(--btn-green-color)  18%, transparent); }
+.iz-icon-chip--gold  { background: color-mix(in srgb, var(--btn-bg-color)     18%, transparent); }
+.iz-icon-chip--coral { background: color-mix(in srgb, var(--btn-red-color)    18%, transparent); }
+.iz-icon-chip--amber { background: color-mix(in srgb, var(--btn-amber-color)  18%, transparent); }
+.iz-icon-chip--muted { background: color-mix(in srgb, var(--btn-muted-color)  18%, transparent); }
+
+/* ---- iz-avatar: initials-based round avatar (shared across components) ---- */
+.iz-avatar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  user-select: none;
+}
+
+/* ---- btn-outline-brand: transparent bg + gold border/text ---- */
+/* border: none is set globally on .btn — use !important to reinstate the brand border */
+.btn-outline-brand {
+  background: transparent;
+  border: 1px solid var(--btn-bg-color) !important;
+  color: var(--btn-bg-color);
+  transition: background 0.15s ease;
+}
+.btn-outline-brand:hover {
+  background: color-mix(in srgb, var(--btn-bg-color) 12%, transparent);
+  color: var(--btn-bg-color);
+}
+
+/* ---- Dark-theme close button invert (global) ----
+   chat-sessions.component.css used to define this locally for its modal header;
+   now promoted so ALL modal close buttons are visible in dark theme.
+   Modal headers with a colored background keep their own local rule (always-on invert). */
+body.dark-theme .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+/* ---- Table hairline override — Bootstrap 4.5 uses #dee2e6 which glows on dark surfaces ---- */
+.table td,
+.table th {
+  border-color: rgba(128, 128, 128, 0.2);
+}
+
+/* ---- iz-scroll: thin custom scrollbar for scroll containers ---- */
+.iz-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.iz-scroll::-webkit-scrollbar-thumb {
+  background: var(--btn-muted-color);
+  border-radius: 10px;
+}
+
+/* ---- input-group-text: token-based so it does not hard-code Bootstrap's #e9ecef in dark theme ---- */
+.input-group-text {
+  background-color: var(--bkg-card-color);
+  color: var(--text-color);
+  border-color: rgba(128, 128, 128, 0.2);
+}
