@@ -128,7 +128,7 @@
 .input-group-text {
   background-color: var(--bkg-card-color);
   color: var(--text-color);
-  border-color: #dee2e6;
+  border-color: rgba(128, 128, 128, 0.2);
 }
 
 .nput-group-text .material-icons {
@@ -138,7 +138,7 @@
 .form-control:disabled {
   background-color: var(--bkg-card-color);
   color: var(--text-color);
-  border-color: #dee2e6;
+  border-color: rgba(128, 128, 128, 0.2);
 }
 
 /* Form text styling */

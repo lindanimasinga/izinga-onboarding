@@ -60,9 +60,14 @@ describe('PendingApprovalsComponent', () => {
       expect(component.trackByUserId(0, user)).toBe('user-001');
     });
 
-    it('returns undefined when user has no id', () => {
+    it('falls back to mobileNumber when id is absent', () => {
+      const user: UserProfile = { mobileNumber: '+27831234567' } as UserProfile;
+      expect(component.trackByUserId(0, user)).toBe('+27831234567');
+    });
+
+    it('falls back to index string when both id and mobileNumber are absent', () => {
       const user: UserProfile = {} as UserProfile;
-      expect(component.trackByUserId(0, user)).toBeUndefined();
+      expect(component.trackByUserId(5, user)).toBe('5');
     });
 
     it('uses the id regardless of index', () => {

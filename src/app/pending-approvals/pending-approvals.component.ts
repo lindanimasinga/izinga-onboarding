@@ -263,9 +263,10 @@ hasMissingFields(user: UserProfile): boolean {
   }
 
   /** ISSUE-1: trackBy prevents DOM thrash on getPendingApprovals() re-loads, which was
-   *  extending the sticky-hover window and surfacing Bootstrap's hardcoded light colours. */
-  trackByUserId(_index: number, user: UserProfile): string | undefined {
-    return user.id;
+   *  extending the sticky-hover window and surfacing Bootstrap's hardcoded light colours.
+   *  Falls back to mobileNumber, then to the list index, so Angular always gets a stable key. */
+  trackByUserId(index: number, user: UserProfile): string {
+    return user.id ?? user.mobileNumber ?? index.toString();
   }
 
   getFieldDisplayValue(value: any): string {

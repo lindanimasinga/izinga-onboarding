@@ -1,9 +1,6 @@
 /**
  * Shared avatar utilities — used by ChatSessionsComponent and PendingApprovalsComponent.
- * Extracted so both components share one definition (CS-01 / PENDING-AVATAR).
- *
- * TODO: ChatSessionsComponent currently has inline copies of these functions — once this
- *       util is confirmed in production, remove the local duplicates from that component.
+ * Both components delegate here; no local copies remain (CS-01 / PENDING-AVATAR).
  */
 
 /**
