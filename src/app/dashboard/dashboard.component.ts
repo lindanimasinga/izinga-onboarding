@@ -136,6 +136,25 @@ export class DashboardComponent {
             ? (!!user.icaAccepted && user.icaVersion === merchantIcaCurrentVersion)
             : !!user.termsAccepted;
       if (!hasAcceptedTerms) {
+        // Profile completeness gate.
+        // The ICA/T&Cs acceptance PATCH requires name, surname, emailAddress, address,
+        // mobileNumber and imageUrl to be non-blank (backend validates these on every
+        // PUT/PATCH). A user with any of these fields missing will receive a
+        // 400 "X is required" response and get stuck on the agreement screen.
+        // Redirect them to complete their profile first so the subsequent acceptance
+        // PATCH can succeed.  This is a proactive gate — the reactive "Complete Profile"
+        // CTA on a live 400 response is handled separately in TermsConditionsComponent.
+        // Route selection mirrors the placeholder-role guards above (lines 49–91):
+        // /business/ context → /business/user, everything else → /indivisuals/user.
+        if (!this.isProfileCompleteForTerms(user)) {
+          if (currentUrl.includes('/business/')) {
+            this.router.navigate(['/business/user']);
+          } else {
+            this.router.navigate(['/indivisuals/user']);
+          }
+          return;
+        }
+
         if (user.role === UserProfile.RoleEnum.REFERRALPARTNER) {
           // Route to the purpose-built RP enrollment screen (ReferralPartnerEnrollmentComponent).
           // That component's ngOnInit will redirect already-enrolled partners onward to
@@ -245,6 +264,30 @@ export class DashboardComponent {
         }
       })
     })
+  }
+
+  /**
+   * Returns true when the six core profile fields that the backend requires on
+   * every user PATCH are all non-blank.  A blank value for any of these causes a
+   * 400 "X is required" error when TermsConditionsComponent tries to write
+   * icaAccepted / termsAccepted, stranding the user on the agreement screen.
+   *
+   * Fields checked: name, surname, emailAddress, address, mobileNumber, imageUrl.
+   * These are the same fields validated by UserProfileService.validateUserProfileForUpdate
+   * in ijudi-api.  Bank fields are excluded — they are validated conditionally and
+   * separately by the backend, and are not required to save the agreement acceptance.
+   *
+   * @param user The UserProfile fetched from the backend in ngOnInit.
+   */
+  private isProfileCompleteForTerms(user: UserProfile): boolean {
+    const requiredFields: (keyof UserProfile)[] = [
+      'name', 'surname', 'emailAddress', 'address', 'mobileNumber', 'imageUrl'
+    ];
+    return requiredFields.every(field => {
+      const value = user[field];
+      return value !== null && value !== undefined &&
+        (typeof value !== 'string' || (value as string).trim().length > 0);
+    });
   }
 
   formatDocumentName(documentName: string): string {
