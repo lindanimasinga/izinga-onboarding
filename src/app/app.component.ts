@@ -92,10 +92,24 @@ export class AppComponent {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
+      // Capture this navigation's generation BEFORE scheduling the timer.
+      // If a component's ngOnInit immediately calls router.navigate() (a
+      // redirect), another NavigationEnd fires and increments the counter.
+      // The timer below only runs when its captured generation still matches
+      // the counter — meaning no newer navigation has since fired.  This
+      // prevents an intermediate timer (for the source page) from running
+      // and undoing the state that the final-page timer is about to set.
+      const gen = ++this.storageService._navGen;
       setTimeout(() => {
+        if (this.storageService._navGen !== gen) {
+          // A newer NavigationEnd has already fired — skip this stale timer.
+          return;
+        }
         window.scrollTo(0, 0);
-        this.storageService.infoMessage = undefined
-        this.storageService.infoMessage = undefined
+        // Promote a redirect-set pending message to the visible infoMessage,
+        // or clear a stale one when no pending message is waiting.
+        this.storageService.infoMessage = this.storageService.pendingInfoMessage;
+        this.storageService.pendingInfoMessage = undefined;
       }, 1) // Scroll to top
     });
     this.firebaseService.requestPermission();

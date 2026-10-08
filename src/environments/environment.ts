@@ -1,6 +1,8 @@
 export const environment = {
   production: false,
   izingaUrl : 'http://localhost',
+  /** TIER-BILLING-01: PayFast sandbox URL — used in non-production environments. */
+  payFastUrl: 'https://sandbox.payfast.co.za/eng/process',
   appVersion: '2.1.2',
   firebase_apiKey: "AIzaSyBCn6HQH1UKJMPImXFFBl7fGc2jT8amb0Q",
   firebaseVapidKey: "BBTAcjDdxSYob_-MRhZiBbrzOaW4qvyLQjHiZEsmVq8S3LXHZMrXBvsixmiIs8VYVFrlRaaZUeEPEGuUc-pM39A",
@@ -34,16 +36,16 @@ export const environment = {
     },
     heroCopy: {
       '': {
-        heading: 'Get Paid Instantly',
-        description: 'List your products and services, attract customers, and get paid with daily payouts and easy withdrawals'
+        heading: 'Sell Online with Ease',
+        description: 'List your products and services, attract customers, and get paid with daily payouts.'
       },
       shop: {
         heading: 'Sell Online with Ease',
-        description: 'List your products and services, attract customers, and get paid with daily payouts and easy withdrawals'
+        description: 'List your products and services, attract customers, and get paid with daily payouts.'
       },
       individual: {
         heading: 'Receive Payments Seamlessly',
-        description: 'Receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.'
+        description: 'Receive payments or tips directly into your bank account or mobile wallet, and access your earnings on the go.'
       },
       driver: {
         heading: 'Join As A Driver',
@@ -67,7 +69,7 @@ export const environment = {
       },
       individual: {
         title: 'Sign up to receive tips and payments',
-        description: 'Sign up as an individual to receive payments or tips directly into your bank account or cellphone number and withdraw from any ATM easily.',
+        description: 'Sign up as an individual to receive payments or tips directly into your bank account or mobile wallet, and access your earnings on the go.',
         cta: 'Start as an individual',
         route: './indivisuals'
       },
@@ -96,7 +98,7 @@ export const environment = {
         description: 'List your products and services on iZinga, reach more customers, and get paid with daily payouts.',
         keywords: 'iZinga, Shop Registration, Sell Online, Business Signup, Daily Payouts, Local Commerce, Merchant Platform',
         ogTitle: 'Sell Online with Ease | Join iZinga as a Shop',
-        ogDescription: 'Register your shop on iZinga and start selling online with easy payouts and local reach.',
+        ogDescription: 'Register your shop on iZinga and start selling online with daily payouts and local reach.',
         twitterTitle: 'Sell Online with Ease | Join iZinga as a Shop',
         twitterDescription: 'Register your shop on iZinga and grow with daily payouts and seamless transactions.'
       },
@@ -111,10 +113,10 @@ export const environment = {
       },
       individual: {
         title: 'Receive Payments Seamlessly | Join iZinga as an Individual',
-        description: 'Sign up as an individual on iZinga to receive payments or tips directly to your bank account or cellphone.',
-        keywords: 'iZinga, Individual Signup, Receive Payments, Receive Tips, Easy Withdrawals, eWallet, Bank Payouts',
+        description: 'Sign up as an individual on iZinga to receive payments or tips directly to your bank account or mobile wallet.',
+        keywords: 'iZinga, Individual Signup, Receive Payments, Receive Tips, Bank Payouts, Mobile Wallet',
         ogTitle: 'Receive Payments Seamlessly | Join iZinga as an Individual',
-        ogDescription: 'Join iZinga as an individual and receive payments or tips with easy withdrawals.',
+        ogDescription: 'Join iZinga as an individual and receive payments or tips directly to your bank account or mobile wallet.',
         twitterTitle: 'Receive Payments Seamlessly | Join iZinga as an Individual',
         twitterDescription: 'Sign up as an individual on iZinga and receive payments or tips directly.'
       },

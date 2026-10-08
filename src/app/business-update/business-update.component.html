@@ -109,6 +109,71 @@
         <label for="businessDescription" class="form-label">Business Description</label>
         <textarea id="businessDescription" class="form-control" [(ngModel)]="shop.description" name="businessDescription" rows="3" placeholder="Brief description of your business"></textarea>
     </div>
+
+    <!-- Payout Bank Account section — pre-populated from owner's user profile but
+         independently editable so merchants running multiple stores can route payouts
+         to different accounts. Bound to shop.bank (not userProfile.bank). -->
+    <div class="mt-3 pt-3 border-top mb-3">
+        <h5 class="mb-3">Payout Bank Account</h5>
+        <p class="text-muted small mb-3">Set the bank account for this store's payouts. Pre-filled from your profile — edit here if this store pays out to a different account.</p>
+
+        <div *ngIf="shop.bank">
+            <div class="mb-3">
+                <label for="storeBankSelect">Bank Name</label>
+                <div class="input-group">
+                    <select id="storeBankSelect" class="form-control" name="storeBankSelect"
+                        [(ngModel)]="selectedStoreBankConfig"
+                        (ngModelChange)="onStoreBankSelected($event)">
+                        <option [ngValue]="undefined" disabled>Select your bank</option>
+                        <option *ngFor="let bank of bankConfigs" [ngValue]="bank">{{ bank.bankName }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="storeBankAccountNumber">Account Number <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="storeBankAccountNumber"
+                        [(ngModel)]="shop.bank.accountId" name="storeBankAccountNumber" required>
+                </div>
+                <div *ngIf="showStoreBankAccountNumberError" class="mt-2" class="field-error">
+                    <small><strong>Account Number is required.</strong> Please enter your bank account number before saving the store.</small>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="storeAccountType">Account Type</label>
+                <div class="input-group">
+                    <select id="storeAccountType" class="form-control" [(ngModel)]="shop.bank.type" name="storeAccountType">
+                        <option [ngValue]="'CHEQUE'">Cheque</option>
+                        <option [ngValue]="'SAVINGS'">Savings</option>
+                        <option [ngValue]="'TRANSMISSION'">Transmission</option>
+                        <option [ngValue]="'EWALLET'">eWallet</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="storeBranchCode">Branch Code</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="storeBranchCode"
+                        [(ngModel)]="shop.bank.branchCode" name="storeBranchCode"
+                        [readonly]="!!selectedStoreBankConfig"
+                        [class.bg-light]="!!selectedStoreBankConfig">
+                </div>
+                <small *ngIf="selectedStoreBankConfig" class="text-muted">Auto-filled from selected bank</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="storeBankPhone">Bank Phone Number</label>
+                <div class="input-group">
+                    <input type="tel" class="form-control" id="storeBankPhone"
+                        [(ngModel)]="shop.bank.phone" name="storeBankPhone">
+                </div>
+                <small class="text-muted">Mobile number linked to this bank account</small>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- REQ-22: Delivery Rates & Pricing visible to ADMIN only -->
@@ -597,6 +662,12 @@
 </div>
 
 </div><!-- end .izinga-form-container -->
+
+<!-- Fix 3 (TIER-BILLING-01 DS review): muted tier hint for premium merchants only -->
+<p *ngIf="selectedTier === 'PREMIUM_1' || selectedTier === 'PREMIUM_2'"
+   class="text-muted small text-center mt-2 mb-0 px-3">
+  You're nearly there &mdash; one payment step after this.
+</p>
 
 <!-- REQ-14: padding-bottom so fixed bar does not cover page content -->
 <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>

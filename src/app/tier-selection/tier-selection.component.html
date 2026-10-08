@@ -1,0 +1,173 @@
+<div class="container py-4 mt-3">
+
+  <!-- Page header — standard iZinga pattern -->
+  <div class="text-center mb-4">
+    <h2 class="fw-bold">Choose Your Plan</h2>
+    <p class="text-muted">
+      Every tier is cumulative — Premium Tier 1 includes Free, and Premium Tier 2 includes
+      all Tier 1 features. Start free, upgrade at any time.
+    </p>
+  </div>
+
+  <div class="row mb-4">
+
+    <!-- ----------------------------------------------------------------
+         FREE TIER — 7 bullets
+         Copy source: store-draft.html, passed legal-compliance review.
+         ---------------------------------------------------------------- -->
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
+      <div class="tier-card tier-card--free d-flex flex-column h-100"
+           [class.tier-card--selected]="selectedTier === 'FREE'"
+           (click)="chooseTier('FREE')">
+        <span *ngIf="selectedTier === 'FREE'" class="tier-selected-check" aria-hidden="true">&#x2713;</span>
+        <span class="tier-badge tier-badge--free">Free</span>
+        <h3 class="tier-name">Get online, zero cost</h3>
+        <p class="tier-tagline">Your store live and sellable from day one.</p>
+
+        <ul class="tier-features flex-grow-1">
+          <li>Store listing, live immediately</li>
+          <li>Secure payments</li>
+          <li>Live order tracking</li>
+          <li>Store Admin app — manage pricing &amp; menu yourself</li>
+          <li>Daily payouts — funds reflect within 3 business days (bank processing)</li>
+          <li>Delivery handled for you — access to iZinga's driver network</li>
+          <li>iZinga T&amp;Cs &amp; Privacy Policy apply — drivers carry their own goods-in-transit insurance</li>
+        </ul>
+
+        <p class="tier-price">Free for merchants</p>
+
+        <!-- Fee disclosure — on all three cards per REQ-01 -->
+        <div class="fee-disclosure" role="note">
+          <strong>Service fee: 6.5% per order</strong>
+          A 6.5% service fee — calculated on the order total plus the delivery fee — is added
+          at customer checkout. This fee is paid by the customer, not deducted from your payout.
+        </div>
+
+        <button class="btn tier-action-btn w-100 mt-2" type="button"
+                (click)="chooseTier('FREE')">
+          Select Free
+        </button>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------
+         PREMIUM TIER 1 — 7 base + divider + 4 = 11 bullets
+         Copy source: store-draft.html, passed legal-compliance review.
+         ---------------------------------------------------------------- -->
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
+      <div class="tier-card tier-card--gold tier-card--coming-soon d-flex flex-column h-100"
+           [class.tier-card--selected]="selectedTier === 'PREMIUM_1'"
+           (click)="chooseTier('PREMIUM_1')">
+        <span class="tier-badge tier-badge--gold">Premium Tier 1</span>
+        <h3 class="tier-name">Your own brand</h3>
+        <p class="tier-tagline">Includes all Free features — with your brand in front.</p>
+
+        <ul class="tier-features flex-grow-1">
+          <li class="tier-li--inherited">Store listing, live immediately</li>
+          <li class="tier-li--inherited">Secure payments</li>
+          <li class="tier-li--inherited">Live order tracking</li>
+          <li class="tier-li--inherited">Store Admin app — manage pricing &amp; menu yourself</li>
+          <li class="tier-li--inherited">Daily payouts — funds reflect within 3 business days (bank processing)</li>
+          <li class="tier-li--inherited">Delivery handled for you — access to iZinga's driver network</li>
+          <li class="tier-li--inherited">iZinga T&amp;Cs &amp; Privacy Policy apply — drivers carry their own goods-in-transit insurance</li>
+          <li aria-hidden="true" class="tier-divider"></li>
+          <li class="tier-li--exclusive">Branded storefront — your colours, logo, tone</li>
+          <li class="tier-li--exclusive">Custom domain (returned to you within 30 days if you downgrade)</li>
+          <li class="tier-li--exclusive">Dedicated WhatsApp order line (number stays with iZinga)</li>
+          <li class="tier-li--exclusive">Regulated-industry compliance (product-level filtering)</li>
+        </ul>
+
+        <!-- NOTE: VAT treatment to be confirmed before go-live -->
+        <p class="tier-price">R800<span class="tier-price-period">/month</span></p>
+
+        <!-- Fee disclosure — on all three cards per REQ-01 -->
+        <div class="fee-disclosure" role="note">
+          <strong>Service fee: 6.5% per order</strong>
+          A 6.5% service fee — calculated on the order total plus the delivery fee — is added
+          at customer checkout. This fee is paid by the customer, not deducted from your payout.
+        </div>
+
+        <button class="btn tier-action-btn w-100 mt-2" type="button" disabled>
+          Coming Soon
+        </button>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------------------
+         PREMIUM TIER 2 — 7 base + divider + 4 + divider + 3 = 14 bullets
+         Copy source: store-draft.html, passed legal-compliance review.
+         ---------------------------------------------------------------- -->
+    <div class="col-12 col-lg-4 mb-3 mb-lg-0">
+      <div class="tier-card tier-card--gold tier-card--featured tier-card--coming-soon d-flex flex-column h-100"
+           [class.tier-card--selected]="selectedTier === 'PREMIUM_2'"
+           (click)="chooseTier('PREMIUM_2')">
+        <span class="tier-featured-ribbon" aria-label="Most complete tier">Full Platform</span>
+        <span class="tier-badge tier-badge--gold">Premium Tier 2</span>
+        <h3 class="tier-name">AI-powered commerce</h3>
+        <p class="tier-tagline">Includes all Tier 1 features — plus a 24/7 AI assistant on your WhatsApp line.</p>
+
+        <ul class="tier-features flex-grow-1">
+          <li class="tier-li--inherited">Store listing, live immediately</li>
+          <li class="tier-li--inherited">Secure payments</li>
+          <li class="tier-li--inherited">Live order tracking</li>
+          <li class="tier-li--inherited">Store Admin app — manage pricing &amp; menu yourself</li>
+          <li class="tier-li--inherited">Daily payouts — funds reflect within 3 business days (bank processing)</li>
+          <li class="tier-li--inherited">Delivery handled for you — access to iZinga's driver network</li>
+          <li class="tier-li--inherited">iZinga T&amp;Cs &amp; Privacy Policy apply — drivers carry their own goods-in-transit insurance</li>
+          <li aria-hidden="true" class="tier-divider"></li>
+          <li class="tier-li--inherited">Branded storefront — your colours, logo, tone</li>
+          <li class="tier-li--inherited">Custom domain (returned to you within 30 days if you downgrade)</li>
+          <li class="tier-li--inherited">Dedicated WhatsApp order line (number stays with iZinga)</li>
+          <li class="tier-li--inherited">Regulated-industry compliance (product-level filtering)</li>
+          <li aria-hidden="true" class="tier-divider"></li>
+          <li class="tier-li--exclusive">24/7 AI assistant on WhatsApp — FAQs, order status and product facts</li>
+          <li class="tier-li--exclusive">Advice mode available on application — regulatory licences required; you're responsible for monitoring all AI responses</li>
+          <li class="tier-li--exclusive">Hands off to your team for anything needing a human</li>
+        </ul>
+
+        <!-- NOTE: VAT treatment to be confirmed before go-live -->
+        <p class="tier-price">R3,000<span class="tier-price-period">/month</span></p>
+
+        <!-- Fee disclosure — on all three cards per REQ-01 -->
+        <div class="fee-disclosure" role="note">
+          <strong>Service fee: 6.5% per order</strong>
+          A 6.5% service fee — calculated on the order total plus the delivery fee — is added
+          at customer checkout. This fee is paid by the customer, not deducted from your payout.
+        </div>
+
+        <button class="btn tier-action-btn w-100 mt-2" type="button" disabled>
+          Coming Soon
+        </button>
+      </div>
+    </div>
+
+  </div>
+  <!-- /row -->
+
+  <!-- ----------------------------------------------------------------
+       PAYOUT CADENCE NOTE — per T-10 / REQ-06.
+       Exact wording from REQ-04 (brief ONB-02).
+       ---------------------------------------------------------------- -->
+  <div class="payout-note mt-4" role="note">
+    <strong>Daily payouts — funds reflect within 3 business days (bank processing).</strong>
+    iZinga initiates payouts every Business Day. After initiation, funds reflect in your account
+    within up to 3 Business Days — this is determined by your bank's processing time, not iZinga.
+    iZinga does not guarantee same-day receipt.
+  </div>
+
+  <!-- Helper text in scrollable area — established convention keeps fixed bars buttons-only -->
+  <p class="text-center text-muted small mt-4 mb-0">
+    You can upgrade at any time from your dashboard.
+  </p>
+
+  <!-- Spacer so fixed bar does not cover last page content — matches business-update.component.html REQ-14 pattern -->
+  <div style="padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));"></div>
+
+</div>
+
+<!-- Continue button — pinned to viewport bottom, matching business-update.component.html fixed-bottom pattern -->
+<div class="row fixed-bottom" style="background: var(--bkg-card-color, #fff); border-top: 1px solid #dee2e6;">
+  <button class="col btn" [ngClass]="continueBtnClass" type="button" (click)="onContinue()">
+    {{ continueBtnText }}
+  </button>
+</div>

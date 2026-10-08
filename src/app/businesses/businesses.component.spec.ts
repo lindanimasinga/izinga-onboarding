@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { of, Subject } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
@@ -44,16 +45,12 @@ describe('BusinessesComponent', () => {
   });
 
   // AC-16-a: empty state shows after fetch returns []
-  it('AC-16-a — empty-state h5 and Add Your Shop button present when stores list is empty', () => {
+  it('AC-16-a — empty-state h5 visible when stores list is empty', () => {
     // component already initialised with getAllStoresSummary returning [] — isLoaded is true
     fixture.detectChanges();
     const h5: HTMLElement = fixture.nativeElement.querySelector('h5');
     expect(h5).not.toBeNull();
     expect(h5.textContent).toContain("You haven't added a shop yet.");
-
-    const buttons: NodeListOf<HTMLButtonElement> = fixture.nativeElement.querySelectorAll('button.btn.btn-dark');
-    const addBtn = Array.from(buttons).find(b => b.textContent?.trim() === 'Add Your Shop');
-    expect(addBtn).not.toBeUndefined();
   });
 
   // NOTE-04: empty state must NOT flash before the fetch resolves
@@ -171,5 +168,117 @@ describe('BusinessesComponent — ONB-UX-02', () => {
     expect(clearBtn).not.toBeNull();
     const secondaryBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button.btn-outline-secondary');
     expect(secondaryBtn).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// BUG7 regression tests — Add Shop / Add New Business must route to tier-select
+// (not the ungated /business/info route that produces GET /store/undefined 500)
+// ---------------------------------------------------------------------------
+
+describe('BusinessesComponent — BUG7 tier-select routing', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildFixture(storesSubject?: Subject<any[]>) {
+    const stores$ = storesSubject ?? new Subject<any[]>();
+    const lazySvc = {
+      getCustomerByPhoneNumber: () => of({ id: 'user-1' }),
+      getAllStoresSummary: () => stores$.asObservable()
+    } as any;
+    const storageSvc = { userProfile: undefined, phoneNumber: undefined } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+
+    TestBed.configureTestingModule({
+      declarations: [BusinessesComponent],
+      imports: [RouterTestingModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        DatePipe,
+        { provide: IzingaOrderManagementService, useValue: lazySvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc }
+      ]
+    });
+    const fixture = TestBed.createComponent(BusinessesComponent);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    return { fixture, component, stores$ };
+  }
+
+  // BUG7-a: userId is populated from getCustomerByPhoneNumber after ngOnInit
+  it('BUG7-a — userId is set to the resolved user id after ngOnInit', () => {
+    const stores$ = new Subject<any[]>();
+    const { component, fixture } = buildFixture(stores$);
+    stores$.next([]);
+    fixture.detectChanges();
+    expect(component.userId).toBe('user-1');
+  });
+
+  // BUG7-b: fixed-bar button is disabled before getCustomerByPhoneNumber resolves (userId is null)
+  it('BUG7-b — Add New Business button is disabled before userId loads', () => {
+    // Use a deferred Subject for getCustomerByPhoneNumber so userId stays null
+    const userSubject = new Subject<any>();
+    const deferredSvc = {
+      getCustomerByPhoneNumber: () => userSubject.asObservable(),
+      getAllStoresSummary: () => new Subject<any[]>().asObservable()
+    } as any;
+    const storageSvc = { userProfile: undefined, phoneNumber: undefined } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      declarations: [BusinessesComponent],
+      imports: [RouterTestingModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        DatePipe,
+        { provide: IzingaOrderManagementService, useValue: deferredSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc }
+      ]
+    });
+    const lazyFixture = TestBed.createComponent(BusinessesComponent);
+    lazyFixture.detectChanges();
+
+    // userId must be null — API hasn't resolved yet
+    expect(lazyFixture.componentInstance.userId).toBeNull();
+
+    // Fixed-bar "Add New Business" button is always in DOM; must be disabled when userId is null
+    const allButtons: HTMLButtonElement[] = Array.from(lazyFixture.nativeElement.querySelectorAll('button'));
+    const addBizBtn = allButtons.find(b => b.textContent?.trim() === 'Add New Business');
+    expect(addBizBtn).not.toBeUndefined();
+    expect(addBizBtn!.disabled).toBe(true);
+  });
+
+  // BUG7-c: "Add Your Shop" button removed from empty state (product decision — redundant with fixed-bar)
+  it('BUG7-c — empty state does NOT render an "Add Your Shop" button (redundant button removed)', () => {
+    const stores$ = new Subject<any[]>();
+    const { fixture } = buildFixture(stores$);
+    stores$.next([]);
+    fixture.detectChanges();
+
+    const allButtons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+    const addShopBtn = allButtons.find(b => b.textContent?.trim() === 'Add Your Shop');
+    // The empty-state "Add Your Shop" button was removed; only the fixed-bar button remains
+    expect(addShopBtn).toBeUndefined();
+  });
+
+  // BUG7-d: fixed-bar "Add New Business" [routerLink] points to tier-select/:userId, not ../info
+  it('BUG7-d — fixed-bar Add New Business [routerLink] points to tier-select/:userId, not info', () => {
+    const stores$ = new Subject<any[]>();
+    const { fixture } = buildFixture(stores$);
+    stores$.next([{ id: 's1', name: 'Existing Shop' }]);
+    fixture.detectChanges();
+
+    const allButtons: HTMLButtonElement[] = Array.from(fixture.nativeElement.querySelectorAll('button'));
+    const addBizBtn = allButtons.find(b => b.textContent?.trim() === 'Add New Business');
+    expect(addBizBtn).not.toBeUndefined();
+
+    // Angular reflects [routerLink] input as ng-reflect-router-link in test/dev mode
+    const reflectedLink = addBizBtn!.getAttribute('ng-reflect-router-link');
+    expect(reflectedLink).not.toBeNull();
+    expect(reflectedLink).toContain('tier-select');
+    expect(reflectedLink).not.toContain('../info');
+    // userId is 'user-1' from the mock; confirm it's encoded in the link
+    expect(reflectedLink).toContain('user-1');
   });
 });

@@ -263,6 +263,35 @@ export class IzingaOrderManagementService {
     );
   }
 
+  /**
+   * TIER-BILLING-01 (T-11): Initiate a PayFast subscription checkout for a Premium tier.
+   *
+   * Calls POST /merchant/subscription/initiate with the tier selected during onboarding.
+   * The storeId is resolved server-side from the Firebase JWT (IDOR prevention — not sent
+   * in the request body).
+   *
+   * Returns a map of signed PayFast form parameters.  The caller is responsible for
+   * constructing and auto-submitting the hidden form to environment.payFastUrl.
+   *
+   * HTTP 409: subscription already ACTIVE — caller navigates to dashboard.
+   * HTTP 422: ICA not accepted — should not reach this point in the onboarding flow,
+   *           but handled by the caller's error state.
+   * HTTP 400: invalid tier (caller is responsible for only passing PREMIUM_1/PREMIUM_2).
+   */
+  initiateSubscription(tier: 'PREMIUM_1' | 'PREMIUM_2'): Observable<{ [key: string]: string }> {
+    return this.firebaseService.getFirebaseIdToken().pipe(
+      switchMap(token => {
+        const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+        return this.http.post<{ [key: string]: string }>(
+          `${environment.izingaUrl}/merchant/subscription/initiate`,
+          { tier },
+          { headers }
+        );
+      }),
+      catchError((error: HttpErrorResponse) => throwError(error))
+    );
+  }
+
   updateDeviceToUser(device: Device, id: string)  : Observable<Device> {
     return this.http
         .patch<UserProfile>(`${environment.izingaUrl}/device/${id}`, device, {headers: this.headers})

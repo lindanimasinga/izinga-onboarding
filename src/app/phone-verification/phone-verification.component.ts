@@ -20,6 +20,11 @@ export class PhoneVerificationComponent {
   isVerificationRequested = false
   code?: string
   phoneNumber?: string
+  // Full E.164-normalised number (+27XXXXXXXXX) used for all API/Firebase calls.
+  // Stored separately from phoneNumber so the template input can display only the
+  // local digits (no +27 prefix) beside the static "+27" prefix box — preventing
+  // the double-"+27" visual regression (ONB-REGRESSION-03).
+  private _normalizedPhone?: string
 
   // Starts as 'whatsapp'; can only be flipped to 'sms' via triple-tap on heading.
   loginMethod: 'sms' | 'whatsapp' = 'whatsapp';
@@ -101,36 +106,55 @@ export class PhoneVerificationComponent {
   }
 
   verify() {
-    this.phoneNumber = this.phoneNumber?.startsWith("+27")? this.phoneNumber : this.phoneNumber?.startsWith("0") ?
-      this.phoneNumber.replace("0", "+27") : this.phoneNumber?.startsWith("27") ? "+" + this.phoneNumber : "+27" +this.phoneNumber;
+    // Normalise to full E.164 (+27XXXXXXXXX) and store in _normalizedPhone.
+    // Do NOT write back into this.phoneNumber — the template input is still
+    // bound to phoneNumber for two-way ngModel, and writing "+27XXXXXXXXX"
+    // back would show double-"+27" once the input is disabled beside the
+    // static "+27" prefix box (ONB-REGRESSION-03).
+    const raw = this.phoneNumber ?? '';
+    this._normalizedPhone = raw.startsWith('+27') ? raw
+      : raw.startsWith('0') ? raw.replace('0', '+27')
+      : raw.startsWith('27') ? '+' + raw
+      : '+27' + raw;
 
     if (this.loginMethod === 'whatsapp') {
-      this.izingaOrderManager.sendWhatsAppOtp(this.phoneNumber!)
+      this.izingaOrderManager.sendWhatsAppOtp(this._normalizedPhone)
         .subscribe(() => {
           this.isVerificationRequested = true;
           this.hasError = false;
           this.analytics.logEvent('verification_code_sent_whatsapp');
         }, (error) => {
           this.hasError = true;
-          this.errorMessage = error.message || 'Failed to send WhatsApp OTP. Please try again.';
+          // error.message on HttpErrorResponse is always the raw
+          // "Http failure response for http://…: 500 OK" string — never
+          // user-friendly. Extract the backend's own error field first
+          // (ONB-REGRESSION-02).
+          this.errorMessage = error?.error?.error
+            || error?.error?.message
+            || 'Failed to send WhatsApp OTP. Please try again.';
         });
       return;
     }
 
-    this.firebaseService.requestVerification(this.phoneNumber)
+    this.firebaseService.requestVerification(this._normalizedPhone)
       .subscribe(() => {
         this.isVerificationRequested = true
         this.hasError = false;
         this.analytics.logEvent('verification_code_sent');
       }, (error) => {
         this.hasError = true;
-        this.errorMessage = error.message;
+        // Firebase auth errors have a user-readable error.message (e.g.
+        // "Firebase: TOO_MANY_ATTEMPTS_TRY_LATER (auth/too-many-requests).").
+        // Use it directly; no HttpErrorResponse raw-URL leakage here.
+        this.errorMessage = error?.message || 'Failed to send verification code. Please try again.';
       })
   }
 
   private onVerified() {
     this.isPhoneNumberVerified = true;
-    this.storageService.phoneNumber = this.phoneNumber!!;
+    // Always persist the E.164 form so downstream components (DashboardComponent,
+    // etc.) that call getCustomerByPhoneNumber() receive the correct format.
+    this.storageService.phoneNumber = this._normalizedPhone ?? this.phoneNumber!!;
     this.analytics.logEvent('phone_verified');
 
     // T-12: If the guard stored a returnUrl (e.g. driver came via QR →
@@ -147,18 +171,25 @@ export class PhoneVerificationComponent {
 
   confirmCode() {
     if (this.loginMethod === 'whatsapp') {
-      this.izingaOrderManager.verifyWhatsAppOtp(this.phoneNumber!, this.code!)
+      // Use _normalizedPhone (E.164) for the backend OTP verify call.
+      const phone = this._normalizedPhone ?? this.phoneNumber!;
+      this.izingaOrderManager.verifyWhatsAppOtp(phone, this.code!)
         .subscribe(response => {
           this.firebaseService.signInWithWhatsAppToken(response.customToken)
             .subscribe(() => {
               this.onVerified();
             }, (error) => {
               this.hasError = true;
-              this.errorMessage = error.message || 'Firebase sign-in failed after WhatsApp verification.';
+              // Firebase errors have user-readable .message; prefer that.
+              this.errorMessage = error?.message || 'Firebase sign-in failed after WhatsApp verification.';
             });
         }, (error) => {
           this.hasError = true;
-          this.errorMessage = error.message || 'Invalid verification code. Please try again.';
+          // Backend HttpErrorResponse — extract the body's error field
+          // (ONB-REGRESSION-02).
+          this.errorMessage = error?.error?.error
+            || error?.error?.message
+            || 'Invalid verification code. Please try again.';
         });
       return;
     }
@@ -168,7 +199,8 @@ export class PhoneVerificationComponent {
         this.onVerified();
       }, (error) => {
         this.hasError = true;
-        this.errorMessage = error.message || 'Failed to confirm SMS code. Please try again.';
+        // Firebase error — .message is user-friendly.
+        this.errorMessage = error?.message || 'Failed to confirm SMS code. Please try again.';
       })
   }
 

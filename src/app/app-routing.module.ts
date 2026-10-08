@@ -42,6 +42,12 @@ import { ReconComponent } from './admin/recon/recon.component';
 import { PayoutOrdersComponent as ReconPayoutOrdersComponent } from './admin/recon/payout-orders/payout-orders.component';
 import { AdminRoleGuard } from './guards/admin-role.guard';
 import { PostIcaTrainingComponent } from './post-ica-training/post-ica-training.component';
+import { TierSelectionComponent } from './tier-selection/tier-selection.component';
+import { TierSelectedGuard } from './guards/tier-selected.guard';
+import { PremiumTierGuard } from './guards/premium-tier.guard';
+import { SubscriptionCheckoutComponent } from './subscription-checkout/subscription-checkout.component';
+import { SubscriptionSuccessComponent } from './subscription-success/subscription-success.component';
+import { SubscriptionCancelComponent } from './subscription-cancel/subscription-cancel.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
@@ -104,6 +110,8 @@ const routes: Routes = [
       { path: 'orders', component: MessangerOrdersComponent },
       { path: 'chat-sessions', component: ChatSessionsComponent },
       { path: 'signup-welcome/:id', component: SignupWelcomeComponent },
+      /** T-10 (ONB-02): Tier selection step — inserted between signup-welcome and terms. */
+      { path: 'tier-select/:id', component: TierSelectionComponent, canActivate: [PhoneVerifiedGuard] },
       { path: 'terms/:id', component: TermsConditionsComponent},
       { path: 'privacy-policy', component: PrivacyPolicyComponent},
       { path: 'legal-info', component: LegalInfoComponent},
@@ -111,7 +119,21 @@ const routes: Routes = [
       { path: 'user-config-management', component: UserConfigManagementComponent},
       { path: 'admin-orders', component: AdminOrdersComponent},
       { path: 'quotes', component: QuotesComponent},
-      { path: 'info/:id', component: BusinessUpdateComponent, canActivate: [PhoneVerifiedGuard] },
+      /**
+       * T-10 (ONB-02): TierSelectedGuard added to /business/info/:id.
+       * Redirects to tier-select if no tier in session state.
+       * Existing store owners (storeId present on UserProfile) pass through.
+       */
+      { path: 'info/:id', component: BusinessUpdateComponent, canActivate: [PhoneVerifiedGuard, TierSelectedGuard] },
+      /**
+       * TIER-BILLING-01 (T-11/T-12/T-13): subscription payment flow routes.
+       * /business/subscription/:storeId  — guarded by PremiumTierGuard (FREE/null redirects to dashboard).
+       * /business/subscription-success/:storeId — PayFast return_url.
+       * /business/subscription-cancel/:storeId  — PayFast cancel_url.
+       */
+      { path: 'subscription/:storeId', component: SubscriptionCheckoutComponent, canActivate: [PremiumTierGuard] },
+      { path: 'subscription-success/:storeId', component: SubscriptionSuccessComponent },
+      { path: 'subscription-cancel/:storeId', component: SubscriptionCancelComponent },
       { path: 'info', component: BusinessUpdateComponent, canActivate: [PhoneVerifiedGuard] },
       { path: 'list', component: BusinessesComponent},
       { path: 'info/:businessId/stock/:stockId', component: StockUpdateComponent},

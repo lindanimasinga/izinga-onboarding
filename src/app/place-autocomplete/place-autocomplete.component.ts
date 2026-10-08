@@ -32,14 +32,23 @@ export class PlaceAutocompleteComponent implements OnInit {
         country: ["ZA"]
       }
     }
-    var autocomplete = new google.maps.places.Autocomplete(input, options);
-    autocomplete.addListener('place_changed', () => {
-      var place : GooglePlace = JSON.parse(JSON.stringify(autocomplete.getPlace()))
-      this.address = place.formatted_address
-      this.lat = place.geometry.location.lat
-      this.long = place.geometry.location.lng
-      console.log(`location is ${typeof place}`)
-    });
+    // Wrap initialisation in try/catch so that a Maps API key restriction or
+    // referrer error degrades gracefully instead of leaking the raw JS error
+    // message into the input's placeholder attribute (a known Maps API
+    // side-effect when initialisation fails).
+    try {
+      var autocomplete = new google.maps.places.Autocomplete(input, options);
+      autocomplete.addListener('place_changed', () => {
+        var place : GooglePlace = JSON.parse(JSON.stringify(autocomplete.getPlace()))
+        this.address = place.formatted_address
+        this.lat = place.geometry.location.lat
+        this.long = place.geometry.location.lng
+        console.log(`location is ${typeof place}`)
+      });
+    } catch (err) {
+      console.error('Google Places Autocomplete failed to initialise:', err);
+      input.placeholder = 'Enter your address manually';
+    }
   }
 
   get address(): string {

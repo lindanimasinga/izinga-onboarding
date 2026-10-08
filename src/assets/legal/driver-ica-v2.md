@@ -1,9 +1,9 @@
 # Driver Independent Contractor Agreement
 
 **Document reference:** Driver ICA
-**Version:** Draft v2
+**Version:** v2 (Approved)
 **Original date:** 6 August 2026
-**Last revised:** 13 August 2026
+**Last revised:** 19 August 2026
 **Prepared by:** iZinga Legal & Compliance (clause amendments); original draft by Jason van der Merwe
 **Status:** APPROVED — Jason van der Merwe confirmed approval in writing on 19 August 2026: "No issues with the changes to 3.1. You may proceed."
 
