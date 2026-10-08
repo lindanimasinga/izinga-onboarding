@@ -41,9 +41,18 @@
             <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
         </div>
 
-        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
+        <!-- BUG-FIX ONB-BUG-03: changed type="submit" to type="button" on both
+             action buttons. Neither button is inside a <form> element — this
+             component is used as a routed component — so type="submit" provided
+             no benefit but created a risk of duplicate HTTP calls if a parent
+             form element is ever introduced. The "Confirm" button double-submit
+             was confirmed via backend logs (two POST /auth/whatsapp/otp/verify
+             requests per single click). TypeScript-level guard (isConfirming)
+             is the primary defence; type="button" removes the DOM trigger risk. -->
+        <button *ngIf="!isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="button"
             (click)="verify()">Get Code</button>
-        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="submit"
+        <button *ngIf="isVerificationRequested" class="btn btn-lg btn-block bg-dark mt-4 sendCode" type="button"
+            [disabled]="isConfirming"
             (click)="confirmCode()">Confirm</button>
     </div>
 

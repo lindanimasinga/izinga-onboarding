@@ -275,6 +275,75 @@ describe('PhoneVerificationComponent', () => {
       expect(component.hasError).toBeTrue();
     }));
   });
+
+  // ── Double-submit guard (ONB-BUG-03) ─────────────────────────────────────
+
+  describe('confirmCode() — double-submit guard (ONB-BUG-03)', () => {
+    it('a second call while the first is in flight does NOT call verifyWhatsAppOtp again', () => {
+      // Simulate a never-completing in-flight request so the guard stays active.
+      const { Subject } = (window as any)['rxjs'] || {};
+      // Use a subject that never completes, or just verify call count synchronously.
+      // verifyWhatsAppOtp returns a synchronous observable here; the guard sets
+      // isConfirming=true at entry and only resets it on error/success. Since the
+      // spy returns an observable that completes synchronously with a token, the
+      // first call fully resolves before the second call — isConfirming is still
+      // true because onVerified() navigates away (no reset path on success).
+      orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok-double' }));
+      firebaseSvc.signInWithWhatsAppToken.and.returnValue(of({} as any));
+      storageSvc.returnUrl = null;
+      component.phoneNumber = '+27815551234';
+      component.code = '654321';
+
+      component.confirmCode(); // first call — isConfirming set to true
+      component.confirmCode(); // second call — must be blocked by guard
+
+      // verifyWhatsAppOtp must have been called exactly once despite two
+      // invocations of confirmCode(). This is the regression guard for the
+      // bug where a duplicate POST /auth/whatsapp/otp/verify caused "Invalid
+      // or expired code" because the OTP is single-use (ONB-BUG-03).
+      expect(orderSvc.verifyWhatsAppOtp).toHaveBeenCalledTimes(1);
+    });
+
+    it('isConfirming resets after verifyWhatsAppOtp error, allowing retry', () => {
+      orderSvc.verifyWhatsAppOtp.and.returnValue(throwError({ error: { error: 'No active OTP' } }));
+      component.phoneNumber = '+27815551234';
+      component.code = '000000';
+
+      component.confirmCode();
+
+      // After an error, isConfirming must be reset so the user can retry.
+      expect(component.isConfirming).toBeFalse();
+      expect(component.hasError).toBeTrue();
+    });
+
+    it('isConfirming resets after signInWithWhatsAppToken error, allowing retry', () => {
+      orderSvc.verifyWhatsAppOtp.and.returnValue(of({ customToken: 'tok-err' }));
+      firebaseSvc.signInWithWhatsAppToken.and.returnValue(throwError({ message: 'Firebase error' }));
+      component.phoneNumber = '+27815551234';
+      component.code = '654321';
+
+      component.confirmCode();
+
+      expect(component.isConfirming).toBeFalse();
+      expect(component.hasError).toBeTrue();
+    });
+
+    it('isConfirming resets after SMS confirmCode error, allowing retry', fakeAsync(() => {
+      firebaseSvc.confirmCode.and.returnValue(throwError({ message: 'Wrong SMS code' }));
+
+      component.onHeadingTap();
+      component.onHeadingTap();
+      component.onHeadingTap();
+      tick(0);
+
+      component.phoneNumber = '+27815551234';
+      component.code = '000000';
+      component.confirmCode();
+
+      expect(component.isConfirming).toBeFalse();
+      expect(component.hasError).toBeTrue();
+    }));
+  });
 });
 
 // REQ-PP: no inline privacy notice in phone-verification template (ONB-UX-02)
