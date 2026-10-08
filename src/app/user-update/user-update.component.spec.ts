@@ -591,10 +591,21 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
     expect(posted.role).toBe(UserProfile.RoleEnum.STOREADMIN);
   });
 
-  it('non-shop flow: all account types are offered and nothing is pre-selected', async () => {
+  it('driver flow: only MESSENGER configs are offered and the single option is auto-selected', async () => {
     await setup('driver');
 
     expect(component.isShopFlow()).toBeFalse();
+    expect(component.isDriverFlow()).toBeTrue();
+    expect(component.userConfig.map(c => c.label)).toEqual(['Bike Delivery Driver']);
+    expect(component.roleDescription).toBe('Bike Delivery Driver');
+    expect(fixture.nativeElement.innerHTML).toContain('Tell us about your hustle');
+  });
+
+  it('neutral flow (non-shop, non-driver): all account types are offered and nothing is pre-selected', async () => {
+    await setup(undefined);
+
+    expect(component.isShopFlow()).toBeFalse();
+    expect(component.isDriverFlow()).toBeFalse();
     expect(component.userConfig.length).toBe(3);
     expect(component.roleDescription).toBeUndefined();
     expect(fixture.nativeElement.innerHTML).toContain('Tell us about your hustle');
