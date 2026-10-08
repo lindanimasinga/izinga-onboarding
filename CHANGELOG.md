@@ -1,202 +1,68 @@
-# Changelog — izinga-onboarding
+# Changelog
 
-All notable changes to this project are documented here.
+## [1.17.0] — 2026-10-08
 
----
+**Release type:** Feature (P2)
 
-## [1.16.0] — 2026-10-03
-
-**Release type:** Patch
-
-**Summary:** Google Maps JS API key rotated to izinga-web-prod; resolves autocomplete failures on *.izinga.co.za.
-
-### Changes
-- [IMPROVED] Google Maps JS API key rotated to `izinga-web-prod` (GCP project `ijudi-d19bd`); new key is scoped to maps-backend/places-backend/geocoding-backend and HTTP-referrer-restricted to `https://*.izinga.co.za/*` and `https://*.rxnova24.co.za/*`
-
-### Breaking changes
-None
-
-### Deployment notes
-Firebase Hosting redeploy required — the new Maps key in `src/index.html` is a static asset; the CDN must be updated before production traffic resolves the new key.
-
----
-
-## [1.10.0] — 2026-09-17
-
-**Release type:** Feature
-
-**Summary:** Shop-owner flow polish — single privacy-notice footer on every page, 960 px centred desktop forms, out-of-stock chips, image preview before save, shops-list loading state, per-day "Closed" toggle with "Apply Monday to all" shortcut, tag-row and mobile button-bar layout fixes, orders icon and heading cleanup, search-clear button variant, dark-theme card stripe fix, payout label correction, global transition cleanup, and dead "Our Offices" footer link removed.
-
-**Feature brief:** `docs/feature-briefs/ONB-UX-02-shop-owner-flow-polish.md`
+**Summary:** Adds PayFast subscription billing frontend (tier selection, checkout flow), store owner onboarding tier UX, and a batch of OTP/signup UX fixes found during furniture-delivery E2E testing. Complements ijudi-api v1.12.0 which ships the backend billing module.
 
 ### Changes
 
-- [NEW] **Privacy-notice footer** — a single persistent footer carrying the privacy notice now appears on every page; the duplicate static footer was removed; the footer is no longer hidden under fixed action bars (REQ-PP, REQ-PP2).
-- [NEW] **960 px centred forms on desktop** — all major forms are constrained to 960 px and centred on viewports wider than that breakpoint (REQ-01).
-- [NEW] **Out-of-stock chip on stock cards** — stock cards now display a prominent "Out of stock" chip when quantity is zero (REQ-02).
-- [NEW] **Image preview before save** — store profile and stock image selections now show an inline preview before the upload is committed (REQ-03).
-- [NEW] **Shops-list loading state** — a skeleton/spinner loading state is shown while the shops list fetches, replacing a blank area (REQ-04).
-- [NEW] **Per-day "Closed" toggle** — business hours now support marking individual days as closed; closed days are omitted from the payload per backend contract; at least one day must remain open (REQ-05, REQ-06).
-- [NEW] **"Apply Monday to all" shortcut** — a single action copies Monday's open/close hours to all other days (REQ-07).
-- [IMPROVED] **Tag-row and mobile button-bar layout** — tag rows and the mobile action button bar are correctly spaced and no longer overlap content (REQ-09, REQ-13).
-- [IMPROVED] **Orders icon and heading cleanup** — orders screen icon and heading are visually consistent with the rest of the app (REQ-10, REQ-11).
-- [IMPROVED] **Search-clear button variant** — the search field clear button now uses the correct button variant for visual consistency (REQ-12).
-- [FIX] **Dark-theme card stripe** — card accent stripe colour is now correctly resolved in dark theme (FIX-02).
-- [FIX] **Payout label correction** — payout amount label wording corrected (REQ-14).
-- [IMPROVED] **Global transition cleanup** — redundant and conflicting CSS transitions removed; page feel is smoother (FIX-01 / NOTE-03).
-- [REMOVED] **Dead "Our Offices" footer link** — the non-functional "Our Offices" link has been removed from the footer (FIX-01).
-- [INVESTIGATED] **Deep-link redirect (P2-9)** — investigated and not reproducible in the current build; no code change made.
+- [NEW] `TierSelectionComponent` — store owners pick a subscription tier (Free, Premium Tier 1, Premium Tier 2) after completing profile creation. PREMIUM_1 and PREMIUM_2 are disabled with "Coming Soon" state; only FREE tier is activatable in this release.
+- [NEW] PayFast subscription checkout flow — `SubscriptionCheckoutComponent` shows billing disclosure before initiating payment via `POST /merchant/subscription/initiate`. `storeId` resolved from Firebase JWT claim server-side (IDOR-safe). Sandbox URL in `environment.ts`, production URL in `environment.prod.ts`.
+- [NEW] `WelcomeBusinessComponent` dashboard redesign — personalized greeting, tinted-surface stat cards, legal document hierarchy (ICA, T&Cs) clearly surfaced.
+- [FIX] OTP placeholder role=null handling — `role == null` is now the correct signal for a new signup in progress; `role == CUSTOMER` is no longer used as the placeholder sentinel (aligns with ijudi-api backend fix).
+- [FIX] `UserUpdateComponent.createCustomer()` and `updateCustomer()` — required-field guards (roleDescription, name, surname, emailAddress, city, bank fields) correctly prevent API call when fields are blank. Template has `novalidate` and submit buttons are outside the `<form>` element, making these component-level guards the only validation layer.
+- [FIX] `loadUserConfig()` — `isDriverFlow()` filter restored: drivers on the driver signup flow see only MESSENGER and MESSENGERADMIN role options; they are not shown irrelevant store or customer roles.
+- [FIX] `BusinessUpdateComponent` — bank configs loaded via `getBankConfigs()` on init; previously missing call caused bank selection to show empty.
+- [FIX] `TermsConditionsComponent` — fresh profile fetch via `getCustomerById` on init; role-based display (ICA, T&Cs sections) now reflects the latest profile state from the server, not only the locally cached version.
+- [FIX] Continue button pinned to viewport bottom on TierSelectionComponent (fixed-bottom pattern).
+- [FIX] Bootstrap 4 column gap compatibility — `g-3` replaced with `mb-3` on columns (Bootstrap 4 does not support gap utilities on `.row`).
+- [FIX] Backend error messages surfaced to user on `createCustomer` and `updateCustomer` — previously swallowed, leaving user with no feedback on server-side validation failures.
+- [FIX] Dashboard CUSTOMER+driver-userType gate — `/individuals/` route now correctly guarded for users who have `role == CUSTOMER` but `userType == driver`, routing them to profile setup instead of the customer dashboard.
+- [IMPROVED] `src/assets/legal/driver-ica-v2.md` — minor textual correction (no clause changes).
 
 ### Breaking changes
 
-None.
+None. All changes are additive UI fixes. No API contract changes.
 
----
+### Dependency on ijudi-api v1.12.0
 
-## [1.9.0] — 2026-09-16
+This release requires ijudi-api v1.12.0 (already live). The PayFast checkout flow calls `POST /merchant/subscription/initiate` (new endpoint in v1.12.0). Deploying this frontend before the backend was live would cause 404 errors on that endpoint — backend was deployed first per the correct deployment sequence.
 
-**Release type:** Feature
+### Known issues (tracked separately)
 
-**Summary:** Shop-owner flow UX overhaul — stock accordion reliability, save/loading feedback, empty states, flat-design compliance, accessibility fixes, undefined phone field fix, dev environment defaults, and Delivery Rates & Pricing restricted to ADMIN-only.
-
-**Feature brief:** `docs/feature-briefs/ONB-UX-01-shop-owner-flow-fixes.md`
-
-### Changes
-
-- [FIX] **Stock accordion bug** — accordion now correctly expands/collapses; aria-expanded bound to real open state (NOTE-02).
-- [IMPROVED] **Confirmed/deferred stock removal** — after a user confirms removal of a stock item, the form is hidden and replaced with an inline notice; deferred removes are visually distinguished (NOTE-03).
-- [IMPROVED] **Save/loading feedback** — business profile and stock save actions now show a loading spinner and disable the save button during the request, replacing the previous silent reload behaviour (REQ-10 to REQ-16).
-- [NEW] **Empty states** — businesses list and stock list now render a meaningful empty state when no items exist, instead of a blank area (REQ-16, REQ-17).
-- [IMPROVED] **Flat-design compliance** — removed drop-shadows from cards and form containers; border-radius, hover-lift, token colours, and button class assignments aligned to the iZinga design system (REQ-10 to REQ-16, REQ-18).
-- [FIX] **Accessibility label fixes** — form controls and accordion triggers now carry correct aria-labels; AC-16-a empty-state test and isLoaded guard corrected (FIX-01, NOTE-04).
-- [FIX] **Undefined phone field** — phone field no longer displays "undefined" on profile load; guard added before binding (REQ-19 to REQ-21).
-- [IMPROVED] **Dev environment defaults to shop** — local dev environment now lands on the shop/business-update view by default, reducing friction during development (REQ-19 to REQ-21).
-- [CHANGED] **Delivery Rates & Pricing — ADMIN only** — the Delivery Rates & Pricing section is now visible and editable only by users with the ADMIN role. Store admins (STORE_ADMIN) no longer see or can edit platform pricing. Existing rate values are preserved on save; the section is simply hidden for non-admin sessions (REQ-22). This is a deliberate access-control tightening, not a breaking API change.
-
-### Breaking changes
-
-None. The REQ-22 change is a UI access-control restriction; the underlying API contract and stored rate values are unchanged.
-
-### Test coverage
-
-370/370 tests pass on release branch.
-
----
-
-## [1.8.0] — 2026-09-04
-
-**Release type:** Feature
-
-**Summary:** Replaces SMS OTP login with WhatsApp OTP as the sole login method, with a hidden triple-tap gesture to activate the legacy SMS/Firebase Phone Auth fallback for support use.
-
-### Changes
-
-- [NEW] **WhatsApp OTP login** — Users enter their phone number and receive a 6-digit code via WhatsApp. The backend mints a Firebase custom token on verify, producing a real Firebase session identical to SMS login. All authenticated endpoints (store, referral, ambassador) work correctly for WhatsApp-originated sessions.
-- [REMOVED] **SMS login removed from primary flow** — WhatsApp is now the sole login method presented to users. The SMS/Firebase Phone Auth path is retained as a hidden fallback activated by triple-tapping the login method area (for support and edge-case recovery). This is a UX-visible change, not a breaking API change.
-- [IMPROVED] **Test coverage** — 342/342 tests pass on release branch (up from 324 at 1.7.0).
-
-### Breaking changes
-
-None. The backend WhatsApp OTP endpoints (`POST /auth/whatsapp/otp/send`, `POST /auth/whatsapp/otp/verify`) are additive. Existing Firebase sessions are unaffected.
-
-### Test coverage
-
-342/342 tests pass (full unscoped suite) on `release/1.8.0`. Lindani Masinga manual end-to-end test confirmed on 2026-09-04.
-
-### Deployment
-
-- **Repo:** izinga-onboarding
-- **Trigger:** push to `main` → GitHub Actions (`deploy.yml`) → Firebase Hosting (target: `onboarding-izinga`, project: `ijudi-d19bd`)
-- **Prerequisite:** `ijudi-api` backend (WhatsApp OTP endpoints) must be live before this frontend is accessed by users.
-
----
-
-## [1.7.0] — 2026-08-21
-
-**Release type:** Feature / Legal Compliance
-
-**Summary:** Delivers a POPIA-compliant Privacy Policy page across the izinga-onboarding platform and replaces all stale external privacy.html links with the new in-app route.
-
-### Changes
-
-- [NEW] **Privacy Policy page** — Full POPIA-compliant privacy policy page at `/privacy-policy`. Covers all user roles (customers, drivers, driver managers, store owners, business partners). Information Officer: Lindani Masinga, privacy@izinga.co.za, +27 81 281 5707, 68 Jacaranda Avenue, Olivedale, Randburg, 2188. Registration with the Information Regulator completed 20 August 2026.
-- [FIX] **Stale privacy links replaced** — All components that previously linked to an external `privacy.html` file (business-update, phone-verification, stock-update, user-update, welcome) now route to the in-app `/privacy-policy` page.
-- [FIX] **Footer privacy link** — Footer now includes a working routerLink to `/privacy-policy`.
-- [IMPROVED] **Test coverage** — Three new specs added: `privacy-policy.component.spec.ts` (TC-PP-01/02/03 guarding Information Officer name and email), `app.component.spec.ts` footer anchor test. 324/324 tests pass on release branch.
-
-### Breaking changes
-
-None.
-
-### Test coverage
-
-324/324 tests pass (full unscoped suite) on `release/1.7.0`.
-
-### Deployment
-
-- **Repo:** izinga-onboarding
-- **Deploy type:** Firebase Hosting (site: `onboarding-izinga`, project: `ijudi-d19bd`) — instant
-- **Sequence:** standalone (no backend release dependency)
+- **BILLING-PROD-GATE**: PayFast merchant 16791971 production rate confirmation and BackOffice setup must be completed before PREMIUM tiers are activated. Free tier activation is safe. PREMIUM_1 and PREMIUM_2 are disabled ("Coming Soon") — no user can select them.
+- **MERCHANT-ICA-ATTORNEY**: MERCHANT_ICA code comment notes attorney review by Jason van der Merwe is pending. ICA acceptance gate is active for all new stores. Recommend obtaining written sign-off before PREMIUM tiers are activated.
 
 ### Rollback steps
 
-1. Identify the previous Firebase Hosting release in the Firebase console under `onboarding-izinga` → Hosting → Release history.
-2. Click "Rollback" on the v1.6.0 release to revert hosting to the previous build instantly.
-3. Alternatively: `git checkout 1.6.0 && npm run build -- --configuration production && firebase deploy --only hosting:onboarding-izinga`.
-4. Notify Lindani that rollback is complete.
+1. Redeploy the previous build artifact (v1.16.0 — commit `8057e14` on `main`).
+2. Firebase Hosting rollback: `firebase hosting:rollback --project izinga-onboarding-prod` (or equivalent via Firebase console — select previous release).
+3. No database migration involved — this is a pure frontend deploy. Rolling back the frontend to v1.16.0 while keeping ijudi-api v1.12.0 is safe: the new backend endpoints simply won't be called.
+4. Notify Lindani and Hloniphani of rollback trigger conditions (OTP signup failure spike, store creation 500 rate, PayFast checkout 404).
 
----
+### Smoke test plan (post-deploy — minimum checks within 15 minutes)
 
-## [1.6.0] — 2026-08-19
+1. New store owner registration via WhatsApp OTP — OTP completes with `role=null` placeholder, profile setup reaches TierSelectionComponent — expected: Free tier shown and selectable, PREMIUM tiers show "Coming Soon".
+2. Complete Free tier selection — `POST /merchant/subscription/initiate` with tier=FREE — expected: checkout page reached (or direct activation if Free does not require PayFast), no 500.
+3. Driver signup flow — role config dropdown — expected: only MESSENGER and MESSENGERADMIN roles shown, not store or customer roles.
+4. Store owner dashboard after login — expected: personalized greeting, bank config loaded in BusinessUpdateComponent, ICA status correct.
+5. TermsConditionsComponent for a STORE_ADMIN — expected: Merchant ICA section visible and correct, Driver ICA section not shown.
 
-**Release type:** Feature / Legal Compliance
+### Post-deployment monitoring
 
-**Summary:** Delivers Driver ICA v2 and Ambassador ICA v2 (both attorney-reviewed by Jason van der Merwe), Firebase Bearer token enforcement on store write calls (ADR-018 frontend piece), and a copy correction on the payout timing display.
+- 15 min: Angular app loads cleanly, no console errors on store onboarding flow; OTP signup funnel drop-off not elevated.
+- 1 hour: Store creation success rate; TierSelectionComponent renders for new store owners; no 404 on `/merchant/subscription/initiate`.
+- 24 hours: Growth & Analytics to watch for OTP funnel anomalies; confirm driver signup flow shows correct role options.
 
-### Changes
+### Gate citations
 
-- [NEW] **Driver ICA v2** — Updated independent contractor agreement presented to drivers during onboarding. Reviewed and signed off by Jason van der Merwe (attorney sign-off received 19 Aug 2026). ICA gate blocks progression until acceptance is recorded. Regression guards TC-23 and TC-24 added.
-- [NEW] **Ambassador ICA v2** — Updated independent contractor agreement for ambassador/referral partners with new clauses 1.5 and 6.8 (attorney-reviewed and signed off by Jason van der Merwe). Presented at the ambassador onboarding gate.
-- [NEW] **ADR-018 Frontend — Store endpoint auth** (C-04 frontend piece) — Attaches Firebase JWT Bearer token to all store create/update API calls. `PhoneVerifiedGuard` now protects the `/business/info` route family. Additive change; no backend contract dependency in this frontend-only release.
-- [FIX] **Payout copy — next business day** — Corrected payout timing display text across driver screens to accurately reflect "next business day" settlement. Copy-only fix, no logic change.
+- Feature Brief: Lindani Masinga — direct authorization 2026-10-08 (this conversation)
+- Code Review: PASS — iZinga Code Reviewer, 3 rounds (2026-10-08)
+  - Round 1: FAIL — 101 test failures; developer fixed
+  - Round 2: FAIL — validation-gate regression + isDriverFlow() removal; developer fixed
+  - Round 3: PASS — all issues resolved, no required fixes
+- QA Gate 1: PASS — 652/652, 0 failures (2026-10-08)
 
-### Breaking changes
-
-None.
-
-### Test coverage
-
-320/320 tests pass (full unscoped suite) on both `develop` and `release/1.6.0`.
-
-### Deployment
-
-- **Repo:** izinga-onboarding
-- **Deploy type:** Firebase Hosting (site: `onboarding-izinga`, project: `ijudi-d19bd`) — instant
-- **Sequence:** standalone (no backend release dependency for this set of changes)
-
-### Rollback steps
-
-1. Identify the previous Firebase Hosting release in the Firebase console under `onboarding-izinga` → Hosting → Release history.
-2. Click "Rollback" on the `v1.5.0` release to revert hosting to the previous build instantly.
-3. Alternatively: `git checkout v1.5.0 && npm run build -- --configuration production && firebase deploy --only hosting:onboarding-izinga`.
-4. Notify Lindani that rollback is complete and confirm which ICA version drivers/ambassadors will see post-rollback.
-
-### Smoke test plan
-
-1. Driver registration flow — complete a new driver sign-up through to the ICA acceptance screen; confirm Driver ICA v2 text renders, acceptance is required to proceed, and the record is written correctly.
-2. Ambassador onboarding — complete ambassador ICA acceptance; confirm Ambassador ICA v2 clauses 1.5 and 6.8 are visible and acceptance gates progression.
-3. Store create call — initiate a new store registration as a merchant; confirm network tab shows `Authorization: Bearer <token>` on the POST to the store endpoint.
-4. `/business/info` route guard — attempt to navigate to `/business/info` without a verified phone; confirm `PhoneVerifiedGuard` redirects correctly.
-5. Driver payout screen — confirm payout timing copy reads "next business day" (not "same day" or any previous incorrect text).
-6. Post-ICA training redirect — confirm that after ICA acceptance, users land on `/indivisuals/training-guide` (regression check for the v1.5.0 feature).
-
-### Approved by
-
-Lindani Masinga — direct go-ahead confirmed 2026-08-19 (chat)
-Jason van der Merwe (attorney) — Driver ICA v2 and Ambassador ICA v2 sign-off 2026-08-19
-
----
-
-## [1.5.0] — Prior release
-
-Ambassador/referral partner payout reconciliation, post-ICA training guide redirect. See git log for details.
+**Approved by:** Lindani Masinga — 2026-10-08
