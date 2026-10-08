@@ -53,7 +53,9 @@ export class PendingApprovalsComponent implements OnInit {
     // For now, we'll use a placeholder method
     this.izingaOrderManager.getPendingApprovals()
       .subscribe(users => {
-        this.pendingUsers = users.filter(user => !user.profileApproved);
+        this.pendingUsers = users.filter(user =>
+          !user.profileApproved && user.role !== UserProfile.RoleEnum.CUSTOMER
+        );
 
         if (this.selectedUser && !this.filteredPendingUsers.some(user => user.id === this.selectedUser!.id)) {
           this.selectedUser = undefined;

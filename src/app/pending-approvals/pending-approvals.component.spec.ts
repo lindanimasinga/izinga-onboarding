@@ -82,8 +82,8 @@ describe('PendingApprovalsComponent', () => {
   describe('filteredPendingUsers', () => {
     it('returns only unapproved users on load', () => {
       const users: UserProfile[] = [
-        { id: 'u1', profileApproved: false } as UserProfile,
-        { id: 'u2', profileApproved: true } as UserProfile
+        { id: 'u1', profileApproved: false, role: 'MESSENGER' } as UserProfile,
+        { id: 'u2', profileApproved: true, role: 'MESSENGER' } as UserProfile
       ];
       TestBed.resetTestingModule();
       TestBed.configureTestingModule({
@@ -100,6 +100,66 @@ describe('PendingApprovalsComponent', () => {
       f.detectChanges();
       expect(f.componentInstance.filteredPendingUsers.length).toBe(1);
       expect(f.componentInstance.filteredPendingUsers[0].id).toBe('u1');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // CUSTOMER role exclusion — Pending Approvals must never show CUSTOMER users
+  // ---------------------------------------------------------------------------
+  describe('CUSTOMER role exclusion', () => {
+    function buildModule(users: UserProfile[]): ComponentFixture<PendingApprovalsComponent> {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        declarations: [PendingApprovalsComponent],
+        imports: [RouterTestingModule],
+        schemas: [NO_ERRORS_SCHEMA],
+        providers: [
+          { provide: IzingaOrderManagementService, useValue: makeOrderSvc(users) },
+          { provide: StorageService, useValue: makeStorageSvc() },
+          { provide: ChatService, useValue: makeChatSvc() }
+        ]
+      });
+      const f = TestBed.createComponent(PendingApprovalsComponent);
+      f.detectChanges();
+      return f;
+    }
+
+    it('excludes a CUSTOMER user even when profileApproved is false', () => {
+      const users: UserProfile[] = [
+        { id: 'c1', profileApproved: false, role: UserProfile.RoleEnum.CUSTOMER } as UserProfile
+      ];
+      const f = buildModule(users);
+      expect(f.componentInstance.pendingUsers.length).toBe(0);
+    });
+
+    it('excludes CUSTOMER users while keeping unapproved service-provider users', () => {
+      const users: UserProfile[] = [
+        { id: 'c1', profileApproved: false, role: UserProfile.RoleEnum.CUSTOMER } as UserProfile,
+        { id: 'm1', profileApproved: false, role: UserProfile.RoleEnum.MESSENGER } as UserProfile,
+        { id: 's1', profileApproved: false, role: UserProfile.RoleEnum.STORE } as UserProfile,
+        { id: 'a1', profileApproved: false, role: UserProfile.RoleEnum.AMBASSADOR } as UserProfile
+      ];
+      const f = buildModule(users);
+      const ids = f.componentInstance.pendingUsers.map(u => u.id);
+      expect(ids).not.toContain('c1');
+      expect(ids).toContain('m1');
+      expect(ids).toContain('s1');
+      expect(ids).toContain('a1');
+    });
+
+    it('includes an approved CUSTOMER in the API response without adding it to pendingUsers', () => {
+      const users: UserProfile[] = [
+        { id: 'c2', profileApproved: true, role: UserProfile.RoleEnum.CUSTOMER } as UserProfile,
+        { id: 'm2', profileApproved: false, role: UserProfile.RoleEnum.STOREADMIN } as UserProfile
+      ];
+      const f = buildModule(users);
+      expect(f.componentInstance.pendingUsers.length).toBe(1);
+      expect(f.componentInstance.pendingUsers[0].id).toBe('m2');
+    });
+
+    it('handles an empty API response without errors', () => {
+      const f = buildModule([]);
+      expect(f.componentInstance.pendingUsers.length).toBe(0);
     });
   });
 
