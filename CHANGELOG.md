@@ -1,5 +1,74 @@
 # Changelog
 
+## [1.18.0] — 2026-10-08
+
+**Release type:** Feature (P2) — app-wide Bootstrap 5→4 compatibility shim, Material Icons migration, and full visual overhaul of Chat Sessions and Pending Approvals. The shim activates previously silent `fw-bold`, `me-*`, `ms-*`, `gap-*`, `visually-hidden`, and gutter utilities across 44 templates app-wide. No API contract changes.
+
+**Summary:** Fixes six high/medium severity live-audit UI bugs on Chat Sessions and Pending Approvals, aligns both pages to the iZinga design language, resolves a root-cause Bootstrap 5/4 utility mismatch affecting the entire app, migrates Font Awesome icon references to Material Icons, and extracts a shared avatar utility module.
+
+### Changes
+
+- [NEW] `src/styles/bootstrap5-compat.css` — Bootstrap 5 utility compatibility shim registered in `angular.json` (before `styles.css`, for both build and test configs). The app loads Bootstrap 4.5.0 but templates use Bootstrap 5 utility names (`me-*`, `ms-*`, `fw-bold`, `visually-hidden`, `gap-*`, `g-0`/`g-md-3`, `btn-close`, `start-100`/`translate-middle`). Every BS5 utility was a silent no-op in BS4. The shim re-declares all observed BS5 names with exact BS4-equivalent semantics — 44 templates gain working spacing, bold typography, and layout utilities without any markup changes. File is self-documenting with a removal note for when the app upgrades to Bootstrap 5.
+- [NEW] `src/app/util/avatar.util.ts` — shared `getInitials` and `getAvatarColor` helpers extracted from inline component code. Deterministic string hash, iZinga palette (6 colors), phone-number safe (strips leading `+27`/`0`). Both Chat Sessions and Pending Approvals delegate here.
+- [NEW] `src/app/util/avatar.util.spec.ts` — 14 unit tests covering `getInitials` (single name, two-word, phone-number, empty string) and `getAvatarColor` (all 6 palette slots, boundary).
+- [NEW] `styles.css` global `.iz-*` utility classes — `.iz-card` (+ teal/green/gold/coral/amber/muted surface variants), `.iz-badge` (6 color variants), `.iz-badge--onbrand` (rgba-white/white-text for badges on colored surfaces), `.iz-notice` (review/blocked/success alert banners), `.iz-section-label`, `.iz-icon-chip`, `.iz-avatar`, `.btn-outline-brand`, dark-theme `.btn-close` inversion, token-based table borders, `.iz-scroll` thin scrollbar helper, `input-group-text` token override (removes Bootstrap's hardcoded `#e9ecef`). New `--chat-bubble-incoming-bg` CSS token (light: `#e0dede`, dark: `#3D3D3D`). Material Icons sizing rules (`.btn .material-icons`, `.material-icons.md-18`).
+- [FIX] Chat Sessions — list-item hover color reverted to dark-theme-safe tokens (`--bkg-card-color`, `--text-color`). Bootstrap's hardcoded `#f8f9fa`/`#495057` was overriding the token-based dark theme, causing list items to flash to near-white on hover. `trackBySessionId` and `trackByStoreId` added — eliminates DOM thrash on Firestore push that extended sticky-hover on mobile.
+- [FIX] Chat Sessions — incoming customer message bubble was invisible in dark theme (background matched container). `--chat-bubble-incoming-bg` token applied to `.chat-bubble.customer-message`.
+- [FIX] Chat Sessions — message composer input-group stacked on mobile at 375 px (Bootstrap 4/5 default `flex-wrap:wrap`). Fixed with `flex-wrap:nowrap` + `min-width:0` on the text input. Composer buttons given `min-width:44px` to meet minimum touch target size.
+- [FIX] Chat Sessions — inset-shadow `box-shadow: inset 3px 0 0 <token>` replaces `border-left` on `.chat-interface-card`. Global `.card { border:none !important }` was overriding `border-left` component rules.
+- [FIX] Chat Sessions + Pending Approvals — all `<i class="fa fa-*">` icons replaced with Material Icons ligatures (`<i class="material-icons">name</i>`). The app does not load Font Awesome; every Font Awesome icon rendered as a zero-width blank square (send, attach, gear, refresh, close buttons were invisible).
+- [FIX] Chat Sessions — `data-bs-toggle` corrected to `data-toggle` on the settings dropdown (Bootstrap 4 JavaScript attribute).
+- [FIX] Pending Approvals — avatar placeholder was near-white `bg-light` background (`#f8f9fa`) in dark theme. Replaced with `.iz-avatar` initials chip (deterministic color from `avatar.util`, white text).
+- [FIX] Pending Approvals — nav-tabs overflow on mobile caused rows to overlap. Fixed with `overflow-x:auto` + `flex-wrap:nowrap` + `white-space:nowrap` at ≤768 px. Thin scrollbar via `.iz-scroll`.
+- [FIX] Pending Approvals — tab strip border-bottom was Bootstrap's hardcoded `#dee2e6`. Overridden with `rgba(128,128,128,0.2)` on `.pending-tabs` (matches global hairline token).
+- [FIX] Pending Approvals — `*ngIf="selectedUser.bank"` guard on `ng-container` wrapping Bank Information section. Label no longer renders when no bank data is present. Coordinates `*ngIf` also excludes the `(0,0)` placeholder case. Both desktop panel and mobile modal copies kept identical per deferred Issue 6.
+- [FIX] Pending Approvals — inset-shadow accent on `.profile-review-card` only (not on `.modal-content`). Previous commit had added the shadow to both, producing a double teal line at 375 px.
+- [FIX] Pending Approvals — `trackByUserId` now returns `string` always: `user.id ?? user.mobileNumber ?? index.toString()`. Eliminates undefined-return branch.
+- [FIX] `quote-approval/pending-approvals.component.css` and `quote-approval/quote-approval.component.css` — hardcoded `border-color:#dee2e6` replaced with `rgba(128,128,128,0.2)` (matches global hairline token; cosmetic dark-theme fix).
+- [IMPROVED] Chat Sessions and Pending Approvals HTML/CSS fully rewritten to `.iz-*` design language — matching the visual language established by the Dashboard and Welcome pages. Status chips (`.iz-badge`), empty states (`.iz-icon-chip`), alert banners (`.iz-notice`), section headings (`.iz-section-label`), card surfaces (`.iz-card`), secondary action buttons (`.btn-outline-brand`). No hardcoded hex greys remain in component CSS.
+
+### Breaking changes
+
+None. The Bootstrap 5→4 shim is purely additive CSS — it does not override any existing Bootstrap 4 class, only adds previously-missing BS5 names. All changes are confined to CSS and template markup; no API or data contract changes.
+
+### Known issues (tracked separately)
+
+- **FA-ICONS-REMAINING**: Eight templates still use Font Awesome `fa fa-*` icons that have never rendered (the app never loaded Font Awesome): `user-update`, `user-management`, `messanger-orders`, `restricted-regions`, `add-restricted-region`, `referral-partner-enrollment`, `user-config-management`, `post-ica-training`. These are unchanged by this release and tracked as a follow-up migration.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select the previous release — v1.17.0 — in the Firebase console Hosting history).
+2. Pure frontend deploy. No database migration, no API contract change. Rolling back to v1.17.0 is safe independently.
+
+### Smoke test plan (post-deploy — minimum checks within 15 minutes)
+
+1. Dashboard page (any logged-in user) — expected: section headings and stat card labels are bold (`fw-bold` shim active), avatar gutters present (`me-3` shim active). In dark theme: headings remain dark-theme-safe color, not Bootstrap default near-black.
+2. Store owner signup / `user-update` form — expected: form row gutters render correctly (Bootstrap `g-md-3` shim active; columns are spaced, not flush). `visually-hidden` screen-reader labels render with zero visible height.
+3. Chat Sessions page — open in dark theme — expected: all list items remain dark-themed on hover (no near-white flash). Send and attachment buttons are visible (Material Icons). Composer input and buttons remain on one row at 375 px.
+4. Chat Sessions — open a conversation — expected: customer message bubble is visually distinct from the card background in dark mode (visible, not invisible). Session count badge on the Active filter is readable on the teal surface.
+5. Pending Approvals — view a pending user with no bank data — expected: "Bank Information" section label does not appear.
+6. Pending Approvals — view a pending user on a 375 px viewport — expected: teal accent appears on the profile review card only (one line). Not a double line at the far-left modal edge.
+7. Pending Approvals — view a pending user on desktop — expected: approve/reject buttons visible (Material Icons); avatar shows initials in iZinga palette color.
+
+### Post-deployment monitoring
+
+- 15 min: App loads cleanly; no console errors on chat or pending-approvals routes; dashboard headings visually bold on first load.
+- 1 hour: No spike in JS errors; driver/store chat functional; pending approvals actionable (buttons visible and clickable).
+- 24 hours: Growth & Analytics to watch for anomalies in admin session volume or driver approval rate (a broken UI would suppress completions).
+
+### Gate citations
+
+- Feature Brief: Lindani Masinga — direct authorization 2026-10-08
+- Code Review Gate 1 (3 commits): PASS WITH MINOR NOTES — notes resolved in commit `131b2f3`
+- Code Review incremental (`ecd6409`+`7f99075`): PASS WITH MINOR NOTES (no required fixes) — 2026-10-08
+- QA Gate 1 (initial, 3 commits): PASS 696/696 — 2026-10-08
+- QA Gate 1 (re-run, 5 commits): PASS 696/696 — 2026-10-08 (independently verified by Release Manager)
+- Visual verification (mobile + desktop, light + dark): Lindani Masinga — 2026-10-08
+
+**Approved by:** Lindani Masinga — 2026-10-08
+
+---
+
 ## [1.17.0] — 2026-10-08
 
 **Release type:** Feature (P2)
