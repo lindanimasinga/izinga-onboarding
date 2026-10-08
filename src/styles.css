@@ -340,6 +340,9 @@ body.individual {
 .iz-badge--coral { background: color-mix(in srgb, var(--btn-red-color)   18%, transparent); color: var(--btn-red-color);   border: 1px solid color-mix(in srgb, var(--btn-red-color)   30%, transparent); }
 .iz-badge--amber { background: color-mix(in srgb, var(--btn-amber-color) 18%, transparent); color: var(--btn-amber-color); border: 1px solid color-mix(in srgb, var(--btn-amber-color) 30%, transparent); }
 .iz-badge--muted { background: color-mix(in srgb, var(--btn-muted-color) 18%, transparent); color: var(--btn-muted-color); border: 1px solid color-mix(in srgb, var(--btn-muted-color) 30%, transparent); }
+/* AUDIT-3 FIX: on-brand variant for badges placed on solid brand-color surfaces (gold pill, gold modal-header).
+   Translucent white bg + white text + white border stays legible over any brand-color background. */
+.iz-badge--onbrand { background: rgba(255,255,255,0.22); color: #fff; border: 1px solid rgba(255,255,255,0.4); }
 
 /* ---- iz-notice: context-aware banner — replaces Bootstrap .alert-* ---- */
 .iz-notice {
@@ -384,6 +387,9 @@ body.individual {
 .iz-icon-chip--muted { background: color-mix(in srgb, var(--btn-muted-color)  18%, transparent); }
 
 /* ---- iz-avatar: initials-based round avatar (shared across components) ---- */
+/* AUDIT-6 FIX: explicit margin-right so the name column always has a ≥12px gutter.
+   Bootstrap me-* classes use !important and override this when a tighter/wider
+   per-context spacing is needed — omit me-* on the element to let 12px be the default. */
 .iz-avatar {
   width: 40px;
   height: 40px;
@@ -394,6 +400,7 @@ body.individual {
   font-weight: 600;
   letter-spacing: 0.5px;
   user-select: none;
+  margin-right: 12px;
 }
 
 /* ---- btn-outline-brand: transparent bg + gold border/text ---- */
@@ -410,9 +417,9 @@ body.individual {
 }
 
 /* ---- Dark-theme close button invert (global) ----
-   chat-sessions.component.css used to define this locally for its modal header;
-   now promoted so ALL modal close buttons are visible in dark theme.
-   Modal headers with a colored background keep their own local rule (always-on invert). */
+   The base .btn-close appearance is defined in src/styles/bootstrap5-compat.css.
+   This rule inverts the × glyph to white on dark backgrounds — kept here so it
+   loads after the compat shim and wins the cascade. */
 body.dark-theme .btn-close {
   filter: brightness(0) invert(1);
 }
@@ -438,3 +445,20 @@ body.dark-theme .btn-close {
   color: var(--text-color);
   border-color: rgba(128, 128, 128, 0.2);
 }
+
+/* ---- Material Icons: sizing and vertical alignment for inline icon usage ---- */
+/* AUDIT-7 FIX: the app uses Material Icons (loaded via Google Fonts in index.html).
+   These rules ensure icons size correctly inside buttons and inline text.
+   The global .btn { padding: 15px; } already sizes buttons; icons just need
+   vertical centering and consistent sizing. */
+.material-icons {
+  font-size: 1.25rem;
+  vertical-align: middle;
+  line-height: 1;
+}
+/* In buttons the icon inherits btn line-height; force consistent size */
+.btn .material-icons {
+  font-size: 1.25rem;
+}
+/* Small variant for inline text rows (phone, email, address lines) */
+.material-icons.md-18 { font-size: 18px; }

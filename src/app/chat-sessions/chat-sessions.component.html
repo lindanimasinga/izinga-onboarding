@@ -9,21 +9,25 @@
   <!-- CS-05: Inline error banner — iz-notice replaces .error-banner local class -->
   <div *ngIf="errorMessage" class="iz-notice iz-notice--blocked d-flex align-items-center justify-content-between mb-2">
     <span>{{errorMessage}}</span>
-    <button type="button" class="btn-close btn-close-sm ms-3" (click)="dismissError()"></button>
+    <button type="button" class="btn-close btn-close-sm ms-3" (click)="dismissError()" aria-label="Dismiss error"></button>
   </div>
 
   <div class="row g-0 g-md-3">
     <!-- Chat Sessions List -->
     <div class="col-md-4 chat-list-panel">
 
-      <!-- Filter Tabs — tokens replace hardcoded Bootstrap colors; iz-badge--green for active count -->
+      <!-- Filter Tabs — tokens replace hardcoded Bootstrap colors; iz-badge--onbrand on active pill -->
       <ul class="nav nav-pills mb-3">
         <li class="nav-item">
           <button
             class="nav-link"
             [class.active]="activeFilter === 'active'"
             (click)="filterSessions('active')">
-            Active <span class="iz-badge iz-badge--green ms-1">{{activeSessions.length}}</span>
+            Active
+            <!-- AUDIT-3 FIX: badge on active gold pill uses --onbrand so white text is legible -->
+            <span class="iz-badge ms-1"
+                  [class.iz-badge--onbrand]="activeFilter === 'active'"
+                  [class.iz-badge--green]="activeFilter !== 'active'">{{activeSessions.length}}</span>
           </button>
         </li>
         <li class="nav-item">
@@ -48,7 +52,7 @@
           <h5>No chat sessions</h5>
           <p class="text-muted">No chat sessions found for the selected filter.</p>
           <button class="btn bg-dark" (click)="startNewSession()">
-            <i class="fa fa-plus me-1"></i>Start Your First Chat
+            <i class="material-icons mr-1" aria-hidden="true">add</i>Start Your First Chat
           </button>
         </div>
 
@@ -63,9 +67,10 @@
             [class.active]="selectedSession?.id === session.id"
             (click)="selectSession(session)">
 
-          <!-- Unread badge -->
+          <!-- Unread badge — BS4 positioning via .unread-badge class (start-100/translate-middle are BS5) -->
           <span *ngIf="session.unreadMessagesCount > 0"
-                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                class="position-absolute unread-badge badge rounded-pill bg-danger"
+                style="top:-5px;right:-10px;">
             {{session.unreadMessagesCount}}
           </span>
 
@@ -123,7 +128,7 @@
             </div>
           </div>
           <div class="d-flex align-items-center">
-            <!-- Status badge — iz-badge pattern -->
+            <!-- Status badge — iz-badge pattern; on card-header (not gold) so iz-badge colors are legible -->
             <span class="iz-badge me-2"
                   [ngClass]="{
                     'iz-badge--green': selectedSession.status === 'ACTIVE',
@@ -133,8 +138,9 @@
               {{selectedSession.status}}
             </span>
             <div class="dropdown">
-              <button class="btn btn-sm btn-outline-brand dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="fa fa-cog"></i>
+              <!-- data-toggle is Bootstrap 4; data-bs-toggle is Bootstrap 5 -->
+              <button class="btn btn-sm btn-outline-brand dropdown-toggle" data-toggle="dropdown" aria-label="Session options">
+                <i class="material-icons" aria-hidden="true">settings</i>
               </button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" href="#" (click)="toggleSessionStatus()">
@@ -170,7 +176,7 @@
                     <!-- Document Message -->
                     <div *ngIf="message.messageType === 'DOCUMENT' && message.metadata?.documentUrl"
                          class="d-flex align-items-center mt-2">
-                      <i class="fa fa-file me-2"></i>
+                      <i class="material-icons me-2" aria-hidden="true">description</i>
                       <a [href]="message.metadata?.documentUrl" target="_blank">
                         {{message.metadata?.fileName}}
                       </a>
@@ -180,8 +186,8 @@
                        [class.justify-content-end]="message.senderType === 'STORE'">
                     <small class="text-muted">
                       {{message.timestamp | date:'short'}}
-                      <i *ngIf="message.senderType === 'STORE' && message.isRead" class="fa fa-check-double text-primary ms-1"></i>
-                      <i *ngIf="message.senderType === 'STORE' && !message.isRead" class="fa fa-check text-muted ms-1"></i>
+                      <i *ngIf="message.senderType === 'STORE' && message.isRead" class="material-icons ms-1" style="font-size:.9rem;color:var(--btn-pill-color)" aria-hidden="true">done_all</i>
+                      <i *ngIf="message.senderType === 'STORE' && !message.isRead" class="material-icons ms-1 text-muted" style="font-size:.9rem" aria-hidden="true">check</i>
                     </small>
                   </div>
                 </div>
@@ -204,15 +210,17 @@
                 <button
                   type="button"
                   class="btn btn-outline-brand"
+                  aria-label="Attach file"
                   [disabled]="sendingMessage || selectedSession.status === 'CLOSED'">
-                  <i class="fa fa-paperclip"></i>
+                  <i class="material-icons" aria-hidden="true">attach_file</i>
                 </button>
                 <!-- btn bg-dark: uses --btn-bg-color (gold) via styles.css .bg-dark override, visible on all themes -->
                 <button
                   type="submit"
                   class="btn bg-dark"
+                  aria-label="Send message"
                   [disabled]="!newMessage || !newMessage.trim() || sendingMessage || selectedSession.status === 'CLOSED'">
-                  <i class="fa fa-paper-plane" *ngIf="!sendingMessage"></i>
+                  <i class="material-icons" *ngIf="!sendingMessage" aria-hidden="true">send</i>
                   <span class="spinner-border spinner-border-sm" *ngIf="sendingMessage"></span>
                 </button>
               </div>
@@ -241,16 +249,9 @@
             </div>
           </div>
           <div class="d-flex align-items-center">
-            <!-- Status badge in mobile modal header — iz-badge pattern -->
-            <span class="iz-badge me-2"
-                  [ngClass]="{
-                    'iz-badge--green': selectedSession.status === 'ACTIVE',
-                    'iz-badge--amber': selectedSession.status === 'INACTIVE',
-                    'iz-badge--muted': selectedSession.status === 'CLOSED'
-                  }">
-              {{selectedSession.status}}
-            </span>
-            <button type="button" class="btn-close" (click)="closeChatSessionModal()"></button>
+            <!-- AUDIT-3 FIX: status badge in gold modal-header always uses --onbrand (white on gold) -->
+            <span class="iz-badge iz-badge--onbrand me-2">{{selectedSession.status}}</span>
+            <button type="button" class="btn-close" (click)="closeChatSessionModal()" aria-label="Close chat"></button>
           </div>
         </div>
       </div>
@@ -277,7 +278,7 @@
                            style="max-width: 200px;">
                       <div *ngIf="message.messageType === 'DOCUMENT' && message.metadata?.documentUrl"
                            class="d-flex align-items-center mt-2">
-                        <i class="fa fa-file me-2"></i>
+                        <i class="material-icons me-2" aria-hidden="true">description</i>
                         <a [href]="message.metadata?.documentUrl" target="_blank">
                           {{message.metadata?.fileName}}
                         </a>
@@ -287,8 +288,8 @@
                          [class.justify-content-end]="message.senderType === 'STORE'">
                       <small class="text-muted">
                         {{message.timestamp | date:'short'}}
-                        <i *ngIf="message.senderType === 'STORE' && message.isRead" class="fa fa-check-double text-primary ms-1"></i>
-                        <i *ngIf="message.senderType === 'STORE' && !message.isRead" class="fa fa-check text-muted ms-1"></i>
+                        <i *ngIf="message.senderType === 'STORE' && message.isRead" class="material-icons ms-1" style="font-size:.9rem;color:var(--btn-pill-color)" aria-hidden="true">done_all</i>
+                        <i *ngIf="message.senderType === 'STORE' && !message.isRead" class="material-icons ms-1 text-muted" style="font-size:.9rem" aria-hidden="true">check</i>
                       </small>
                     </div>
                   </div>
@@ -310,14 +311,16 @@
                   <button
                     type="button"
                     class="btn btn-outline-brand"
+                    aria-label="Attach file"
                     [disabled]="sendingMessage || selectedSession.status === 'CLOSED'">
-                    <i class="fa fa-paperclip"></i>
+                    <i class="material-icons" aria-hidden="true">attach_file</i>
                   </button>
                   <button
                     type="submit"
                     class="btn bg-dark"
+                    aria-label="Send message"
                     [disabled]="!newMessage || !newMessage.trim() || sendingMessage || selectedSession.status === 'CLOSED'">
-                    <i class="fa fa-paper-plane" *ngIf="!sendingMessage"></i>
+                    <i class="material-icons" *ngIf="!sendingMessage" aria-hidden="true">send</i>
                     <span class="spinner-border spinner-border-sm" *ngIf="sendingMessage"></span>
                   </button>
                 </div>
@@ -338,9 +341,9 @@
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">
-          <i class="fa fa-comments me-2"></i>Start New Chat Session
+          <i class="material-icons me-2" aria-hidden="true">chat</i>Start New Chat Session
         </h5>
-        <button type="button" class="btn-close" (click)="closeNewSessionModal()"></button>
+        <button type="button" class="btn-close" (click)="closeNewSessionModal()" aria-label="Close modal"></button>
       </div>
       <div class="modal-body">
         <p class="text-muted mb-3">Select a store to start a conversation with:</p>
@@ -362,14 +365,14 @@
             [class.active]="newSessionStoreId === store.id"
             (click)="newSessionStoreId = store.id">
             <div class="contact-avatar store-avatar d-flex align-items-center justify-content-center me-3">
-              <i class="fa fa-store text-white"></i>
+              <i class="material-icons" aria-hidden="true">storefront</i>
             </div>
             <div class="flex-grow-1">
               <h6 class="mb-1">{{store.name}}</h6>
               <small class="text-muted">{{store.description}}</small>
             </div>
             <div *ngIf="newSessionStoreId === store.id">
-              <i class="fa fa-check-circle text-primary"></i>
+              <i class="material-icons" style="color:var(--btn-pill-color)" aria-hidden="true">check_circle</i>
             </div>
           </button>
         </div>
@@ -383,7 +386,7 @@
           class="btn bg-dark"
           [disabled]="!newSessionStoreId"
           (click)="createNewSession(newSessionStoreId)">
-          <i class="fa fa-comments me-1"></i>Start Chat
+          <i class="material-icons me-1" aria-hidden="true">chat</i>Start Chat
         </button>
       </div>
     </div>

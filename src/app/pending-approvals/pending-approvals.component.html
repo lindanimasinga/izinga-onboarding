@@ -11,7 +11,7 @@
       <label for="userConfigFilter" class="form-label mb-1">Filter by Service Type</label>
       <div class="input-group">
         <span class="input-group-text">
-          <i class="fa fa-filter"></i>
+          <i class="material-icons" aria-hidden="true">filter_list</i>
         </span>
         <select
           id="userConfigFilter"
@@ -32,7 +32,7 @@
         class="nav-link"
         [class.active]="activeTab === 'list'"
         (click)="setActiveTab('list')">
-        <i class="fa fa-list me-1"></i>
+        <i class="material-icons me-1" aria-hidden="true">list</i>
         Pending List
       </button>
     </li>
@@ -42,7 +42,7 @@
         class="nav-link"
         [class.active]="activeTab === 'map'"
         (click)="setActiveTab('map')">
-        <i class="fa fa-map-marker me-1"></i>
+        <i class="material-icons me-1" aria-hidden="true">place</i>
         Map View
       </button>
     </li>
@@ -52,7 +52,7 @@
         class="nav-link"
         [class.active]="activeTab === 'criminal-check'"
         (click)="setActiveTab('criminal-check')">
-        <i class="fa fa-shield me-1"></i>
+        <i class="material-icons me-1" aria-hidden="true">verified_user</i>
         Pending Criminal Checks
         <!-- Criminal check count — iz-badge--muted replaces badge bg-secondary -->
         <span class="iz-badge iz-badge--muted ms-1">{{criminalCheckPendingUsers.length}}</span>
@@ -69,8 +69,9 @@
           <h5 class="mb-0">Pending</h5>
           <span class="iz-badge iz-badge--amber">{{filteredPendingUsers.length}}</span>
         </div>
-        <button class="btn btn-sm btn-outline-brand" (click)="loadPendingApprovals()" [disabled]="loading">
-          <i class="fa fa-refresh" [class.fa-spin]="loading"></i>
+        <button class="btn btn-sm btn-outline-brand" (click)="loadPendingApprovals()" [disabled]="loading" aria-label="Refresh">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm" role="status"></span>
+          <i *ngIf="!loading" class="material-icons" aria-hidden="true">refresh</i>
         </button>
       </div>
 
@@ -81,7 +82,9 @@
       </div>
 
       <div *ngIf="!loading && filteredPendingUsers.length === 0" class="text-center py-4">
-        <i class="fa fa-check-circle fa-3x text-success mb-3"></i>
+        <div class="iz-icon-chip iz-icon-chip--green mx-auto mb-3">
+          <i class="material-icons" aria-hidden="true">check_circle</i>
+        </div>
         <h5>No matching users</h5>
         <p class="text-muted">No pending users match the selected service type.</p>
       </div>
@@ -129,7 +132,9 @@
             </div>
           </div>
           <p class="mb-1 small">{{user.description || 'No service description'}}</p>
-          <i *ngIf="!hasMissingFields(user)" class="fa fa-check-circle">Ready For App</i>
+          <span *ngIf="!hasMissingFields(user)" class="small">
+            <i class="material-icons me-1" style="font-size:1rem;color:var(--btn-green-color)" aria-hidden="true">check_circle</i>Ready For App
+          </span>
         </button>
       </div>
     </div>
@@ -149,7 +154,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Profile Review</h5>
           <!-- btn-close on card-header (not colored bg): covered by global body.dark-theme .btn-close rule -->
-          <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
+          <button type="button" class="btn-close" (click)="closeUserDetails()" aria-label="Close profile review"></button>
         </div>
 
         <div class="card-body">
@@ -173,37 +178,38 @@
             <div class="col-md-9">
               <h4>{{selectedUser.name || 'No Name Provided'}}</h4>
               <p class="text-muted mb-1">
-                <i class="fa fa-phone me-1"></i>
+                <i class="material-icons me-1 md-18" aria-hidden="true">phone</i>
                 {{selectedUser.mobileNumber}}
               </p>
               <p class="text-muted mb-1" *ngIf="selectedUser.emailAddress">
-                <i class="fa fa-envelope me-1"></i>
+                <i class="material-icons me-1 md-18" aria-hidden="true">email</i>
                 {{selectedUser.emailAddress}}
               </p>
               <p class="text-muted" *ngIf="selectedUser.address">
-                <i class="fa fa-map-marker me-1"></i>
+                <i class="material-icons me-1 md-18" aria-hidden="true">place</i>
                 {{selectedUser.address}}
               </p>
-              <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null">
-                <i class="fa fa-crosshairs me-1"></i>
+              <!-- AUDIT-5 FIX: exclude 0,0 placeholder coordinates -->
+              <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null && !(selectedUser.latitude === 0 && selectedUser.longitude === 0)">
+                <i class="material-icons me-1 md-18" aria-hidden="true">my_location</i>
                 {{selectedUser.latitude}}, {{selectedUser.longitude}}
               </p>
               <p class="text-muted mb-2" *ngIf="coordinateLookupInProgress">
-                <i class="fa fa-spinner fa-spin me-1"></i>
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                 Looking up GPS coordinates from address...
               </p>
               <p class="text-danger mb-2" *ngIf="coordinateLookupError">
-                <i class="fa fa-exclamation-circle me-1"></i>
+                <i class="material-icons me-1 md-18" aria-hidden="true">error_outline</i>
                 {{coordinateLookupError}}
               </p>
               <div class="d-flex align-items-center gap-2">
                 <!-- Pending Approval badge — iz-badge--amber replaces bg-warning -->
                 <span class="iz-badge iz-badge--amber me-2">
-                  <i class="fa fa-clock me-1"></i>
+                  <i class="material-icons me-1" style="font-size:.85rem" aria-hidden="true">schedule</i>
                   Pending Approval
                 </span>
                 <button class="btn bg-dark" title="Chat with applicant" (click)="startChat()">
-                  <i class="fa fa-comments me-1"></i>
+                  <i class="material-icons me-1" aria-hidden="true">chat</i>
                   Chat
                 </button>
               </div>
@@ -242,26 +248,29 @@
                 </tr>
               </table>
             </div>
+            <!-- AUDIT-5 FIX: wrap Bank Information section in *ngIf so label doesn't render alone -->
             <div class="col-md-6">
-              <div class="iz-section-label">Bank Information</div>
-              <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr class="text-muted">
-                  <td><strong>Type:</strong></td>
-                  <td>{{selectedUser.bank.type}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.name" class="text-muted">
-                  <td><strong>Bank:</strong></td>
-                  <td>{{selectedUser.bank.name}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
-                  <td><strong>Account:</strong></td>
-                  <td>{{selectedUser.bank.accountId}}</td>
-                </tr>
-                <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
-                  <td><strong>Branch Code:</strong></td>
-                  <td>{{selectedUser.bank.branchCode}}</td>
-                </tr>
-              </table>
+              <ng-container *ngIf="selectedUser.bank">
+                <div class="iz-section-label">Bank Information</div>
+                <table class="table table-sm">
+                  <tr class="text-muted">
+                    <td><strong>Type:</strong></td>
+                    <td>{{selectedUser.bank.type}}</td>
+                  </tr>
+                  <tr *ngIf="selectedUser.bank.name" class="text-muted">
+                    <td><strong>Bank:</strong></td>
+                    <td>{{selectedUser.bank.name}}</td>
+                  </tr>
+                  <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
+                    <td><strong>Account:</strong></td>
+                    <td>{{selectedUser.bank.accountId}}</td>
+                  </tr>
+                  <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
+                    <td><strong>Branch Code:</strong></td>
+                    <td>{{selectedUser.bank.branchCode}}</td>
+                  </tr>
+                </table>
+              </ng-container>
             </div>
           </div>
 
@@ -303,7 +312,7 @@
                       [href]="selectedUser.tag[tag]"
                       target="_blank"
                       class="btn btn-sm btn-outline-brand">
-                      <i class="fa fa-download me-1"></i>
+                      <i class="material-icons me-1" aria-hidden="true">download</i>
                       View Document
                     </a>
                   </div>
@@ -326,7 +335,7 @@
                       [href]="selectedUser.tag[tag]"
                       target="_blank"
                       class="btn btn-sm btn-outline-brand">
-                      <i class="fa fa-download me-1"></i>
+                      <i class="material-icons me-1" aria-hidden="true">download</i>
                       View Document
                     </a>
                   </div>
@@ -347,7 +356,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Profile Review</h5>
-          <button type="button" class="btn-close" (click)="closeUserDetails()"></button>
+          <button type="button" class="btn-close" (click)="closeUserDetails()" aria-label="Close profile review"></button>
         </div>
         <div class="modal-body">
           <div class="card profile-review-card">
@@ -372,36 +381,37 @@
                 <div class="col-md-9">
                   <h4>{{selectedUser.name || 'No Name Provided'}}</h4>
                   <p class="text-muted mb-1">
-                    <i class="fa fa-phone me-1"></i>
+                    <i class="material-icons me-1 md-18" aria-hidden="true">phone</i>
                     {{selectedUser.mobileNumber}}
                   </p>
                   <p class="text-muted mb-1" *ngIf="selectedUser.emailAddress">
-                    <i class="fa fa-envelope me-1"></i>
+                    <i class="material-icons me-1 md-18" aria-hidden="true">email</i>
                     {{selectedUser.emailAddress}}
                   </p>
                   <p class="text-muted" *ngIf="selectedUser.address">
-                    <i class="fa fa-map-marker me-1"></i>
+                    <i class="material-icons me-1 md-18" aria-hidden="true">place</i>
                     {{selectedUser.address}}
                   </p>
-                  <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null">
-                    <i class="fa fa-crosshairs me-1"></i>
+                  <!-- AUDIT-5 FIX: exclude 0,0 placeholder coordinates -->
+                  <p class="text-muted mb-2" *ngIf="selectedUser.latitude != null && selectedUser.longitude != null && !(selectedUser.latitude === 0 && selectedUser.longitude === 0)">
+                    <i class="material-icons me-1 md-18" aria-hidden="true">my_location</i>
                     {{selectedUser.latitude}}, {{selectedUser.longitude}}
                   </p>
                   <p class="text-muted mb-2" *ngIf="coordinateLookupInProgress">
-                    <i class="fa fa-spinner fa-spin me-1"></i>
+                    <span class="spinner-border spinner-border-sm me-1" role="status"></span>
                     Looking up GPS coordinates from address...
                   </p>
                   <p class="text-danger mb-2" *ngIf="coordinateLookupError">
-                    <i class="fa fa-exclamation-circle me-1"></i>
+                    <i class="material-icons me-1 md-18" aria-hidden="true">error_outline</i>
                     {{coordinateLookupError}}
                   </p>
                   <div class="d-flex align-items-center gap-2">
                     <span class="iz-badge iz-badge--amber me-2">
-                      <i class="fa fa-clock me-1"></i>
+                      <i class="material-icons me-1" style="font-size:.85rem" aria-hidden="true">schedule</i>
                       Pending Approval
                     </span>
                     <button class="btn bg-dark" title="Chat with applicant" (click)="startChat()">
-                      <i class="fa fa-comments me-1"></i>
+                      <i class="material-icons me-1" aria-hidden="true">chat</i>
                       Chat
                     </button>
                   </div>
@@ -439,26 +449,29 @@
                     </tr>
                   </table>
                 </div>
+                <!-- AUDIT-5 FIX: wrap Bank Information section in *ngIf so label doesn't render alone -->
                 <div class="col-md-6">
-                  <div class="iz-section-label">Bank Information</div>
-                  <table class="table table-sm" *ngIf="selectedUser.bank">
-                    <tr class="text-muted">
-                      <td><strong>Type:</strong></td>
-                      <td>{{selectedUser.bank.type}}</td>
-                    </tr>
-                    <tr *ngIf="selectedUser.bank.name" class="text-muted">
-                      <td><strong>Bank:</strong></td>
-                      <td>{{selectedUser.bank.name}}</td>
-                    </tr>
-                    <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
-                      <td><strong>Account:</strong></td>
-                      <td>{{selectedUser.bank.accountId}}</td>
-                    </tr>
-                    <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
-                      <td><strong>Branch Code:</strong></td>
-                      <td>{{selectedUser.bank.branchCode}}</td>
-                    </tr>
-                  </table>
+                  <ng-container *ngIf="selectedUser.bank">
+                    <div class="iz-section-label">Bank Information</div>
+                    <table class="table table-sm">
+                      <tr class="text-muted">
+                        <td><strong>Type:</strong></td>
+                        <td>{{selectedUser.bank.type}}</td>
+                      </tr>
+                      <tr *ngIf="selectedUser.bank.name" class="text-muted">
+                        <td><strong>Bank:</strong></td>
+                        <td>{{selectedUser.bank.name}}</td>
+                      </tr>
+                      <tr *ngIf="selectedUser.bank.accountId" class="text-muted">
+                        <td><strong>Account:</strong></td>
+                        <td>{{selectedUser.bank.accountId}}</td>
+                      </tr>
+                      <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
+                        <td><strong>Branch Code:</strong></td>
+                        <td>{{selectedUser.bank.branchCode}}</td>
+                      </tr>
+                    </table>
+                  </ng-container>
                 </div>
               </div>
 
@@ -498,7 +511,7 @@
                           [href]="selectedUser.tag[tag]"
                           target="_blank"
                           class="btn btn-sm btn-outline-brand">
-                          <i class="fa fa-download me-1"></i>
+                          <i class="material-icons me-1" aria-hidden="true">download</i>
                           View Document
                         </a>
                       </div>
@@ -521,7 +534,7 @@
                           [href]="selectedUser.tag[tag]"
                           target="_blank"
                           class="btn btn-sm btn-outline-brand">
-                          <i class="fa fa-download me-1"></i>
+                          <i class="material-icons me-1" aria-hidden="true">download</i>
                           View Document
                         </a>
                       </div>
@@ -534,10 +547,11 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-outline-brand" (click)="startChat()">
-            <i class="fa fa-comments me-1"></i>Chat
+            <i class="material-icons me-1" aria-hidden="true">chat</i>Chat
           </button>
           <button class="btn bg-dark" (click)="approveUser()" [disabled]="approving">
-            <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>
+            <span *ngIf="approving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+            <i *ngIf="!approving" class="material-icons me-1" aria-hidden="true">check</i>
             {{approving ? 'Approving...' : 'Approve Profile'}}
           </button>
         </div>
@@ -566,7 +580,7 @@
     <div class="card-footer" *ngIf="mapError">
       <!-- iz-notice--blocked replaces alert-warning for map load error -->
       <div class="iz-notice iz-notice--blocked mb-0">
-        <i class="fa fa-exclamation-triangle me-1"></i>
+        <i class="material-icons me-1" aria-hidden="true">warning</i>
         {{mapError}}
       </div>
     </div>
@@ -582,7 +596,8 @@
         class="btn btn-lg btn-block bg-dark"
         (click)="approveUser()"
         [disabled]="approving">
-        <i class="fa fa-check me-1" [class.fa-spin]="approving"></i>
+        <span *ngIf="approving" class="spinner-border spinner-border-sm me-1" role="status"></span>
+        <i *ngIf="!approving" class="material-icons me-1" aria-hidden="true">check</i>
         {{approving ? 'Approving...' : 'Approve Profile'}}
     </button>
     </div>

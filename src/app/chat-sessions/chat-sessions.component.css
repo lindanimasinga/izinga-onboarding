@@ -3,9 +3,11 @@
 .chat-interface { height: calc(100vh - 100px); }
 .messages-container { height: 500px; overflow-y: auto; scroll-behavior: smooth; }
 
+/* AUDIT-2 FIX: inset shadow replaces border-left — global .card { border: none !important }
+   overrides any component border-left rule; box-shadow is not subject to that rule. */
 .chat-interface-card {
     min-height: calc(100vh - 140px);
-    border-left: 3px solid var(--btn-green-color);
+    box-shadow: inset 3px 0 0 var(--btn-green-color);
     border-radius: 8px;
 }
 
@@ -55,6 +57,15 @@
 .message-composer .input-group .form-control {
     min-width: 0;
 }
+/* AUDIT-4 FIX: 44px minimum touch target for composer action buttons */
+.message-composer .input-group .btn {
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 12px;
+    padding-right: 12px;
+}
 
 /* ---- Filter pills: token-based, no hardcoded Bootstrap colors ---- */
 .nav-pills .nav-link {
@@ -99,6 +110,8 @@
 .session-status-badge { font-size: .7rem; padding: 2px 8px; }
 
 /* CS-01: Initials-based avatar — .iz-avatar handles the shared base styles in styles.css */
+/* AUDIT-6 FIX: explicit margin-right mirrors .iz-avatar default so chat-sessions rows can't
+   regress if me-3 Bootstrap class is ever removed from the template. */
 .contact-avatar {
   width: 40px;
   height: 40px;
@@ -109,6 +122,7 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   user-select: none;
+  margin-right: 12px;
   /* TODO (follow-up): replace .contact-avatar with .iz-avatar globally once confirmed in production */
 }
 

@@ -76,6 +76,7 @@
   color: var(--text-color);
   border: none;
   border-radius: 8px;
+  box-shadow: inset 3px 0 0 var(--btn-pill-color);
 }
 
 .pending-user-modal .modal-header {
@@ -100,9 +101,20 @@
   overflow-y: auto;
 }
 
-/* Profile review card — teal left-border + 8px radius, no shadow */
+/* AUDIT-1 FIX: override Bootstrap's #dee2e6 tab strip hairline + scrollbar styling */
+.pending-tabs {
+  border-bottom-color: rgba(128,128,128,0.2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--btn-muted-color) transparent;
+}
+.pending-tabs::-webkit-scrollbar { height: 4px; }
+.pending-tabs::-webkit-scrollbar-track { background: transparent; }
+.pending-tabs::-webkit-scrollbar-thumb { background: var(--btn-muted-color); border-radius: 10px; }
+
+/* AUDIT-2 FIX: inset shadow replaces border-left — global .card { border: none !important }
+   overrides any component border-left rule; box-shadow is not subject to that rule. */
 .profile-review-card {
-  border-left: 3px solid var(--btn-pill-color);
+  box-shadow: inset 3px 0 0 var(--btn-pill-color);
   border-radius: 8px;
 }
 
