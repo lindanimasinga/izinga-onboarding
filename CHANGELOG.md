@@ -1,5 +1,59 @@
 # Changelog
 
+## [1.20.0] — 2026-10-09
+
+**Release type:** Patch (P1) — UI bug fixes and legal text correction, no new features
+
+**Summary:** Fixes three live-QA-reported UI bugs in the ambassador onboarding flow, replaces 25 saturated rainbow inline-hex card colors on the `/indivisuals` welcome page with the app's token-based surface system, and syncs the in-app Ambassador ICA legal text to v3 (aligning clause 4 commission trigger with actual backend behavior and the Ambassador Training Pack).
+
+### Changes
+
+- [FIX] `IcaComponent` / `TermsConditionsComponent` (all 4 agreement variants: driver ICA, ambassador ICA, driver T&Cs, store-owner T&Cs) — fixed-bottom Accept button was not opaque while disabled, causing legal text below to bleed visually through the button chrome. Applied a solid token-backed background to the sticky-footer container so the button is fully opaque in both disabled and enabled states.
+- [FIX] Post-ICA training screen — "Continue to Dashboard" button was invisible in dark theme due to a dark-text-on-dark-surface contrast failure. Button text and background now use token values that are legible in both themes. Confirmed via live Chrome end-to-end: full driver signup through an ambassador referral link, single OTP confirm, ICA accept, training step, dashboard arrival — all working.
+- [FIX] OTP `ConfirmComponent` — double-submit bug: tapping Confirm rapidly after a successful OTP login triggered a second verification request, which returned "Invalid or expired code" (the code was already consumed) and displayed that error to the user despite a successful login having already completed. Fixed by disabling the Confirm button immediately on first submit and re-enabling only if a genuine error (non-success response) is returned.
+- [FIX] `/indivisuals` welcome page — replaced 25 saturated rainbow inline hex colors (hardcoded on individual welcome cards) with the app's existing `.iz-card` / `.iz-icon-chip` tinted-surface token classes, matching the visual language of the main Dashboard and Ambassador Dashboard. The inline colors bypassed the dark-theme token system; each card now responds correctly to the user's theme. Flagged directly by Lindani Masinga as a theme-consistency bug.
+- [UPDATED] Ambassador ICA legal text — bumped `AMBASSADOR_ICA_VERSION` from `'v2'` to `'v3'` in the app. The signed ICA v2 stated commission was earned only after a referred driver completed their first delivery; the Ambassador Training Pack and the actual backend behavior both fire commission on driver approval alone (no delivery required). The discrepancy was identified during a live audit and confirmed by co-founder ruling: the code is correct, the agreement text is what needed updating. Clause 4 has been revised in `ambassador-ica-v3.md` (drafted in the `izinga-legal` repo). Bumping the version constant forces re-acceptance from any ambassador who previously accepted v2, ensuring everyone is bound by the corrected terms. **Note:** this change deploys ahead of formal written sign-off from attorney Jason van der Merwe, per explicit co-founder instruction (Lindani Masinga). Jason will review the live production text in the app directly rather than a document draft first. This sequencing decision is recorded here for audit purposes.
+
+### Breaking changes
+
+None. No API contract, routing, data model, or Firebase schema changes. The ICA version bump forces re-acceptance UI for existing v2 ambassadors; this is intentional and does not break any backend contract.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select release v1.19.0 in the Firebase console Hosting history).
+2. Pure frontend deploy — no database migration, no API contract change. Rolling back to v1.19.0 is safe independently.
+3. If the ICA version bump needs to be reversed specifically: the `AMBASSADOR_ICA_VERSION` constant reverts to `'v2'` on rollback; ambassadors who re-accepted under v3 would need no further action (their acceptance is stored; a backend rollback would be a separate decision and is not required by this frontend rollback).
+
+### Smoke test plan (post-deploy — minimum checks within 15 minutes)
+
+1. Open the ambassador referral signup flow end-to-end — log in with a test driver, proceed through OTP confirm with a single tap — expected: no "Invalid or expired code" error; user lands on ICA acceptance screen.
+2. Scroll through the ICA acceptance screen with the Accept button disabled — expected: button footer is fully opaque; no legal text bleeds through the button chrome. Repeat for all 4 agreement variants if possible.
+3. Accept ICA as a new ambassador-referred driver — expected: "Continue to Dashboard" button visible and correctly styled in both light and dark theme on the post-ICA training screen.
+4. Navigate to the `/indivisuals` welcome page — expected: welcome cards display in tinted-surface token colors, not saturated rainbow hex colors; cards respond correctly when switching between light and dark theme.
+5. Log in as an existing ambassador who previously accepted ICA v2 — expected: re-acceptance prompt is shown (ICA v3 is presented for sign-off); accepting completes normally.
+
+### Post-deployment monitoring
+
+- 15 min: Confirm ambassador referral signup flow completes without OTP double-submit errors in backend logs.
+- 1 hour: Check that ICA v3 re-acceptance is being triggered for existing v2 ambassadors (no unexpected fallback to dashboard without re-acceptance).
+- 24 hours: Growth & Analytics to watch ambassador onboarding completion rate and any spike in OTP-related error reports.
+
+### Gate citations
+
+- Feature Brief: Lindani Masinga — direct authorization 2026-10-09 (this conversation)
+- Code Review Gate 1 (bugfix/ambassador-flow-ui-issues): PASS WITH MINOR NOTES — no blocking items
+- Code Review Gate 1 (bugfix/welcome-card-theme-consistency): PASS WITH MINOR NOTES — no blocking items
+- Code Review Gate 1 (bugfix/ambassador-ica-v3-sync): PASS — no blocking items
+- QA Gate 1 (bugfix/ambassador-flow-ui-issues): PASS 718/718
+- QA Gate 1 (bugfix/welcome-card-theme-consistency): PASS 718/718
+- QA Gate 1 (bugfix/ambassador-ica-v3-sync): PASS 721/721
+- QA Gate 2 (release/1.20.0 full regression): PASS 721/721 — 2026-10-09 (Release Manager)
+- Dev build (Gate 2): CLEAN — no errors, pre-existing budget warnings only — 2026-10-09
+
+**Approved by:** Lindani Masinga — 2026-10-09
+
+---
+
 ## [1.19.0] — 2026-10-08
 
 **Release type:** Patch (P1) — production-incident bugfix, no new features
