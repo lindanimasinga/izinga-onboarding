@@ -238,6 +238,22 @@ describe('DashboardComponent — terms routing', () => {
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   }));
 
+  // TC-DASH-10b: Ambassador with icaVersion='v2' (previously current, now stale after v3 bump)
+  // must be redirected to re-accept. This is the concrete production case — all ambassadors
+  // who signed v2 in production will be blocked here until they re-accept v3.
+  it('TC-DASH-10b: AMBASSADOR with icaAccepted=true and icaVersion=v2 (stale) is redirected to re-accept ICA', fakeAsync(() => {
+    const user = buildUser(UserProfile.RoleEnum.AMBASSADOR, {
+      icaAccepted: true,
+      icaVersion: 'v2'   // was current in production — now stale after v3 bump
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/terms', user.id]);
+  }));
+
   // TC-DASH-12: MESSENGER with icaAccepted=true but previous driver ICA version must be redirected
   it('TC-DASH-12: MESSENGER with icaAccepted=true but previous icaVersion is redirected to re-accept Driver ICA', fakeAsync(() => {
     const user = buildUser(UserProfile.RoleEnum.MESSENGER, {
