@@ -50,6 +50,17 @@
     background: var(--bkg-card-color);
 }
 
+/* ISSUE-3 FIX: Bootstrap 4/5 sets flex-wrap:wrap on .input-group by default (for form-validation
+   layout).  That causes the paperclip and send buttons to stack full-width on narrow screens.
+   Override to nowrap so the composer stays as a single inline row.
+   min-width:0 on the input allows it to shrink without overflowing on very narrow viewports. */
+.message-composer .input-group {
+    flex-wrap: nowrap;
+}
+.message-composer .input-group .form-control {
+    min-width: 0;
+}
+
 .messages-container::-webkit-scrollbar { width: 6px; }
 .messages-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
 .messages-container::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
@@ -60,7 +71,8 @@
 .nav-pills .nav-link:hover { background: #e9ecef; color: #495057; }
 
 .list-group-item-action { transition: all .2s; border-left: 3px solid transparent; }
-.list-group-item-action:hover { background: var(--bkg-card-color); transform: translateX(2px); }
+/* ISSUE-1 FIX: explicit color token overrides Bootstrap's hardcoded #495057 hover colour in dark theme */
+.list-group-item-action:hover { background: var(--bkg-card-color); color: var(--text-color); transform: translateX(2px); }
 /* CS-02: Selected session uses brand token, no hardcoded blue */
 .list-group-item-action.active { border-left: 3px solid var(--btn-bg-color); background: var(--bkg-card-color); color: var(--text-color); outline: none; box-shadow: none; }
 
@@ -68,7 +80,9 @@
 
 /* CS-07: Message bubbles use design tokens, no hardcoded gradients */
 .chat-bubble.store-message { background: var(--btn-bg-color); color: #fff; border-radius: 18px 4px 18px 18px; margin-left: auto; }
-.chat-bubble.customer-message { background: var(--bkg-card-color); color: var(--text-color); border-radius: 4px 18px 18px 18px; margin-right: auto; }
+/* ISSUE-2 FIX: customer bubble uses --chat-bubble-incoming-bg (defined in styles.css for both
+   light and dark themes) so it is visually distinct from its container (--bkg-card-color). */
+.chat-bubble.customer-message { background: var(--chat-bubble-incoming-bg); color: var(--text-color); border-radius: 4px 18px 18px 18px; margin-right: auto; }
 .message-time { font-size: .75rem; opacity: .7; margin-top: 4px; }
 .unread-badge { top: -5px; right: -10px; font-size: .7rem; }
 .session-status-badge { font-size: .7rem; padding: 2px 8px; }
@@ -230,6 +244,7 @@
 /* Store selection styling */
 .list-group-item-action:hover {
     background-color: var(--bkg-card-color);
+    color: var(--text-color);
     transform: translateX(4px);
     transition: all 0.2s ease;
 }

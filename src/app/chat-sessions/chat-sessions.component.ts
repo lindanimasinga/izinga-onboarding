@@ -446,6 +446,18 @@ export class ChatSessionsComponent implements OnInit, AfterViewChecked, OnDestro
     }
   }
 
+  /** ISSUE-1: trackBy functions prevent DOM thrash on Firestore push updates.
+   *  Without these, Angular destroys and recreates every list-item node on each emission,
+   *  extending the sticky-hover window and surfacing Bootstrap's hardcoded light-theme
+   *  hover colours on random items. */
+  trackBySessionId(_index: number, session: ChatSession): string {
+    return session.id;
+  }
+
+  trackByStoreId(_index: number, store: any): string {
+    return store.id;
+  }
+
   /** CS-01: Compute initials (up to 2 chars) from a contact name */
   getInitials(name: string | undefined): string {
     if (!name || !name.trim()) return '?';

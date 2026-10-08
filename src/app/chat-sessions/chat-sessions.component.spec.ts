@@ -222,4 +222,24 @@ describe('ChatSessionsComponent', () => {
       expect(f.componentInstance.errorMessage).toBeTruthy();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // ISSUE-1 fix: trackBy functions — prevent DOM thrash on Firestore push updates
+  // ---------------------------------------------------------------------------
+  describe('trackBy functions (ISSUE-1 fix)', () => {
+    it('trackBySessionId returns the session id', () => {
+      const session: any = { id: 'sess-abc', customerName: 'Test' };
+      expect(component.trackBySessionId(0, session)).toBe('sess-abc');
+    });
+
+    it('trackBySessionId uses the id regardless of index', () => {
+      const session: any = { id: 'sess-xyz', customerName: 'Another' };
+      expect(component.trackBySessionId(5, session)).toBe('sess-xyz');
+    });
+
+    it('trackByStoreId returns the store id', () => {
+      const store: any = { id: 'store-42', name: 'Shop A' };
+      expect(component.trackByStoreId(0, store)).toBe('store-42');
+    });
+  });
 });

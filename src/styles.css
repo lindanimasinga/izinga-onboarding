@@ -228,6 +228,8 @@ body {
     --btn-green-color: #00a9a1;
     --btn-amber-color: #c8860a;   /* pending/warning */
     --btn-muted-color: #6c757d;   /* voided/inactive */
+    /* chat: incoming bubble sits one step darker than the card surface */
+    --chat-bubble-incoming-bg: #e0dede;
   }
 
 body.dark-theme {
@@ -239,6 +241,8 @@ body.dark-theme {
     --btn-txt-color: #2e2b2b;
     --btn-pill-color: #1083A5;
     --btn-muted-color: #767676;   /* white badge text 4.54:1, badge vs #2D2D2D card 3.03:1 */
+    /* chat: incoming bubble sits one step lighter than the dark card surface */
+    --chat-bubble-incoming-bg: #3D3D3D;
   }
 
 body.shop {

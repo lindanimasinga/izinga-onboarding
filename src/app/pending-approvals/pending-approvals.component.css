@@ -32,8 +32,12 @@
   font-weight: 500;
 }
 
+/* ISSUE-1 FIX: replace hardcoded Bootstrap light-mode color (#f8f9fa = rgb(248,249,250)) with
+   design-system tokens so hover state renders correctly in dark theme.  The old hardcoded value
+   was the exact color measured as "wrong theme" in the live audit. */
 .list-group-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bkg-card-color);
+  color: var(--text-color);
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -86,7 +90,23 @@
   overflow-y: auto;
 }
 
+/* ISSUE-5 FIX: on narrow screens the "Pending Criminal Checks" tab overflows and wraps into the
+   row below "Pending List", causing the two rows to touch/overlap.  Make the tab strip
+   horizontally scrollable instead — tabs stay on one line, user can swipe to reveal the third
+   tab.  flex-shrink:0 on each nav-item prevents individual tabs from being squashed narrow. */
 @media (max-width: 768px) {
+  .pending-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+  .pending-tabs .nav-item {
+    flex-shrink: 0;
+  }
+  .pending-tabs .nav-link {
+    white-space: nowrap;
+  }
+
   .pending-users-map {
     height: 420px;
   }

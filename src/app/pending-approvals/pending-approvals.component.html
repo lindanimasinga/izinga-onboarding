@@ -75,9 +75,11 @@
       </div>
 
       <div class="list-group">
-        <button 
-          *ngFor="let user of filteredPendingUsers"
-          type="button" 
+        <!-- ISSUE-1 FIX: trackBy prevents DOM thrash on every API refresh, which was extending
+             the sticky-hover window and surfacing Bootstrap's hardcoded #f8f9fa/#495057 on mobile. -->
+        <button
+          *ngFor="let user of filteredPendingUsers; trackBy: trackByUserId"
+          type="button"
           class="list-group-item list-group-item-action"
           [class.active]="selectedUser?.id === user.id"
           (click)="selectUser(user)">
@@ -89,10 +91,13 @@
                 class="rounded-circle me-2"
                 style="width: 40px; height: 40px; object-fit: cover;"
                 *ngIf="user.imageUrl">
-              <div *ngIf="!user.imageUrl" 
-                   class="rounded-circle bg-light d-flex align-items-center justify-content-center me-2"
-                   style="width: 40px; height: 40px;">
-                <i class="fa fa-user text-muted"></i>
+              <!-- ISSUE-4 FIX: replaced bg-light (Bootstrap near-white, clashes with dark theme)
+                   with the same muted-gray token approach chat-sessions uses for unknown avatars.
+                   background:#6c757d matches getAvatarColor() fallback; icon is white for contrast. -->
+              <div *ngIf="!user.imageUrl"
+                   class="rounded-circle d-flex align-items-center justify-content-center me-2"
+                   style="width: 40px; height: 40px; background: #6c757d;">
+                <i class="fa fa-user text-white"></i>
               </div>
               <div>
                 <h6 class="mb-1">
@@ -141,10 +146,12 @@
                 class="rounded-circle mb-2"
                 style="width: 100px; height: 100px; object-fit: cover;"
                 *ngIf="selectedUser.imageUrl">
-              <div *ngIf="!selectedUser.imageUrl" 
-                   class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto"
-                   style="width: 100px; height: 100px;">
-                <i class="fa fa-user text-muted fa-2x"></i>
+              <!-- ISSUE-4 FIX (desktop profile header): replaced bg-light with neutral gray matching
+                   chat-sessions avatar fallback; white icon for contrast in both themes. -->
+              <div *ngIf="!selectedUser.imageUrl"
+                   class="rounded-circle d-flex align-items-center justify-content-center mb-2 mx-auto"
+                   style="width: 100px; height: 100px; background: #6c757d;">
+                <i class="fa fa-user text-white fa-2x"></i>
               </div>
             </div>
             <div class="col-md-9">
@@ -220,7 +227,7 @@
             <div class="col-md-6">
               <h6>Bank Information</h6>
               <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr class="text-muted"> 
+                <tr class="text-muted">
                   <td><strong>Type:</strong></td>
                   <td>{{selectedUser.bank.type}}</td>
                 </tr>
@@ -266,15 +273,15 @@
                     <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
                       {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
+                    <img
+                      *ngIf="isImageUrl(selectedUser.tag[tag])"
+                      [src]="selectedUser.tag[tag]"
+                      class="img-thumbnail"
                       style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
+                    <a
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag])"
+                      [href]="selectedUser.tag[tag]"
+                      target="_blank"
                       class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
@@ -289,15 +296,15 @@
                     <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
                       {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
+                    <img
+                      *ngIf="isImageUrl(selectedUser.tag[tag])"
+                      [src]="selectedUser.tag[tag]"
+                      class="img-thumbnail"
                       style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
+                    <a
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])"
+                      [href]="selectedUser.tag[tag]"
+                      target="_blank"
                       class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
@@ -312,6 +319,8 @@
     </div>
   </div>
 
+  <!-- ISSUE-6: Mobile modal — shares the same markup as the desktop panel above.
+       Both use ng-template #profileReviewContent defined at end of file (Issue 6 fix). -->
   <div class="modal fade pending-user-modal" [class.show]="showUserReviewModal" [style.display]="showUserReviewModal ? 'block' : 'none'" tabindex="-1" *ngIf="showUserReviewModal && selectedUser">
     <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
@@ -321,21 +330,22 @@
         </div>
         <div class="modal-body">
                 <div class="card">
-        
+
         <div class="card-body">
           <!-- Profile Header -->
           <div class="row mb-4">
             <div class="col-md-3 text-center">
-              <img 
-                [src]="selectedUser.imageUrl" 
-                alt="Profile Picture" 
+              <img
+                [src]="selectedUser.imageUrl"
+                alt="Profile Picture"
                 class="rounded-circle mb-2"
                 style="width: 100px; height: 100px; object-fit: cover;"
                 *ngIf="selectedUser.imageUrl">
-              <div *ngIf="!selectedUser.imageUrl" 
-                   class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-2 mx-auto"
-                   style="width: 100px; height: 100px;">
-                <i class="fa fa-user text-muted fa-2x"></i>
+              <!-- ISSUE-4 FIX (mobile modal): same neutral-gray fallback as desktop panel. -->
+              <div *ngIf="!selectedUser.imageUrl"
+                   class="rounded-circle d-flex align-items-center justify-content-center mb-2 mx-auto"
+                   style="width: 100px; height: 100px; background: #6c757d;">
+                <i class="fa fa-user text-white fa-2x"></i>
               </div>
             </div>
             <div class="col-md-9">
@@ -411,7 +421,7 @@
             <div class="col-md-6">
               <h6>Bank Information</h6>
               <table class="table table-sm" *ngIf="selectedUser.bank">
-                <tr class="text-muted"> 
+                <tr class="text-muted">
                   <td><strong>Type:</strong></td>
                   <td>{{selectedUser.bank.type}}</td>
                 </tr>
@@ -457,15 +467,15 @@
                     <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
                       {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
+                    <img
+                      *ngIf="isImageUrl(selectedUser.tag[tag])"
+                      [src]="selectedUser.tag[tag]"
+                      class="img-thumbnail"
                       style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
+                    <a
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag])"
+                      [href]="selectedUser.tag[tag]"
+                      target="_blank"
                       class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document
@@ -480,15 +490,15 @@
                     <span class="text-muted" *ngIf="!isImageUrl(selectedUser.tag[tag]) && !isDocumentUrl(selectedUser.tag[tag])">
                       {{getFieldDisplayValue(selectedUser.tag[tag])}}
                     </span>
-                    <img 
-                      *ngIf="isImageUrl(selectedUser.tag[tag])" 
-                      [src]="selectedUser.tag[tag]" 
-                      class="img-thumbnail" 
+                    <img
+                      *ngIf="isImageUrl(selectedUser.tag[tag])"
+                      [src]="selectedUser.tag[tag]"
+                      class="img-thumbnail"
                       style="max-width: 150px; max-height: 100px;">
-                    <a 
-                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])" 
-                      [href]="selectedUser.tag[tag]" 
-                      target="_blank" 
+                    <a
+                      *ngIf="isDocumentUrl(selectedUser.tag[tag]) || isImageUrl(selectedUser.tag[tag])"
+                      [href]="selectedUser.tag[tag]"
+                      target="_blank"
                       class="btn btn-sm btn-outline-dark">
                       <i class="fa fa-download me-1"></i>
                       View Document

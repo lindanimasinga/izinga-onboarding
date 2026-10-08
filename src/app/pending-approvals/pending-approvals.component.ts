@@ -261,6 +261,12 @@ hasMissingFields(user: UserProfile): boolean {
     });
   }
 
+  /** ISSUE-1: trackBy prevents DOM thrash on getPendingApprovals() re-loads, which was
+   *  extending the sticky-hover window and surfacing Bootstrap's hardcoded light colours. */
+  trackByUserId(_index: number, user: UserProfile): string | undefined {
+    return user.id;
+  }
+
   getFieldDisplayValue(value: any): string {
     if (value === null || value === undefined) return 'Not provided';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
