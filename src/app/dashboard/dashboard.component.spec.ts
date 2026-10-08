@@ -38,10 +38,18 @@ describe('DashboardComponent — terms routing', () => {
   let mockFirebase: jasmine.SpyObj<FirebaseService>;
   let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
 
+  // All 6 core profile fields are populated so that the profile completeness gate
+  // (new in this PR) does not fire for these tests — they exercise terms/ICA routing,
+  // not profile completeness.  A separate TC-PROF-* suite covers the gate itself.
   const buildUser = (role: UserProfile.RoleEnum, overrides: Partial<UserProfile> = {}): UserProfile => ({
     id: 'user-001',
     role,
     mobileNumber: '+27812815555',
+    name: 'Test',
+    surname: 'User',
+    emailAddress: 'test@izinga.co.za',
+    address: '1 Nelson Mandela Square, Sandton',
+    imageUrl: 'https://cdn.example.com/test.jpg',
     ...overrides
   } as UserProfile);
 
@@ -582,10 +590,19 @@ describe('DashboardComponent — driver profile-setup guard', () => {
   let mockFirebase: jasmine.SpyObj<FirebaseService>;
   let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
 
+  // All 6 core profile fields are populated so that the profile completeness gate
+  // does not fire for these tests — they exercise the driver profile-setup guard only.
+  // Tests that deliberately want the profile completeness gate to intercept should
+  // use a custom user object with blank fields, as TC-DASH-20/21/22 do via overrides.
   const buildUser = (role: UserProfile.RoleEnum, overrides: Partial<UserProfile> = {}): UserProfile => ({
     id: 'user-driver-001',
     role,
     mobileNumber: '+27812811111',
+    name: 'Driver',
+    surname: 'Test',
+    emailAddress: 'driver@izinga.co.za',
+    address: '5 Commissioner Street, Johannesburg',
+    imageUrl: 'https://cdn.example.com/driver.jpg',
     ...overrides
   } as UserProfile);
 
@@ -720,5 +737,192 @@ describe('DashboardComponent — driver profile-setup guard', () => {
     tick();
 
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+  }));
+});
+
+// ---------------------------------------------------------------------------
+// Profile completeness gate — TC-PROF-01 through TC-PROF-06
+//
+// Proactive guard that redirects users with incomplete core profile fields
+// to the profile-update screen instead of the ICA/T&Cs screen.
+// Triggered only when hasAcceptedTerms is false — users who have already
+// accepted terms/ICA are not disturbed by this gate.
+//
+// TC-PROF-01  Complete profile + unsigned terms → still redirected to /indivisuals/terms (regression guard).
+// TC-PROF-02  Missing imageUrl only, MESSENGER role, /indivisuals/ context → redirected to /indivisuals/user.
+// TC-PROF-03  Missing imageUrl only, STOREADMIN role, /business/ context → redirected to /business/user.
+// TC-PROF-04  Missing address only, MESSENGER role → redirected to /indivisuals/user.
+// TC-PROF-05  AMBASSADOR with complete profile + unsigned ICA → still redirected to /indivisuals/terms.
+// TC-PROF-06  MESSENGER with complete profile + current ICA version → NOT redirected (proceeds to dashboard).
+// ---------------------------------------------------------------------------
+describe('DashboardComponent — profile completeness gate', () => {
+  let component: DashboardComponent;
+  let fixture: ComponentFixture<DashboardComponent>;
+  let mockService: jasmine.SpyObj<IzingaOrderManagementService>;
+  let mockStorage: Partial<StorageService>;
+  let mockRouter: jasmine.SpyObj<Router>;
+  let mockFirebase: jasmine.SpyObj<FirebaseService>;
+  let mockAnalytics: jasmine.SpyObj<AnalyticsService>;
+
+  /** Builds a UserProfile with all 6 required fields populated. */
+  const buildCompleteUser = (
+    role: UserProfile.RoleEnum,
+    overrides: Partial<UserProfile> = {}
+  ): UserProfile => ({
+    id: 'user-prof-001',
+    role,
+    mobileNumber: '+27812815555',
+    name: 'Sipho',
+    surname: 'Dlamini',
+    emailAddress: 'sipho@example.com',
+    address: '1 Sandton Drive, Sandton',
+    imageUrl: 'https://cdn.example.com/profile.jpg',
+    ...overrides
+  } as UserProfile);
+
+  /** Builds a UserProfile with ONE of the 6 required fields blanked/omitted. */
+  const buildIncompleteUser = (
+    role: UserProfile.RoleEnum,
+    missingField: 'name' | 'surname' | 'emailAddress' | 'address' | 'mobileNumber' | 'imageUrl',
+    otherOverrides: Partial<UserProfile> = {}
+  ): UserProfile => {
+    const base = buildCompleteUser(role, otherOverrides);
+    (base as any)[missingField] = '';   // blank string — the failing case from the production bug
+    return base;
+  };
+
+  const buildTestBed = async (routerUrl: string) => {
+    mockRouter = jasmine.createSpyObj('Router', ['navigate'], { url: routerUrl });
+    mockStorage = { phoneNumber: '+27812815555', userProfile: undefined as any };
+    mockAnalytics = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    mockFirebase = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    mockFirebase.getCurrentToken.and.returnValue(null);
+    mockService = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockService },
+        { provide: StorageService, useValue: mockStorage },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebase },
+        { provide: AnalyticsService, useValue: mockAnalytics }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DashboardComponent);
+    component = fixture.componentInstance;
+  };
+
+  // TC-PROF-01: regression guard — a MESSENGER with all 6 fields complete but unsigned ICA
+  // must still reach the terms screen, not be trapped at profile update.
+  it('TC-PROF-01: complete profile + unsigned terms → redirected to /indivisuals/terms (regression guard)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard');
+    // All 6 fields present; ICA not yet accepted
+    const user = buildCompleteUser(UserProfile.RoleEnum.MESSENGER, {
+      termsAccepted: false,
+      icaAccepted: false
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/terms', user.id]);
+  }));
+
+  // TC-PROF-02: production bug scenario — blank imageUrl on a MESSENGER trips the gate.
+  it('TC-PROF-02: MESSENGER with blank imageUrl → redirected to /indivisuals/user (not terms)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard');
+    const user = buildIncompleteUser(UserProfile.RoleEnum.MESSENGER, 'imageUrl', {
+      termsAccepted: false,
+      icaAccepted: false
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    // Must redirect to profile update, not terms
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+
+    // Must NOT have navigated to terms at any point
+    const wentToTerms = mockRouter.navigate.calls.allArgs().some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0]?.includes('/terms');
+    });
+    expect(wentToTerms).toBeFalse();
+  }));
+
+  // TC-PROF-03: same scenario but on /business/ route for STOREADMIN —
+  // blank imageUrl must route to /business/user, not /business/terms.
+  it('TC-PROF-03: STOREADMIN with blank imageUrl on /business/ → redirected to /business/user (not terms)', fakeAsync(async () => {
+    await buildTestBed('/business/dashboard');
+    const user = buildIncompleteUser(UserProfile.RoleEnum.STOREADMIN, 'imageUrl', {
+      icaAccepted: false
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/business/user']);
+
+    const wentToTerms = mockRouter.navigate.calls.allArgs().some(args => {
+      const route = args[0] as unknown as string[];
+      return Array.isArray(route) && route[0]?.includes('/terms');
+    });
+    expect(wentToTerms).toBeFalse();
+  }));
+
+  // TC-PROF-04: a different required field — blank address on MESSENGER triggers the gate.
+  it('TC-PROF-04: MESSENGER with blank address → redirected to /indivisuals/user', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard');
+    const user = buildIncompleteUser(UserProfile.RoleEnum.MESSENGER, 'address', {
+      termsAccepted: false,
+      icaAccepted: false
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/user']);
+  }));
+
+  // TC-PROF-05: AMBASSADOR with complete profile but unsigned ICA must still go to
+  // /indivisuals/terms — the profile gate must not intercept complete-profile users.
+  it('TC-PROF-05: AMBASSADOR with complete profile + unsigned ICA → redirected to /indivisuals/terms', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard');
+    const user = buildCompleteUser(UserProfile.RoleEnum.AMBASSADOR, {
+      icaAccepted: false
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).toHaveBeenCalledWith(['/indivisuals/terms', user.id]);
+  }));
+
+  // TC-PROF-06: MESSENGER with complete profile and current ICA version must reach
+  // the dashboard — neither the profile gate nor the terms gate should fire.
+  it('TC-PROF-06: MESSENGER with complete profile + current icaVersion → NOT redirected (proceeds to dashboard)', fakeAsync(async () => {
+    await buildTestBed('/indivisuals/dashboard');
+    const user = buildCompleteUser(UserProfile.RoleEnum.MESSENGER, {
+      icaAccepted: true,
+      icaVersion: CURRENT_DRIVER_ICA_VERSION
+    });
+    mockService.getCustomerByPhoneNumber.and.returnValue(of(user));
+    mockService.getUserConfig.and.returnValue(of([]));
+
+    fixture.detectChanges();
+    tick();
+
+    expect(mockRouter.navigate).not.toHaveBeenCalled();
   }));
 });
