@@ -18,7 +18,11 @@ function buildUser(overrides: Partial<UserProfile> = {}): UserProfile {
     imageUrl: DEFAULT_PROFILE_PIC,
     role: UserProfile.RoleEnum.MESSENGER,
     mobileNumber: '+27820000000',
-    bank: { type: 'EWALLET', name: 'FNB', accountId: '', branchCode: '250655' },
+    name: 'Test',
+    surname: 'User',
+    emailAddress: 'test@example.com',
+    address: 'Johannesburg',
+    bank: { type: 'EWALLET', name: 'FNB', accountId: '', branchCode: '250655', phone: '+27820000000' },
     tag: {},
     ...overrides
   };
@@ -69,6 +73,9 @@ describe('UserUpdateComponent — profile picture validation', () => {
     fixture = TestBed.createComponent(UserUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Set required field so tests that call createCustomer/updateCustomer pass the
+    // roleDescription guard. buildUser() has no description so ngOnInit leaves it unset.
+    component.roleDescription = 'Bike Delivery Driver';
   });
 
   // TC-01: new user with no upload — createCustomer must block
@@ -324,6 +331,8 @@ describe('UserUpdateComponent — ambassador ref in registration payload', () =>
     fixture   = TestBed.createComponent(UserUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Required so createCustomer() passes the roleDescription guard
+    component.roleDescription = 'Bike Delivery Driver';
   }
 
   // TC-AMB-REG-01 — ambassadorRef present: sent as ambassadorId in POST
@@ -565,9 +574,11 @@ describe('UserUpdateComponent — shop flow user-type filter', () => {
   it('TC-SHOP-ROLE-02: shop flow createCustomer assigns STORE_ADMIN even when userConfig has not yet loaded (race condition guard)', async () => {
     // setup with empty config simulates the race: getUserConfig response not yet arrived.
     await setup('shop', []);
-    // Explicitly zero out in case any sync resolution set them (belt-and-suspenders).
+    // Explicitly zero out userConfig to reproduce the race (config not yet returned).
+    // roleDescription must be set so the required-field guard passes — the race under
+    // test is about userConfig being empty, not about roleDescription being absent.
     component.userConfig = [];
-    component.roleDescription = undefined;
+    component.roleDescription = 'Store Owner';
     component.profilePictureUploaded = true;
 
     mockOrderService.registerCustomer.and.returnValue(
@@ -650,6 +661,8 @@ describe('UserUpdateComponent — updateCustomer() tier-select routing gate (ONB
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
     fixture.detectChanges();
+    // Required so updateCustomer() passes the roleDescription guard
+    component.roleDescription = 'Store Owner';
   }
 
   afterEach(() => TestBed.resetTestingModule());
@@ -761,6 +774,8 @@ describe('UserUpdateComponent — bank.phone field (Bug 9)', () => {
     fixture = TestBed.createComponent(UserUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Required so updateCustomer() passes the roleDescription guard
+    component.roleDescription = 'Bike Delivery Driver';
   });
 
   // TC-BANK-PHONE-01: bankPhone getter reads from userProfile.bank.phone
@@ -909,6 +924,8 @@ describe('UserUpdateComponent — storageService.userProfile cache sync on save 
     fixture = TestBed.createComponent(UserUpdateComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Required so createCustomer()/updateCustomer() pass the roleDescription guard
+    component.roleDescription = 'Bike Delivery Driver';
   });
 
   afterEach(() => TestBed.resetTestingModule());
@@ -939,8 +956,11 @@ describe('UserUpdateComponent — storageService.userProfile cache sync on save 
   });
 
   // TC-B15-CRT-01: createCustomer() must also write the fresh server response to storageService.userProfile
+  // The stale profile has id='u-stale' from beforeEach; clear the id here to exercise the
+  // new-user branch (registerCustomer) — the path that had the Bug 15 cache-sync gap.
   it('TC-B15-CRT-01: createCustomer() writes fresh server response to storageService.userProfile', () => {
     component.profilePictureUploaded = true;
+    component.userProfile.id = undefined as any; // force new-user path → registerCustomer
     const freshProfile = buildUser({ id: 'u-new', role: UserProfile.RoleEnum.STOREADMIN, name: 'New Merchant' });
     mockOrderService.registerCustomer.and.returnValue(of(freshProfile));
 
@@ -953,6 +973,7 @@ describe('UserUpdateComponent — storageService.userProfile cache sync on save 
   // createCustomer() must propagate the new role to storage
   it('TC-B15-CRT-02: storageService.userProfile.role is updated to the fresh role returned by createCustomer() success', () => {
     component.profilePictureUploaded = true;
+    component.userProfile.id = undefined as any; // force new-user path → registerCustomer
     const freshProfile = buildUser({ id: 'u-new', role: UserProfile.RoleEnum.STOREADMIN, name: 'New Merchant' });
     mockOrderService.registerCustomer.and.returnValue(of(freshProfile));
 

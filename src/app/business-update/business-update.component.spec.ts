@@ -34,9 +34,11 @@ function buildComponent(
 
   const orderSvc = jasmine.createSpyObj<IzingaOrderManagementService>(
     'IzingaOrderManagementService',
-    ['getStoreById', 'updateStore', 'createStore', 'uploadFile'],
+    ['getStoreById', 'updateStore', 'createStore', 'uploadFile', 'getBankConfigs'],
     {}
   );
+  // Default: getBankConfigs returns an empty array (called by loadBankConfigs in ngOnInit)
+  orderSvc.getBankConfigs.and.returnValue(of([]));
   // Default: getStoreById returns a bare store with no categories
   orderSvc.getStoreById.and.returnValue(
     of({
@@ -79,6 +81,11 @@ function buildComponent(
   const fixture = TestBed.createComponent(BusinessUpdateComponent);
   const component = fixture.componentInstance;
   fixture.detectChanges();
+
+  // Default to EWALLET so all new-store tests bypass the bank account number
+  // validation gate in registerBusinessAndStock(). Individual tests that
+  // specifically cover the bank validation gate override this as needed.
+  component.shop.bank = { type: 'EWALLET' as any, name: '', accountId: '', branchCode: '', phone: '' };
 
   return { component, fixture, orderSvc, storageSvc, firebaseSvc };
 }

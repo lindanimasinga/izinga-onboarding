@@ -254,7 +254,7 @@ export class TermsConditionsComponent implements OnInit {
    * is in the /business/ context, otherwise /indivisuals/dashboard.
    */
   private navigateToDashboard(): void {
-    if (this.isStoreAdmin || this.router.url.includes('/business/')) {
+    if (this.router.url.includes('/business')) {
       this.router.navigate(['/business/dashboard']);
     } else {
       this.router.navigate(['/indivisuals/dashboard']);

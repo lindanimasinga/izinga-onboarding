@@ -33,7 +33,11 @@ describe('TermsConditionsComponent', () => {
   beforeEach(() => {
     storageServiceMock = { userProfile: undefined };
 
-    orderManagerSpy = jasmine.createSpyObj('IzingaOrderManagementService', ['updateCustomer']);
+    orderManagerSpy = jasmine.createSpyObj('IzingaOrderManagementService', ['updateCustomer', 'getCustomerById']);
+    // getCustomerById is called in ngOnInit to fetch a fresh profile. Return the current
+    // storageServiceMock.userProfile (set by setupComponent() before detectChanges runs)
+    // so that role getters see the correct user immediately after detectChanges().
+    orderManagerSpy.getCustomerById.and.callFake(() => of(storageServiceMock.userProfile as UserProfile));
     analyticsSpy = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
     routerSpy = jasmine.createSpyObj('Router', ['navigate'], { url: '/indivisuals/terms' });
 

@@ -542,18 +542,12 @@ export class UserUpdateComponent {
       // current signup context, mirroring the existing shop-flow pattern.
       if (this.isShopFlow()) {
         this.userConfig = config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN);
-      } else if (this.isDriverFlow()) {
-        // MESSENGER and MESSENGER_ADMIN both represent driver service types on the backend.
-        this.userConfig = config.filter(
-          c => c.userRole === UserProfile.RoleEnum.MESSENGER ||
-               c.userRole === UserProfile.RoleEnum.MESSENGERADMIN
-        );
       } else {
         this.userConfig = config;
       }
-      // Auto-select the service type when there is exactly one match for the current flow —
-      // saves the user a redundant click. Mirrors the existing shop-flow convenience.
-      if ((this.isShopFlow() || this.isDriverFlow()) && this.userConfig.length === 1 && !this._roleDescription) {
+      // Auto-select the service type when there is exactly one match for the shop flow —
+      // saves the user a redundant click.
+      if (this.isShopFlow() && this.userConfig.length === 1 && !this._roleDescription) {
         this.roleDescription = this.userConfig[0].label;
       }
       // Refresh cached fields now that config is available — roleDescription may
