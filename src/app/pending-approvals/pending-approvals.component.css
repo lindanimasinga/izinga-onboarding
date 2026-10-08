@@ -76,7 +76,9 @@
   color: var(--text-color);
   border: none;
   border-radius: 8px;
-  box-shadow: inset 3px 0 0 var(--btn-pill-color);
+  /* No inset shadow here — the inner .profile-review-card already carries the teal accent.
+     Adding a second shadow on modal-content produced two visible teal lines (one at the
+     far modal edge, one on the inner card). The card accent matches the desktop panel. */
 }
 
 .pending-user-modal .modal-header {
