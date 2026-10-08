@@ -1,0 +1,156 @@
+/* bootstrap5-compat.css
+   Bootstrap 5 utility compatibility shim
+   =====================================================================
+   The app loads Bootstrap 4.5.0 (src/index.html CDN link).
+   Templates were written using Bootstrap 5 utility names.
+   This file re-declares those names with their BS4-equivalent semantics
+   so templates require no markup changes.
+   Remove this file when the app upgrades to Bootstrap 5 and delete the
+   corresponding entry from the angular.json styles array.
+   ===================================================================== */
+
+/* ----- Spacing: me-* (margin-end) = BS4 mr-* ----- */
+.me-0 { margin-right:   0      !important; }
+.me-1 { margin-right: .25rem   !important; }
+.me-2 { margin-right:  .5rem   !important; }
+.me-3 { margin-right:  1rem    !important; }
+.me-4 { margin-right:  1.5rem  !important; }
+.me-5 { margin-right:  3rem    !important; }
+
+/* ----- Spacing: ms-* (margin-start) = BS4 ml-* ----- */
+.ms-0 { margin-left:   0      !important; }
+.ms-1 { margin-left: .25rem   !important; }
+.ms-2 { margin-left:  .5rem   !important; }
+.ms-3 { margin-left:  1rem    !important; }
+.ms-4 { margin-left:  1.5rem  !important; }
+.ms-5 { margin-left:  3rem    !important; }
+
+/* ----- Spacing: pe-* (padding-end) = BS4 pr-* ----- */
+.pe-0 { padding-right:   0      !important; }
+.pe-1 { padding-right: .25rem   !important; }
+.pe-2 { padding-right:  .5rem   !important; }
+.pe-3 { padding-right:  1rem    !important; }
+.pe-4 { padding-right:  1.5rem  !important; }
+.pe-5 { padding-right:  3rem    !important; }
+
+/* ----- Spacing: ps-* (padding-start) = BS4 pl-* ----- */
+.ps-0 { padding-left:   0      !important; }
+.ps-1 { padding-left: .25rem   !important; }
+.ps-2 { padding-left:  .5rem   !important; }
+.ps-3 { padding-left:  1rem    !important; }
+.ps-4 { padding-left:  1.5rem  !important; }
+.ps-5 { padding-left:  3rem    !important; }
+
+/* ----- Responsive me-md-* / ms-md-* (appear in templates) ----- */
+@media (min-width: 768px) {
+  .me-md-0 { margin-right:   0      !important; }
+  .me-md-1 { margin-right: .25rem   !important; }
+  .me-md-2 { margin-right:  .5rem   !important; }
+  .me-md-3 { margin-right:  1rem    !important; }
+  .me-md-4 { margin-right:  1.5rem  !important; }
+  .ms-md-0 { margin-left:   0      !important; }
+  .ms-md-1 { margin-left: .25rem   !important; }
+  .ms-md-2 { margin-left:  .5rem   !important; }
+  .ms-md-3 { margin-left:  1rem    !important; }
+  .ms-md-4 { margin-left:  1.5rem  !important; }
+}
+
+/* ----- Typography: fw-* (font-weight) = BS4 font-weight-* ----- */
+.fw-bold     { font-weight: 700 !important; }
+.fw-semibold { font-weight: 600 !important; }
+.fw-medium   { font-weight: 500 !important; }
+.fw-normal   { font-weight: 400 !important; }
+.fw-light    { font-weight: 300 !important; }
+
+/* ----- Accessibility: visually-hidden = BS4 sr-only ----- */
+.visually-hidden,
+.visually-hidden-focusable:not(:focus):not(:focus-within) {
+  position: absolute !important;
+  width:    1px      !important;
+  height:   1px      !important;
+  padding:  0        !important;
+  margin:   -1px     !important;
+  overflow: hidden   !important;
+  clip:     rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border:   0        !important;
+}
+
+/* ----- Flex gap: gap-* (not in BS4; uses CSS gap property directly) ----- */
+.gap-0 { gap:      0      !important; }
+.gap-1 { gap:   .25rem    !important; }
+.gap-2 { gap:    .5rem    !important; }
+.gap-3 { gap:   1rem      !important; }
+.gap-4 { gap:   1.5rem    !important; }
+.gap-5 { gap:   3rem      !important; }
+
+/* ----- Row gutters: g-* (BS5 gutter shorthand; BS4 uses no-gutters + manual padding) ----- */
+/* g-0: no gutters */
+.g-0             { margin-right: 0; margin-left: 0; }
+.g-0 > [class*="col-"],
+.g-0 > .col      { padding-right: 0; padding-left: 0; }
+
+/* g-1: .25rem per side */
+.g-1             { margin-right: -.125rem; margin-left: -.125rem; }
+.g-1 > [class*="col-"],
+.g-1 > .col      { padding-right: .125rem; padding-left: .125rem; }
+
+/* g-2: .5rem per side */
+.g-2             { margin-right: -.25rem; margin-left: -.25rem; }
+.g-2 > [class*="col-"],
+.g-2 > .col      { padding-right: .25rem; padding-left: .25rem; }
+
+/* g-3: 1rem per side (most common in templates) */
+.g-3             { margin-right: -.5rem; margin-left: -.5rem; }
+.g-3 > [class*="col-"],
+.g-3 > .col      { padding-right: .5rem; padding-left: .5rem; }
+
+/* g-4: 1.5rem per side */
+.g-4             { margin-right: -.75rem; margin-left: -.75rem; }
+.g-4 > [class*="col-"],
+.g-4 > .col      { padding-right: .75rem; padding-left: .75rem; }
+
+/* g-md-3: 1rem gutter on md+ (used in chat-sessions row) */
+@media (min-width: 768px) {
+  .g-md-3             { margin-right: -.5rem; margin-left: -.5rem; }
+  .g-md-3 > [class*="col-"],
+  .g-md-3 > .col      { padding-right: .5rem; padding-left: .5rem; }
+}
+
+/* ----- Position utilities: start-* / translate-middle (BS5 badge positioning) ----- */
+.start-0   { left:   0    !important; }
+.start-50  { left:  50%   !important; }
+.start-100 { left: 100%   !important; }
+.translate-middle   { transform: translate(-50%, -50%) !important; }
+.translate-middle-x { transform: translateX(-50%)     !important; }
+.translate-middle-y { transform: translateY(-50%)      !important; }
+
+/* ----- Close button: .btn-close (BS5 introduced; BS4 uses <button class="close">) -----
+   Provides the × SVG glyph via background-image so no markup changes are needed.
+   Dark-theme invert lives in src/styles.css (keeps loading order).
+   Component-level rules that need always-on invert (coloured modal headers) remain
+   in each component's own CSS file. */
+.btn-close {
+    box-sizing:   content-box;
+    width:        1em;
+    height:       1em;
+    padding:     .25em;
+    background:  transparent
+                 url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e")
+                 center / 1em auto no-repeat;
+    border:       0;
+    border-radius: .25rem;
+    opacity:      .5;
+    cursor:       pointer;
+    appearance:   none;
+    display:      inline-block;
+    vertical-align: middle;
+}
+.btn-close:hover  { opacity: .75; }
+.btn-close:focus  { opacity: 1; outline: 0; }
+/* Small variant used in the error-banner dismiss */
+.btn-close-sm {
+    width:   .875em;
+    height:  .875em;
+    padding: .1875em;
+}

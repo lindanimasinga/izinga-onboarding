@@ -222,4 +222,56 @@ describe('ChatSessionsComponent', () => {
       expect(f.componentInstance.errorMessage).toBeTruthy();
     });
   });
+
+  // ---------------------------------------------------------------------------
+  // ISSUE-1 fix: trackBy functions — prevent DOM thrash on Firestore push updates
+  // ---------------------------------------------------------------------------
+  describe('trackBy functions (ISSUE-1 fix)', () => {
+    it('trackBySessionId returns the session id', () => {
+      const session: any = { id: 'sess-abc', customerName: 'Test' };
+      expect(component.trackBySessionId(0, session)).toBe('sess-abc');
+    });
+
+    it('trackBySessionId uses the id regardless of index', () => {
+      const session: any = { id: 'sess-xyz', customerName: 'Another' };
+      expect(component.trackBySessionId(5, session)).toBe('sess-xyz');
+    });
+
+    it('trackByStoreId returns the store id', () => {
+      const store: any = { id: 'store-42', name: 'Shop A' };
+      expect(component.trackByStoreId(0, store)).toBe('store-42');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Avatar util delegation — iz-* design-alignment pass
+  // ---------------------------------------------------------------------------
+  describe('getInitials — delegates to avatar.util', () => {
+    it('returns ? for undefined input', () => {
+      expect(component.getInitials(undefined)).toBe('?');
+    });
+
+    it('returns single initial for one-word name', () => {
+      expect(component.getInitials('Lindani')).toBe('L');
+    });
+
+    it('returns first+last initials for two-word name', () => {
+      expect(component.getInitials('Lindani Masinga')).toBe('LM');
+    });
+  });
+
+  describe('getAvatarColor — delegates to avatar.util', () => {
+    it('returns muted grey fallback for undefined', () => {
+      expect(component.getAvatarColor(undefined)).toBe('#6c757d');
+    });
+
+    it('is deterministic for the same input', () => {
+      const name = 'TestUser';
+      expect(component.getAvatarColor(name)).toBe(component.getAvatarColor(name));
+    });
+
+    it('returns a non-grey colour for a non-empty name', () => {
+      expect(component.getAvatarColor('Lindani')).not.toBe('#6c757d');
+    });
+  });
 });

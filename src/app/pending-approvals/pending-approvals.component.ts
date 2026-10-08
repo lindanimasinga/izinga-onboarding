@@ -7,6 +7,7 @@ import { Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
 import { ChatSession } from '../model/chatSession';
 import { of } from 'rxjs';
+import { getInitials as avatarGetInitials, getAvatarColor as avatarGetColor } from '../util/avatar.util';
 
 declare var google: any;
 
@@ -261,6 +262,13 @@ hasMissingFields(user: UserProfile): boolean {
     });
   }
 
+  /** ISSUE-1: trackBy prevents DOM thrash on getPendingApprovals() re-loads, which was
+   *  extending the sticky-hover window and surfacing Bootstrap's hardcoded light colours.
+   *  Falls back to mobileNumber, then to the list index, so Angular always gets a stable key. */
+  trackByUserId(index: number, user: UserProfile): string {
+    return user.id ?? user.mobileNumber ?? index.toString();
+  }
+
   getFieldDisplayValue(value: any): string {
     if (value === null || value === undefined) return 'Not provided';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
@@ -283,6 +291,16 @@ hasMissingFields(user: UserProfile): boolean {
 
   getObjectKeys(obj: any): string[] {
     return Object.keys(obj || {});
+  }
+
+  /** PENDING-AVATAR: Delegates to shared avatar.util — initials from name or phone. */
+  getInitials(name: string | undefined): string {
+    return avatarGetInitials(name);
+  }
+
+  /** PENDING-AVATAR: Delegates to shared avatar.util — deterministic colour from name hash. */
+  getAvatarColor(name: string | undefined): string {
+    return avatarGetColor(name);
   }
 
   private shouldLookupCoordinates(user: UserProfile): boolean {
