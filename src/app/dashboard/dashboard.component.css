@@ -1,34 +1,164 @@
-.square-button {
-    height: 100px; /* Fixed height to make it square */
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-transform: uppercase;
-    font-weight: bold;
-    transition: background-color 0.3s ease;
+/* ----------------------------------------------------------------
+   DashboardComponent styles — design-pass ONB-DASH-01
+   Visual language: tinted-surface cards matching welcome/tier-
+   selection components. Bootstrap handles layout, spacing, grid.
+   Only iZinga brand tokens and component-specific rules here.
+   ---------------------------------------------------------------- */
+
+/* ---- Status notice banners — replaces Bootstrap alert-warning/danger ---- */
+/* Mirrors the field-error border-left pattern from styles.css */
+.dashboard-notice {
+  padding: 12px 16px;
+  border-left: 4px solid;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  line-height: 1.55;
 }
 
-@media(min-width: 768px) {
-    .square-button {
-        height: 200px;
-    }
+/* Amber/gold tint — profile-review informational state */
+.dashboard-notice--review {
+  background: color-mix(in srgb, var(--btn-amber-color) 14%, transparent);
+  border-left-color: var(--btn-amber-color);
 }
 
-.square-button:hover {
-    background-color: #343a40; /* Slightly lighter shade for hover effect */
-    cursor: pointer;
+/* Coral/red tint — blocked or missing-documents urgent state */
+.dashboard-notice--blocked {
+  background: color-mix(in srgb, var(--btn-red-color) 14%, transparent);
+  border-left-color: var(--btn-red-color);
 }
 
-.menu-items .card{
-    color: white;
+/* ---- Primary dashboard card — tinted-surface treatment ----
+   Pattern mirrors welcome-badge--teal/--gold/--coral from
+   welcome.component.css: semi-transparent tinted surface,
+   colored left-border accent, text uses var(--text-color).
+   No white text — these are soft surfaces, not solid fills. ---- */
+.dash-card {
+  border-radius: 8px;
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+  color: var(--text-color);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.menu-items.cards-blocked .card {
-    background-color: #9ea3a8 !important;
-    color: #f1f3f5 !important;
-    pointer-events: none;
-    cursor: not-allowed;
-    filter: grayscale(100%);
-    opacity: 0.75;
+.dash-card:hover {
+  filter: brightness(0.95);
+}
+
+.dash-card--teal {
+  background: color-mix(in srgb, var(--btn-pill-color) 12%, var(--bkg-card-color));
+  border-left: 3px solid var(--btn-pill-color);
+}
+
+.dash-card--gold {
+  background: color-mix(in srgb, var(--btn-bg-color) 12%, var(--bkg-card-color));
+  border-left: 3px solid var(--btn-bg-color);
+}
+
+.dash-card--coral {
+  background: color-mix(in srgb, var(--btn-red-color) 12%, var(--bkg-card-color));
+  border-left: 3px solid var(--btn-red-color);
+}
+
+.dash-card--green {
+  background: color-mix(in srgb, var(--btn-green-color) 12%, var(--bkg-card-color));
+  border-left: 3px solid var(--btn-green-color);
+}
+
+.dash-card--amber {
+  background: color-mix(in srgb, var(--btn-amber-color) 12%, var(--bkg-card-color));
+  border-left: 3px solid var(--btn-amber-color);
+}
+
+/* ---- Icon chip circle behind each emoji ----
+   Mirrors the benefit-icon-chip pattern from welcome-business.component.css.
+   Gives each tile colour personality without a solid fill. ---- */
+.dash-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 24px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.dash-card--teal .dash-card-icon {
+  background: color-mix(in srgb, var(--btn-pill-color) 18%, transparent);
+}
+
+.dash-card--gold .dash-card-icon {
+  background: color-mix(in srgb, var(--btn-bg-color) 18%, transparent);
+}
+
+.dash-card--coral .dash-card-icon {
+  background: color-mix(in srgb, var(--btn-red-color) 18%, transparent);
+}
+
+.dash-card--green .dash-card-icon {
+  background: color-mix(in srgb, var(--btn-green-color) 18%, transparent);
+}
+
+.dash-card--amber .dash-card-icon {
+  background: color-mix(in srgb, var(--btn-amber-color) 18%, transparent);
+}
+
+/* ---- Card description text — slightly muted ---- */
+.dash-card-desc {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  opacity: 0.75;
+}
+
+/* ---- Muted list-style cards for legal / reference items ----
+   Full-width rows (col-12) create a clear visual break from the
+   2-column tiled primary cards above. ---- */
+.dash-card--muted {
+  background: var(--bkg-card-color);
+  border-left: 2px solid var(--btn-muted-color);
+  border-radius: 4px;
+  padding: 10px 14px;
+  height: auto;
+  flex-direction: row;
+  align-items: center;
+}
+
+.dash-card--muted:hover {
+  filter: brightness(0.97);
+}
+
+/* Small inline icon in list-style legal rows */
+.dash-list-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.dash-list-desc {
+  font-size: 0.8rem;
+}
+
+/* ---- Section label divider before secondary / legal items ---- */
+.dashboard-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--btn-muted-color);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+}
+
+/* ---- Blocked state — grayscale all dash-cards ---- */
+.cards-blocked .dash-card {
+  background: rgba(158, 163, 168, 0.25) !important;
+  border-left-color: #9ea3a8 !important;
+  pointer-events: none;
+  cursor: not-allowed;
+  filter: grayscale(100%);
+  opacity: 0.75;
 }

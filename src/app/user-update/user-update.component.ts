@@ -56,6 +56,23 @@ export class UserUpdateComponent {
   showProfilePictureError = false;
   private readonly DEFAULT_PROFILE_PIC = 'https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg';
 
+  // Bank account number validation
+  showAccountNumberError = false;
+
+  // Required-field validation flags
+  showRoleDescriptionError = false;
+  showFirstNameError = false;
+  showSurnameError = false;
+  showEmailError = false;
+  showCityError = false;
+  showBankNameError = false;
+  showAccountTypeError = false;
+  showBranchCodeError = false;
+  showBankPhoneError = false;
+
+  // Whole-request submit failure (backend rejection or network error)
+  submitErrorMessage: string | undefined;
+
   userProfile: UserProfile = {
     imageUrl: "https://pbs.twimg.com/media/C1OKE9QXgAAArDp.jpg",
     role: UserProfile.RoleEnum.MESSENGER,
@@ -63,7 +80,8 @@ export class UserUpdateComponent {
       type: "EWALLET",
       name: "FNB",
       accountId: "",
-      branchCode: "250655"
+      branchCode: "250655",
+      phone: ""
     },
     tag: {}
   }
@@ -85,6 +103,8 @@ export class UserUpdateComponent {
     this.loadUserConfig()
     this.loadBankConfigs()
     this.userProfile.mobileNumber = this.storageService.phoneNumber
+    // Seed bank.phone from mobileNumber so new-user BANK_ACC submissions have it set
+    this.userProfile.bank.phone = this.storageService.phoneNumber || ''
     var userObservable = this.storageService.userProfile != null ? of(this.storageService.userProfile!) : this.izingaOrderManager.getCustomerByPhoneNumber(this.storageService.phoneNumber!)
     userObservable.subscribe(user => {
       if(!user.bank) user.bank = this.userProfile.bank
@@ -97,6 +117,10 @@ export class UserUpdateComponent {
       this.city = user.address
       this.ewallet = user.mobileNumber
       this.paymentType = user.bank.type == 'EWALLET' ? "EWALLET" : "BANK_ACC"
+      // Default bank.phone to mobileNumber if not already set (backend requires this field)
+      if (!this.userProfile.bank.phone) {
+        this.userProfile.bank.phone = this.userProfile.mobileNumber || ''
+      }
       // Mark picture as uploaded if user already has a non-default profile picture
       if (user.imageUrl && user.imageUrl !== this.DEFAULT_PROFILE_PIC) {
         this.profilePictureUploaded = true;
@@ -113,15 +137,79 @@ export class UserUpdateComponent {
 
   createCustomer() {
     this.showProfilePictureError = false;
+    this.showAccountNumberError = false;
+    this.showRoleDescriptionError = false;
+    this.showFirstNameError = false;
+    this.showSurnameError = false;
+    this.showEmailError = false;
+    this.showCityError = false;
+    this.showBankNameError = false;
+    this.showAccountTypeError = false;
+    this.showBranchCodeError = false;
+    this.showBankPhoneError = false;
+    this.submitErrorMessage = undefined;
     if (!this.profilePictureUploaded) {
       this.showProfilePictureError = true;
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    if (!this.roleDescription?.trim()) {
+      this.showRoleDescriptionError = true;
+      return;
+    }
+    if (!this.userProfile.name?.trim()) {
+      this.showFirstNameError = true;
+      return;
+    }
+    if (!this.userProfile.surname?.trim()) {
+      this.showSurnameError = true;
+      return;
+    }
+    if (!this.userProfile.emailAddress?.trim()) {
+      this.showEmailError = true;
+      return;
+    }
+    if (!this.city?.trim()) {
+      this.showCityError = true;
+      return;
+    }
+    if (this.paymentType === 'BANK_ACC') {
+      if (!this.selectedBankConfig) {
+        this.showBankNameError = true;
+        return;
+      }
+      if (!this.accountNumber?.trim()) {
+        this.showAccountNumberError = true;
+        return;
+      }
+      if (!this.userProfile.bank.type) {
+        this.showAccountTypeError = true;
+        return;
+      }
+      if (!this.userProfile.bank.branchCode?.trim()) {
+        this.showBranchCodeError = true;
+        return;
+      }
+      if (!this.bankPhone?.trim()) {
+        this.showBankPhoneError = true;
+        return;
+      }
+    }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
 
-    this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
+    // For the business/shop flow, assign STORE_ADMIN directly rather than relying
+    // on a UserConfig lookup. The UserConfig HTTP response may not have returned
+    // yet when the user submits the form (race condition), which would cause the
+    // lookup to return undefined and fall back to CUSTOMER.
+    // isShopFlow() guards this: it returns true only when the router URL starts
+    // with /business or userType is 'shop' — both unambiguous store-owner contexts.
+    this.userProfile.role = this.isShopFlow()
+      ? UserProfile.RoleEnum.STOREADMIN
+      : (this.isStoreAdmin()
+          ? UserProfile.RoleEnum.STOREADMIN
+          : this.userConfig.find(config => config.label === this.roleDescription)?.userRole
+            || UserProfile.RoleEnum.CUSTOMER);
 
     // Ensure tags field is initialized
     this.addDynamicFieldsToProfile();
@@ -134,12 +222,27 @@ export class UserUpdateComponent {
     console.log('User profile tags:', this.userProfile.tag);
     console.log('Ambassador ref:', this.userProfile.ambassadorId);
 
-    this.izingaOrderManager.registerCustomer(this.userProfile)
+    // When the WhatsApp OTP path has already created a placeholder UserProfile (id is
+    // set but role is null), POSTing to /user would collide with that placeholder and the
+    // backend rejects with 500 "User with phone number ... already exist."
+    // Use PATCH /user/{id} (updateCustomer) in that case so we update the placeholder
+    // in place.  Fall back to POST /user (registerCustomer) only when no id exists yet —
+    // this covers the SMS/Firebase phone-auth path where no placeholder is created.
+    const profileRequest$ = this.userProfile.id
+      ? this.izingaOrderManager.updateCustomer(this.userProfile)
+      : this.izingaOrderManager.registerCustomer(this.userProfile);
+
+    profileRequest$
     .pipe(
       map(user => {
       this.userProfile = user
       return user;
     })).subscribe(resp => {
+      // Bug 15: write the fresh server response back to the shared cache so every
+      // subsequent component (SignupWelcomeComponent, TermsConditionsComponent, etc.)
+      // reads the correct role — especially STORE_ADMIN — rather than the stale
+      // CUSTOMER placeholder that was in storage before this call.
+      this.storageService.userProfile = resp;
       console.log(`customer ${this.userProfile.id} created or updated`)
       this.storageService.ambassadorRef = null;
       if (this.cardId) {
@@ -151,10 +254,68 @@ export class UserUpdateComponent {
         relativeTo: this.route,
         queryParams: { name: firstName }
       })
-    }, error => console.error(error))
+    }, error => {
+      console.error(error);
+      this.submitErrorMessage = error?.error?.error
+        || error?.error?.message
+        || 'Something went wrong saving your profile. Please try again.';
+    })
   }
 
   updateCustomer() {
+    this.showAccountNumberError = false;
+    this.showRoleDescriptionError = false;
+    this.showFirstNameError = false;
+    this.showSurnameError = false;
+    this.showEmailError = false;
+    this.showCityError = false;
+    this.showBankNameError = false;
+    this.showAccountTypeError = false;
+    this.showBranchCodeError = false;
+    this.showBankPhoneError = false;
+    this.submitErrorMessage = undefined;
+    if (!this.roleDescription?.trim()) {
+      this.showRoleDescriptionError = true;
+      return;
+    }
+    if (!this.userProfile.name?.trim()) {
+      this.showFirstNameError = true;
+      return;
+    }
+    if (!this.userProfile.surname?.trim()) {
+      this.showSurnameError = true;
+      return;
+    }
+    if (!this.userProfile.emailAddress?.trim()) {
+      this.showEmailError = true;
+      return;
+    }
+    if (!this.city?.trim()) {
+      this.showCityError = true;
+      return;
+    }
+    if (this.paymentType === 'BANK_ACC') {
+      if (!this.selectedBankConfig) {
+        this.showBankNameError = true;
+        return;
+      }
+      if (!this.accountNumber?.trim()) {
+        this.showAccountNumberError = true;
+        return;
+      }
+      if (!this.userProfile.bank.type) {
+        this.showAccountTypeError = true;
+        return;
+      }
+      if (!this.userProfile.bank.branchCode?.trim()) {
+        this.showBranchCodeError = true;
+        return;
+      }
+      if (!this.bankPhone?.trim()) {
+        this.showBankPhoneError = true;
+        return;
+      }
+    }
     this.syncAddressCoordinates()
     this.userProfile.description = this.roleDescription
     this.userProfile.role = this.isStoreAdmin() ? UserProfile.RoleEnum.STOREADMIN : this.userConfig.find(config => config.label === this.roleDescription)?.userRole || UserProfile.RoleEnum.CUSTOMER
@@ -171,17 +332,52 @@ export class UserUpdateComponent {
       this.userProfile = user
       return user;
     })).subscribe(resp => {
+      // Bug 15: write the fresh server response back to the shared StorageService cache.
+      // The component's local this.userProfile was already updated by the map() above, but
+      // storageService.userProfile (the inter-component cache that TermsConditionsComponent,
+      // DashboardComponent, etc. all read from via this.storageService.userProfile) still held
+      // the stale pre-update profile — e.g. role: CUSTOMER — even though the backend now has
+      // role: STORE_ADMIN. TermsConditionsComponent.isStoreAdmin evaluated the stale value,
+      // which caused the generic consumer terms to render instead of the Merchant ICA.
+      this.storageService.userProfile = resp;
       console.log(`customer ${this.userProfile.id} created or updated`)
       if (this.cardId) {
         this.linkCode()
       }
       this.analytics.logEvent('profile_updated', { role: this.userProfile.role });
-      this.router.navigate(['../info'], {relativeTo: this.route }  )
-    }, error => console.error(error))
+
+      // STORE_ADMIN users who have never selected a tier and have no existing store are
+      // still mid-funnel: they updated their UserProfile but never picked a subscription
+      // tier. Route them to tier-select so they pass through the onboarding gate.
+      // Existing merchants (storeId present) and anyone who already chose a tier in this
+      // session (selectedTier set in sessionStorage) follow the normal edit-profile path.
+      const needsTierSelection =
+        resp.role === UserProfile.RoleEnum.STOREADMIN &&
+        !resp.storeId &&
+        !this.storageService.selectedTier;
+
+      if (needsTierSelection) {
+        this.router.navigate(['../tier-select', resp.id], { relativeTo: this.route });
+      } else {
+        this.router.navigate(['../info'], { relativeTo: this.route });
+      }
+    }, error => {
+      console.error(error);
+      this.submitErrorMessage = error?.error?.error
+        || error?.error?.message
+        || 'Something went wrong updating your profile. Please try again.';
+    })
   }
 
   get userExist(): boolean {
-    return this.userProfile.id != null;
+    // A profile created by WhatsAppOtpService at OTP-verification time has an id
+    // but no role (role === null). That is a placeholder — the user has not yet
+    // submitted the profile form. Only a profile with BOTH an id AND a role is
+    // a real, completed registration that warrants the "Update" path.
+    // Previously this returned `id != null`, which made every post-OTP visit
+    // fall into updateCustomer() instead of createCustomer(), permanently
+    // bypassing the signup-welcome → terms flow for new drivers and merchants.
+    return this.userProfile.id != null && this.userProfile.role != null;
   }
 
   get phoneNumber(): string | undefined {
@@ -232,6 +428,14 @@ export class UserUpdateComponent {
     this.userProfile.bank.accountId = name
   }
 
+  get bankPhone(): string {
+    return this.userProfile.bank.phone || ''
+  }
+
+  set bankPhone(value: string) {
+    this.userProfile.bank.phone = value
+  }
+
   findCustomer() {
     this.izingaOrderManager.getCustomerByPhoneNumber(this.userProfile.mobileNumber!)
     .pipe(
@@ -266,6 +470,8 @@ export class UserUpdateComponent {
     this.userProfile.bank.name = bankConfig.bankName;
     this.userProfile.bank.branchCode = bankConfig.branchCode;
     this.userProfile.bank.accountId = this.userProfile.bank.accountId || '';
+    // Default phone to mobileNumber when a bank is selected, if not already set
+    this.userProfile.bank.phone = this.userProfile.bank.phone || this.userProfile.mobileNumber || '';
   }
 
   linkCode() {
@@ -318,16 +524,35 @@ export class UserUpdateComponent {
     return this.router.url.startsWith('/business') || this.storageService.userType === 'shop';
   }
 
+  /**
+   * Returns true when the signing-up user is a delivery driver / messenger.
+   * Identified by storageService.userType === 'driver', which is set by the welcome
+   * entry flow when the user selects the driver option.
+   */
+  isDriverFlow(): boolean {
+    return this.storageService.userType === 'driver';
+  }
+
   loadUserConfig() {
     console.log("Loading user config...")
     this.izingaOrderManager.getUserConfig()
     .subscribe(config => {
       console.log("Loaded user config: ", config)
-      this.userConfig = this.isShopFlow()
-        ? config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN)
-        : config;
-      // One store-owner type: pick it for the user instead of making them choose from a list of one.
-      if (this.isShopFlow() && this.userConfig.length === 1 && !this._roleDescription) {
+      // Filter the global UserConfig list to only the entries relevant to the
+      // current signup context, mirroring the existing shop-flow pattern.
+      if (this.isShopFlow()) {
+        this.userConfig = config.filter(c => c.userRole === UserProfile.RoleEnum.STOREADMIN);
+      } else if (this.isDriverFlow()) {
+        this.userConfig = config.filter(
+          c => c.userRole === UserProfile.RoleEnum.MESSENGER ||
+               c.userRole === UserProfile.RoleEnum.MESSENGERADMIN
+        );
+      } else {
+        this.userConfig = config;
+      }
+      // Auto-select the service type when there is exactly one match for the shop or
+      // driver flow — saves the user a redundant click.
+      if ((this.isShopFlow() || this.isDriverFlow()) && this.userConfig.length === 1 && !this._roleDescription) {
         this.roleDescription = this.userConfig[0].label;
       }
       // Refresh cached fields now that config is available — roleDescription may

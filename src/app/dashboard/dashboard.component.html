@@ -1,246 +1,353 @@
 <div class="mt-3">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <h3 class="mb-5">Dashboard</h3>
-            <div *ngIf="user?.profileApproved === false" class="alert alert-warning text-start mb-4" role="alert">
+        <div class="col-md-8">
+
+            <!-- Personalized greeting — shown once user profile loads.
+                 Falls back to generic "Dashboard" title while the API call
+                 is in-flight, preventing any flash of "Welcome back, undefined". -->
+            <div class="text-center mb-4">
+                <ng-container *ngIf="user && firstNameOnly; else dashTitle">
+                    <h2 class="fw-bold">Welcome back, {{ firstNameOnly }}!</h2>
+                    <p class="text-muted small">{{ roleLabel }}</p>
+                </ng-container>
+                <ng-template #dashTitle>
+                    <h2 class="fw-bold">Dashboard</h2>
+                </ng-template>
+            </div>
+
+            <!-- Status notice banners — token-driven tinted surfaces,
+                 not Bootstrap's alert-warning/alert-danger which clash with
+                 the dark theme. Amber=informational, coral=urgent/blocked. -->
+            <div *ngIf="user?.profileApproved === false" class="dashboard-notice dashboard-notice--review text-start mb-3" role="alert">
                 Your profile is being reviewed. We will contact you if additional information is required.
             </div>
-            <div *ngIf="missingDocuments.length > 0" class="alert alert-danger text-start mb-4" role="alert">
-                <div class="fw-bold mb-2 font-weight-bold">Missing Documents</div>
+            <div *ngIf="missingDocuments.length > 0" class="dashboard-notice dashboard-notice--blocked text-start mb-3" role="alert">
+                <div class="fw-bold mb-1">Missing Documents</div>
                 <div *ngFor="let document of missingDocuments">{{formatDocumentName(document).trim()| titlecase}}</div>
             </div>
-            <div *ngIf="isProfileBlocked()" class="alert alert-danger text-start mb-4" role="alert">
+            <div *ngIf="isProfileBlocked()" class="dashboard-notice dashboard-notice--blocked text-start mb-3" role="alert">
                 Your profile is blocked. Dashboard actions are disabled.
             </div>
-            <div *ngIf="!isAmbassador && !isStoreAdmin" class="col-md-6 mb-5">
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-secondary active" [ngClass]="{'bg-selected': user?.availabilityStatus === 'ONLINE', 'bg-not-selected': user?.availabilityStatus !== 'ONLINE'}">
-                                <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> AVAILABLE
-                            </label>
-                            <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'AWAY', 'bg-not-selected': user?.availabilityStatus !== 'AWAY'}">
-                                <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('AWAY')"> AWAY
-                            </label>
-                            <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'OFFLINE', 'bg-not-selected': user?.availabilityStatus !== 'OFFLINE'}">
-                                <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('OFFLINE')"> OFFLINE
-                            </label>
+
+            <!-- Availability toggle (driver / messenger only) — unchanged -->
+            <div *ngIf="!isAmbassador && !isStoreAdmin" class="col-md-6 mb-5 text-center">
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-secondary active" [ngClass]="{'bg-selected': user?.availabilityStatus === 'ONLINE', 'bg-not-selected': user?.availabilityStatus !== 'ONLINE'}">
+                        <input type="radio" name="profileStatus" value="true" (click)="setAvailabilityStatus('ONLINE')"> AVAILABLE
+                    </label>
+                    <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'AWAY', 'bg-not-selected': user?.availabilityStatus !== 'AWAY'}">
+                        <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('AWAY')"> AWAY
+                    </label>
+                    <label class="btn btn-secondary" [ngClass]="{'bg-selected': user?.availabilityStatus === 'OFFLINE', 'bg-not-selected': user?.availabilityStatus !== 'OFFLINE'}">
+                        <input type="radio" name="profileStatus" value="false" (click)="setAvailabilityStatus('OFFLINE')"> OFFLINE
+                    </label>
+                </div>
+            </div>
+
+            <!-- ================================================
+                 Ambassador card grid
+                 Primary actions → muted legal reference row
+                 ================================================ -->
+            <div *ngIf="isAmbassador" class="row justify-content-center mb-5">
+
+                <!-- Primary: My Profile -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--coral" routerLink="../user">
+                        <div class="dash-card-icon">📈</div>
+                        <div class="fw-bold mt-1">My Profile</div>
+                        <div class="dash-card-desc">Manage your contact information and bank account details</div>
+                    </div>
+                </div>
+
+                <!-- Primary: My QR Code -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--teal" routerLink="/ambassador/qr" [queryParams]="{tab: 'qr'}">
+                        <div class="dash-card-icon">📲</div>
+                        <div class="fw-bold mt-1">My QR Code</div>
+                        <div class="dash-card-desc">Share your referral QR code to invite new drivers</div>
+                    </div>
+                </div>
+
+                <!-- Primary: My Drivers -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--gold" routerLink="/ambassador/qr" [queryParams]="{tab: 'drivers'}">
+                        <div class="dash-card-icon">👷</div>
+                        <div class="fw-bold mt-1">My Drivers</div>
+                        <div class="dash-card-desc">View drivers you have signed up and their approval status</div>
+                    </div>
+                </div>
+
+                <!-- Primary: My Payouts -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--green" routerLink="/ambassador/qr" [queryParams]="{tab: 'payouts'}">
+                        <div class="dash-card-icon">💰</div>
+                        <div class="fw-bold mt-1">My Payouts</div>
+                        <div class="dash-card-desc">Track your R70 commission earnings per approved driver</div>
+                    </div>
+                </div>
+
+                <!-- Legal section divider -->
+                <div class="col-12 mt-2 mb-2">
+                    <div class="dashboard-section-label">Legal &amp; Reference</div>
+                </div>
+
+                <!-- Reference: My Agreement (muted list row) -->
+                <div class="col-12 mb-2">
+                    <div class="dash-card dash-card--muted" [routerLink]="['/indivisuals/terms', user?.id]">
+                        <span class="dash-list-icon mr-3">📄</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">My Agreement</div>
+                            <div class="text-muted dash-list-desc">View your Ambassador Independent Contractor Agreement</div>
                         </div>
-            </div>
-            <!-- Ambassador card grid -->
-            <div *ngIf="isAmbassador" class="row justify-content-center mb-5 menu-items">
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
-                        <div style="font-size:48px;">📈</div>
-                        <div class="fw-bold mt-2">My Profile</div>
-                        <div class="small">Manage your contact information and bank account details</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-green-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'qr'}">
-                        <div style="font-size:48px;">📲</div>
-                        <div class="fw-bold mt-2">My QR Code</div>
-                        <div class="small">Share your referral QR code to invite new drivers</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'drivers'}">
-                        <div style="font-size:48px;">👷</div>
-                        <div class="fw-bold mt-2">My Drivers</div>
-                        <div class="small">View drivers you have signed up and their approval status</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="/ambassador/qr" [queryParams]="{tab: 'payouts'}">
-                        <div style="font-size:48px;">💰</div>
-                        <div class="fw-bold mt-2">My Payouts</div>
-                        <div class="small">Track your R70 commission earnings per approved driver</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-muted-color);" [routerLink]="['/indivisuals/terms', user?.id]">
-                        <div style="font-size:48px;">📄</div>
-                        <div class="fw-bold mt-2">My Agreement</div>
-                        <div class="small">View your Ambassador Independent Contractor Agreement</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Referral Partner card grid — shown only for isReferralPartner -->
-            <div *ngIf="isReferralPartner" class="row justify-content-center mb-5 menu-items">
-
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
-                        <div style="font-size:48px;">📈</div>
-                        <div class="fw-bold mt-2">My Profile</div>
-                        <div class="small">Manage your contact information and bank account details</div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-green-color);"
-                         routerLink="../rp-referral-code">
-                        <div style="font-size:48px;">🔗</div>
-                        <div class="fw-bold mt-2">My Referral Code</div>
-                        <div class="small">Share your referral link and copy your unique code</div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-bg-color);"
-                         routerLink="../rp-referrals">
-                        <div style="font-size:48px;">👥</div>
-                        <div class="fw-bold mt-2">My Referrals</div>
-                        <div class="small">See who has registered and converted using your link</div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);"
-                         routerLink="../rp-commissions">
-                        <div style="font-size:48px;">💰</div>
-                        <div class="fw-bold mt-2">My Commissions</div>
-                        <div class="small">Track your pending and paid commission earnings</div>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-green-color);"
-                         routerLink="/referral-partner/enroll">
-                        <div style="font-size:48px;">📄</div>
-                        <div class="fw-bold mt-2">My Agreement</div>
-                        <div class="small">View your Referral Partner Agreement</div>
                     </div>
                 </div>
 
             </div>
 
-            <div *ngIf="!isAmbassador && !isReferralPartner" class="row justify-content-center mb-5 menu-items" [class.cards-blocked]="isProfileBlocked()">
+            <!-- ================================================
+                 Referral Partner card grid
+                 Primary actions → muted legal reference row
+                 ================================================ -->
+            <div *ngIf="isReferralPartner" class="row justify-content-center mb-5">
+
+                <!-- Primary: My Profile -->
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-red-color);" routerLink="../user">
-                       <div style="font-size:48px;">📈</div>
-                        <div class="fw-bold mt-2 ">My Profile</div>
-                        <div class="small ">Manage your contact information and bank account details</div>
+                    <div class="dash-card dash-card--coral" routerLink="../user">
+                        <div class="dash-card-icon">📈</div>
+                        <div class="fw-bold mt-1">My Profile</div>
+                        <div class="dash-card-desc">Manage your contact information and bank account details</div>
                     </div>
                 </div>
+
+                <!-- Primary: My Referral Code -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--teal" routerLink="../rp-referral-code">
+                        <div class="dash-card-icon">🔗</div>
+                        <div class="fw-bold mt-1">My Referral Code</div>
+                        <div class="dash-card-desc">Share your referral link and copy your unique code</div>
+                    </div>
+                </div>
+
+                <!-- Primary: My Referrals -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--gold" routerLink="../rp-referrals">
+                        <div class="dash-card-icon">👥</div>
+                        <div class="fw-bold mt-1">My Referrals</div>
+                        <div class="dash-card-desc">See who has registered and converted using your link</div>
+                    </div>
+                </div>
+
+                <!-- Primary: My Commissions -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--green" routerLink="../rp-commissions">
+                        <div class="dash-card-icon">💰</div>
+                        <div class="fw-bold mt-1">My Commissions</div>
+                        <div class="dash-card-desc">Track your pending and paid commission earnings</div>
+                    </div>
+                </div>
+
+                <!-- Legal section divider -->
+                <div class="col-12 mt-2 mb-2">
+                    <div class="dashboard-section-label">Legal &amp; Reference</div>
+                </div>
+
+                <!-- Reference: My Agreement (muted list row) -->
+                <div class="col-12 mb-2">
+                    <div class="dash-card dash-card--muted" routerLink="/referral-partner/enroll">
+                        <span class="dash-list-icon mr-3">📄</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">My Agreement</div>
+                            <div class="text-muted dash-list-desc">View your Referral Partner Agreement</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- ================================================
+                 Main card grid — all roles except ambassador / RP.
+                 Primary action tiles + muted legal reference rows.
+                 [class.cards-blocked] disables all cards when profile
+                 is blocked — preserved from original implementation.
+                 ================================================ -->
+            <div *ngIf="!isAmbassador && !isReferralPartner"
+                 class="row justify-content-center mb-5"
+                 [class.cards-blocked]="isProfileBlocked()">
+
+                <!-- Always visible: My Profile -->
+                <div class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--coral" routerLink="../user">
+                        <div class="dash-card-icon">📈</div>
+                        <div class="fw-bold mt-1">My Profile</div>
+                        <div class="dash-card-desc">Manage your contact information and bank account details</div>
+                    </div>
+                </div>
+
+                <!-- Store admin: My Shops -->
                 <div *ngIf="isStoreAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: #10A59F;" routerLink="../list">
-                        <div style="font-size:48px;">🏬</div>
-                        <div class="fw-bold mt-2 ">My Shops</div>
-                        <div class="small ">List your shops, manage inventory, and track sales.</div>
+                    <div class="dash-card dash-card--teal" routerLink="../list">
+                        <div class="dash-card-icon">🏬</div>
+                        <div class="fw-bold mt-1">My Shops</div>
+                        <div class="dash-card-desc">List your shops, manage inventory, and track sales.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Pending Approvals -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: #00a9a1;" routerLink="../pending-approvals">
-                        <div style="font-size:48px;">👥</div>
-                        <div class="fw-bold mt-2 ">Pending Approvals</div>
-                        <div class="small ">Review and approve user profiles awaiting verification.</div>
+                    <div class="dash-card dash-card--teal" routerLink="../pending-approvals">
+                        <div class="dash-card-icon">👥</div>
+                        <div class="fw-bold mt-1">Pending Approvals</div>
+                        <div class="dash-card-desc">Review and approve user profiles awaiting verification.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Manage Users -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../user-management">
-                        <div style="font-size:48px;">👥</div>
-                        <div class="fw-bold mt-2 ">Manage Users</div>
-                        <div class="small ">Search users, control access, and manage account status.</div>
+                    <div class="dash-card dash-card--gold" routerLink="../user-management">
+                        <div class="dash-card-icon">👥</div>
+                        <div class="fw-bold mt-1">Manage Users</div>
+                        <div class="dash-card-desc">Search users, control access, and manage account status.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Chat Sessions -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../chat-sessions">
-                        <div style="font-size:48px;">💬</div>
-                        <div class="fw-bold mt-2 ">Chat Sessions</div>
-                        <div class="small ">Manage customer conversations and provide support via WhatsApp.</div>
+                    <div class="dash-card dash-card--green" routerLink="../chat-sessions">
+                        <div class="dash-card-icon">💬</div>
+                        <div class="fw-bold mt-1">Chat Sessions</div>
+                        <div class="dash-card-desc">Manage customer conversations and provide support via WhatsApp.</div>
                     </div>
                 </div>
-                <div  *ngIf="isMessenger" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-amber-color);" routerLink="../orders">
-                        <div style="font-size:48px;">📋</div>
-                        <div class="fw-bold mt-2 ">My Deliveries</div>
-                        <div class="small ">Review and manage your deliveries.</div>
+
+                <!-- Messenger: My Deliveries -->
+                <div *ngIf="isMessenger" class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="dash-card dash-card--amber" routerLink="../orders">
+                        <div class="dash-card-icon">📋</div>
+                        <div class="fw-bold mt-1">My Deliveries</div>
+                        <div class="dash-card-desc">Review and manage your deliveries.</div>
                     </div>
                 </div>
+
+                <!-- Messenger admin: My Drivers -->
                 <div *ngIf="isMessengerAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: #00a9a1;" routerLink="../team-messengers">
-                        <div style="font-size:48px;">👷</div>
-                        <div class="fw-bold mt-2 ">My Drivers</div>
-                        <div class="small ">View your managed messenger team.</div>
+                    <div class="dash-card dash-card--green" routerLink="../team-messengers">
+                        <div class="dash-card-icon">👷</div>
+                        <div class="fw-bold mt-1">My Drivers</div>
+                        <div class="dash-card-desc">View your managed messenger team.</div>
                     </div>
                 </div>
+
+                <!-- Messenger admin: Team Deliveries -->
                 <div *ngIf="isMessengerAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-amber-color);" routerLink="../team-deliveries">
-                        <div style="font-size:48px;">🚚</div>
-                        <div class="fw-bold mt-2 ">Team Deliveries</div>
-                        <div class="small ">Review deliveries assigned to your messenger team.</div>
+                    <div class="dash-card dash-card--amber" routerLink="../team-deliveries">
+                        <div class="dash-card-icon">🚚</div>
+                        <div class="fw-bold mt-1">Team Deliveries</div>
+                        <div class="dash-card-desc">Review deliveries assigned to your messenger team.</div>
                     </div>
                 </div>
+
+                <!-- Admin: All Orders -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../admin-orders">
-                        <div style="font-size:48px;">🗂️</div>
-                        <div class="fw-bold mt-2 ">All Orders</div>
-                        <div class="small ">Monitor all in-progress and scheduled deliveries across the platform.</div>
+                    <div class="dash-card dash-card--teal" routerLink="../admin-orders">
+                        <div class="dash-card-icon">🗂️</div>
+                        <div class="fw-bold mt-1">All Orders</div>
+                        <div class="dash-card-desc">Monitor all in-progress and scheduled deliveries across the platform.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Quotes -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../quotes">
-                        <div style="font-size:48px;">💼</div>
-                        <div class="fw-bold mt-2 ">Quotes</div>
-                        <div class="small ">Review abandoned delivery quotes and follow up to convert leads.</div>
+                    <div class="dash-card dash-card--gold" routerLink="../quotes">
+                        <div class="dash-card-icon">💼</div>
+                        <div class="fw-bold mt-1">Quotes</div>
+                        <div class="dash-card-desc">Review abandoned delivery quotes and follow up to convert leads.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Restricted Regions -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-red-color)" routerLink="../restricted-regions">
-                        <div style="font-size:48px;">🚫</div>
-                        <div class="fw-bold mt-2 ">Restricted Regions</div>
-                        <div class="small ">Manage delivery restricted areas and regions.</div>
+                    <div class="dash-card dash-card--coral" routerLink="../restricted-regions">
+                        <div class="dash-card-icon">🚫</div>
+                        <div class="fw-bold mt-1">Restricted Regions</div>
+                        <div class="dash-card-desc">Manage delivery restricted areas and regions.</div>
                     </div>
                 </div>
+
+                <!-- Admin: User Configurations -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../user-config-management">
-                        <div style="font-size:48px;">⚙️</div>
-                        <div class="fw-bold mt-2 ">User Configurations</div>
-                        <div class="small ">Manage service types, roles, and onboarding field requirements.</div>
+                    <div class="dash-card dash-card--gold" routerLink="../user-config-management">
+                        <div class="dash-card-icon">⚙️</div>
+                        <div class="fw-bold mt-1">User Configurations</div>
+                        <div class="dash-card-desc">Manage service types, roles, and onboarding field requirements.</div>
                     </div>
                 </div>
+
+                <!-- Admin: Payout Reconciliation -->
                 <div *ngIf="isAdmin" class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-green-color);" routerLink="/admin/recon">
-                        <div style="font-size:48px;">🏦</div>
-                        <div class="fw-bold mt-2">Payout Reconciliation</div>
-                        <div class="small">Review and reconcile shop and driver payout bundles.</div>
+                    <div class="dash-card dash-card--green" routerLink="/admin/recon">
+                        <div class="dash-card-icon">🏦</div>
+                        <div class="fw-bold mt-1">Payout Reconciliation</div>
+                        <div class="dash-card-desc">Review and reconcile shop and driver payout bundles.</div>
                     </div>
                 </div>
+
+                <!-- Always visible: Payouts -->
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-bg-color);" routerLink="../payout">
-                        <div style="font-size:48px;">💰</div>
-                        <div class="fw-bold mt-2 ">{{ isMessengerAdmin ? 'Team Payouts' : 'Payouts' }}</div>
-                        <div class="small ">{{ isMessengerAdmin ? 'View payouts for your managed messenger team.' : 'View and manage your payout settings.' }}</div>
+                    <div class="dash-card dash-card--gold" routerLink="../payout">
+                        <div class="dash-card-icon">💰</div>
+                        <div class="fw-bold mt-1">{{ isMessengerAdmin ? 'Team Payouts' : 'Payouts' }}</div>
+                        <div class="dash-card-desc">{{ isMessengerAdmin ? 'View payouts for your managed messenger team.' : 'View and manage your payout settings.' }}</div>
                     </div>
                 </div>
+
+                <!-- Always visible: iZinga Card -->
                 <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../card">
-                        <div style="font-size:48px;">💳</div>
-                        <div class="fw-bold mt-2 ">iZinga Card</div>
-                        <div class="small ">Share your iZinga Card with customers for easy payments.</div>
+                    <div class="dash-card dash-card--teal" routerLink="../card">
+                        <div class="dash-card-icon">💳</div>
+                        <div class="fw-bold mt-1">iZinga Card</div>
+                        <div class="dash-card-desc">Share your iZinga Card with customers for easy payments.</div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-green-color);" [routerLink]="'../terms/' + user?.id">
-                        <div style="font-size:48px;">📝</div>
-                        <div class="fw-bold mt-2 ">Terms And Conditions</div>
-                        <div class="small ">Review the terms and conditions for using iZinga services.</div>
+
+                <!-- Legal & Reference section divider — demotes legal items visually -->
+                <div class="col-12 mt-3 mb-2">
+                    <div class="dashboard-section-label">Legal &amp; Reference</div>
+                </div>
+
+                <!-- Reference: Terms And Conditions (muted list row) -->
+                <div class="col-12 mb-2">
+                    <div class="dash-card dash-card--muted" [routerLink]="'../terms/' + user?.id">
+                        <span class="dash-list-icon mr-3">📝</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">Terms And Conditions</div>
+                            <div class="text-muted dash-list-desc">Review the terms and conditions for using iZinga services.</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: #6c757d;" routerLink="../privacy-policy">
-                        <div style="font-size:48px;">🔐</div>
-                        <div class="fw-bold mt-2 ">Privacy Policy</div>
-                        <div class="small ">Learn how iZinga collects, stores, and protects your personal data (POPIA).</div>
+
+                <!-- Reference: Privacy Policy (muted list row) -->
+                <div class="col-12 mb-2">
+                    <div class="dash-card dash-card--muted" routerLink="../privacy-policy">
+                        <span class="dash-list-icon mr-3">🔐</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">Privacy Policy</div>
+                            <div class="text-muted dash-list-desc">Learn how iZinga collects, stores, and protects your personal data (POPIA).</div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-6 col-md-4 col-lg-3 mb-3">
-                    <div class="card border-0 h-100 p-3" style="background-color: var(--btn-pill-color);" routerLink="../legal-info">
-                        <div style="font-size:48px;">⚖️</div>
-                        <div class="fw-bold mt-2 ">Legal Information</div>
-                        <div class="small ">Governing law, dispute resolution, age restrictions, and platform policies.</div>
+
+                <!-- Reference: Legal Information (muted list row) -->
+                <div class="col-12 mb-2">
+                    <div class="dash-card dash-card--muted" routerLink="../legal-info">
+                        <span class="dash-list-icon mr-3">⚖️</span>
+                        <div class="flex-grow-1">
+                            <div class="fw-bold small">Legal Information</div>
+                            <div class="text-muted dash-list-desc">Governing law, dispute resolution, age restrictions, and platform policies.</div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
-    </div>         
+    </div>
 </div>

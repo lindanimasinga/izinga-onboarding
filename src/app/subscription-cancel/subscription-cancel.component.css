@@ -1,0 +1,66 @@
+/* ----------------------------------------------------------------
+   SubscriptionCancelComponent — TIER-BILLING-01 (T-13)
+   Gold accent — merchant-facing screens use --tier-gold per iZinga
+   Design System convention (teal is reserved for driver/messenger).
+   No guilt framing, no retention popups, no looping motion.
+   ---------------------------------------------------------------- */
+
+:host {
+  --tier-gold: #be833d;
+}
+
+/* Card entrance — one-shot translateY+opacity. */
+.cancel-card {
+  background: var(--bkg-card-color);
+  border-left: 4px solid var(--tier-gold);
+  border-radius: 8px;
+  padding: 24px 20px;
+  animation: card-enter 0.22s ease both;
+}
+
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Respect prefers-reduced-motion. */
+@media (prefers-reduced-motion: reduce) {
+  .cancel-card {
+    animation: none;
+  }
+}
+
+/* ---- Icon chip (44px circle) ---- */
+.cancel-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.cancel-icon-chip--gold {
+  background: color-mix(in srgb, var(--tier-gold) 20%, transparent);
+}
+
+/* ---- State badge ---- */
+.cancel-state-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.cancel-state-badge--gold {
+  color: var(--tier-gold);
+}

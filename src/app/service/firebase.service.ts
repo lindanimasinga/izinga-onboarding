@@ -7,6 +7,7 @@ import { getAuth, Auth, RecaptchaVerifier, ConfirmationResult, signInWithPhoneNu
 import { getFirestore } from "firebase/firestore";
 import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 import { Analytics, getAnalytics } from "firebase/analytics";
+import { RemoteConfig, getRemoteConfig, fetchAndActivate, getValue } from "firebase/remote-config";
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
@@ -22,6 +23,7 @@ export class FirebaseService {
   firebaseApp: FirebaseApp;
   auth: Auth;
   analytics: Analytics;
+  remoteConfig: RemoteConfig;
   storage = localStorage;
   messaging: Messaging | null = null;
 
@@ -44,10 +46,36 @@ export class FirebaseService {
       this.messaging = getMessaging(this.firebaseApp);
     }
 
+    // Remote Config — defaults ensure the app behaves correctly before
+    // the first successful fetch. fetchAndActivate runs once per session;
+    // on failure the defaults stay in place so no gate is ever blocked.
+    this.remoteConfig = getRemoteConfig(this.firebaseApp);
+    this.remoteConfig.settings.minimumFetchIntervalMillis = 3600000; // 1 hour
+    this.remoteConfig.defaultConfig = {
+      business_landing_tier_preview_enabled: true
+    };
+    fetchAndActivate(this.remoteConfig).catch(err => {
+      console.warn('[RemoteConfig] fetch failed, using defaults:', err);
+    });
+
     setTimeout(() => {
       this.requestPermission();
       this.listen();
     }, 5000)
+  }
+
+  /**
+   * Read a boolean value from Remote Config.
+   * Returns the in-memory cached value (populated by fetchAndActivate above, or
+   * the defaultConfig if the fetch has not yet completed or failed).
+   * Never throws — falls back to false for unknown keys.
+   */
+  getRemoteConfigBoolean(key: string): boolean {
+    try {
+      return getValue(this.remoteConfig, key).asBoolean();
+    } catch {
+      return false;
+    }
   }
 
   createCapture() {
@@ -129,6 +157,33 @@ export class FirebaseService {
       return throwError(() => new Error('Your session has expired. Please verify your phone number again.'));
     }
     return from(user.getIdToken());
+  }
+
+  /**
+   * Force-refresh the Firebase ID token, bypassing the SDK cache.
+   *
+   * Call this immediately after a backend operation that grants a new Firebase custom
+   * claim — specifically, after a new store is created via POST /store, because
+   * StoreService.create() calls FirebaseAuth.setCustomUserClaims() to stamp the new
+   * storeId onto the owner's account. Without a forced refresh the SDK continues to
+   * serve the pre-creation token (which lacks storeId), causing
+   * POST /merchant/subscription/initiate to return 422 STORE_ID_NOT_IN_JWT.
+   *
+   * getFirebaseIdToken() MUST NOT be changed to force-refresh on every call — that
+   * would add a server round-trip to every authenticated request in the app. This
+   * method is the targeted, one-time alternative for the exact moment a new claim
+   * has just been granted.
+   *
+   * Null-user guard mirrors getFirebaseIdToken(): routes to session-expired flow
+   * rather than emitting a silent error the caller cannot handle.
+   */
+  refreshIdToken(): Observable<string> {
+    const user = this.auth.currentUser;
+    if (!user) {
+      this.storageService.sessionExpired(this.router.url);
+      return throwError(() => new Error('Your session has expired. Please verify your phone number again.'));
+    }
+    return from(user.getIdToken(true));
   }
 
   listen() {

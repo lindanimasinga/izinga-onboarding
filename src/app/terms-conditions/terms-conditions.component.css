@@ -33,3 +33,12 @@ h6.fw-bold {
     margin-top: 1rem;
     margin-bottom: 0.75rem;
 }
+
+/* Prevent the fixed-bottom Accept/Continue button bar from overlapping the last
+   line of legal content. Bootstrap py-4 gives only 1.5rem (24px) bottom padding
+   — insufficient to clear the full-height btn-lg row (~60px). 80px gives
+   comfortable clearance across all four ICA/T&Cs branches. Scoped to this
+   component by Angular's view-encapsulation; does not affect any other page. */
+.container {
+    padding-bottom: 80px;
+}

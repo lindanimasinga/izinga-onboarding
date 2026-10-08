@@ -83,6 +83,15 @@ export interface StoreProfile {
      * Optional to avoid breaking existing code — treat undefined/null as [].
      */
     categories?: Category[];
+    /**
+     * Merchant ICA acceptance fields (ADR-017 pattern, mirrored from UserProfile).
+     * Stamped by BusinessUpdateComponent.registerBusinessAndStock() before POST /store.
+     * The backend StoreService.create() gate reads these and returns 403
+     * MERCHANT_ICA_NOT_ACCEPTED when they are absent or stale.
+     */
+    icaAccepted?: boolean;
+    icaAcceptedDate?: Date;
+    icaVersion?: string;
 }
 
 export interface StoreMessenger {

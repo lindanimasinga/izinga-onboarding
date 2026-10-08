@@ -9,7 +9,9 @@ import { BusinessUpdateComponent } from './business-update.component';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
+import { FirebaseService } from '../service/firebase.service';
 import { Category, StoreProfile } from '../model/storeProfile';
+import { TermsConditionsComponent } from '../terms-conditions/terms-conditions.component';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -26,14 +28,17 @@ function buildComponent(
   fixture: ComponentFixture<BusinessUpdateComponent>;
   orderSvc: jasmine.SpyObj<IzingaOrderManagementService>;
   storageSvc: jasmine.SpyObj<StorageService>;
+  firebaseSvc: jasmine.SpyObj<FirebaseService>;
 } {
   const paramsSubject = new Subject<any>();
 
   const orderSvc = jasmine.createSpyObj<IzingaOrderManagementService>(
     'IzingaOrderManagementService',
-    ['getStoreById', 'updateStore', 'createStore', 'uploadFile'],
+    ['getStoreById', 'updateStore', 'createStore', 'uploadFile', 'getBankConfigs'],
     {}
   );
+  // Default: getBankConfigs returns an empty array (called by loadBankConfigs in ngOnInit)
+  orderSvc.getBankConfigs.and.returnValue(of([]));
   // Default: getStoreById returns a bare store with no categories
   orderSvc.getStoreById.and.returnValue(
     of({
@@ -50,6 +55,12 @@ function buildComponent(
 
   const analyticsSvc = jasmine.createSpyObj<AnalyticsService>('AnalyticsService', ['logScreenView', 'logEvent']);
 
+  // TIER-BILLING-01: stub FirebaseService so tests that exercise registerBusinessAndStock()
+  // on the new-store path do not trigger a real Firebase token fetch. Default returns a
+  // synthetic refresh token — individual tests override this as needed.
+  const firebaseSvc = jasmine.createSpyObj<FirebaseService>('FirebaseService', ['refreshIdToken']);
+  firebaseSvc.refreshIdToken.and.returnValue(of('refreshed-token'));
+
   TestBed.configureTestingModule({
     declarations: [BusinessUpdateComponent],
     schemas: [NO_ERRORS_SCHEMA],
@@ -58,6 +69,7 @@ function buildComponent(
       { provide: IzingaOrderManagementService, useValue: orderSvc },
       { provide: StorageService, useValue: storageSvc },
       { provide: AnalyticsService, useValue: analyticsSvc },
+      { provide: FirebaseService, useValue: firebaseSvc },
       {
         provide: ActivatedRoute,
         useValue: { params: paramsSubject.asObservable() }
@@ -70,7 +82,12 @@ function buildComponent(
   const component = fixture.componentInstance;
   fixture.detectChanges();
 
-  return { component, fixture, orderSvc, storageSvc };
+  // Default to EWALLET so all new-store tests bypass the bank account number
+  // validation gate in registerBusinessAndStock(). Individual tests that
+  // specifically cover the bank validation gate override this as needed.
+  component.shop.bank = { type: 'EWALLET' as any, name: '', accountId: '', branchCode: '', phone: '' };
+
+  return { component, fixture, orderSvc, storageSvc, firebaseSvc };
 }
 
 // ---------------------------------------------------------------------------
@@ -702,5 +719,291 @@ describe('BusinessUpdateComponent — ONB-UX-02', () => {
     component.businessHoursClosed['MONDAY'] = false;
     component.toggleDayClosed('MONDAY');
     expect(component.businessHoursClosed['MONDAY']).toBe(false); // unchanged
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TIER-BILLING-01 — Firebase token refresh after new store creation
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — TIER-BILLING-01 token refresh', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // TB-TOKEN-01: refreshIdToken() must be called (and complete) before navigation
+  // when a NEW store is created. Without the forced refresh the JWT still lacks the
+  // storeId claim that StoreService.create() just stamped, causing
+  // POST /merchant/subscription/initiate to return 422 STORE_ID_NOT_IN_JWT.
+  it('TB-TOKEN-01: refreshIdToken is called after successful new store creation', () => {
+    const { component, orderSvc, firebaseSvc, storageSvc } = buildComponent();
+
+    // Provide ICA-accepted userProfile so the guard does not redirect early
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: shop.id is falsy
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.createStore).toHaveBeenCalled();
+    expect(firebaseSvc.refreshIdToken).toHaveBeenCalledTimes(1);
+  });
+
+  // TB-TOKEN-02: refreshIdToken() must NOT be called when updating an existing store.
+  // Updating a store does not grant a new Firebase custom claim, so forcing a token
+  // refresh would add unnecessary network latency to every update save.
+  it('TB-TOKEN-02: refreshIdToken is NOT called when updating an existing store', () => {
+    const { component, orderSvc, firebaseSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    // Existing store: shop.id is truthy
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    expect(firebaseSvc.refreshIdToken).not.toHaveBeenCalled();
+  });
+
+  // TB-TOKEN-03: navigation to subscription checkout only occurs AFTER the token
+  // refresh completes (not in parallel). Verify sequencing by making refreshIdToken
+  // use a Subject so we can assert the router has NOT navigated mid-refresh.
+  it('TB-TOKEN-03: navigation to subscription is deferred until refreshIdToken completes', () => {
+    const { component, orderSvc, firebaseSvc, storageSvc } = buildComponent();
+    const routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+    (storageSvc as any).selectedTier = 'PREMIUM_1';
+
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-2', stockList: [] } as any));
+
+    // Hold the refresh open so we can check whether navigation fires prematurely
+    const refreshSubject = new Subject<string>();
+    firebaseSvc.refreshIdToken.and.returnValue(refreshSubject.asObservable());
+
+    component.registerBusinessAndStock();
+
+    // Refresh has not completed — navigation must NOT have fired yet
+    expect(routerSpy.navigate).not.toHaveBeenCalled();
+
+    // Now complete the refresh — navigation must fire
+    refreshSubject.next('token');
+    refreshSubject.complete();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/business/subscription', 'new-store-2']);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Merchant ICA stamping tests (DEFECT-ONB02-01)
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — Merchant ICA stamping (DEFECT-ONB02-01)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // ICA-01: new store creation stamps icaAccepted, icaAcceptedDate, icaVersion from userProfile
+  it('ICA-01: registerBusinessAndStock stamps ICA fields from userProfile onto shop payload for a new store', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+
+    const acceptedDate = new Date('2026-10-05T10:00:00');
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: acceptedDate,
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: shop.id is falsy
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.createStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(sentShop.icaAccepted).toBeTrue();
+    expect(sentShop.icaAcceptedDate).toEqual(acceptedDate);
+    expect(sentShop.icaVersion).toBe(TermsConditionsComponent.MERCHANT_ICA_VERSION);
+  });
+
+  // ICA-02: new store creation redirects to terms page and does not call createStore when icaAccepted is missing
+  it('ICA-02: registerBusinessAndStock redirects to /business/terms and does not call createStore when icaAccepted is missing', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+    const routerSpy = TestBed.inject(Router) as jasmine.SpyObj<Router>;
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN'
+      // icaAccepted is missing
+    } as any;
+
+    component.shop.id = undefined;
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    component.registerBusinessAndStock();
+
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/business/terms', 'user-1']);
+    expect(orderSvc.createStore).not.toHaveBeenCalled();
+  });
+
+  // ICA-03: updating an existing store does NOT stamp ICA fields (shop.id is present)
+  it('ICA-03: registerBusinessAndStock does NOT stamp ICA fields when updating an existing store', () => {
+    const { component, orderSvc, storageSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // Existing store: shop.id is present
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.updateStore.calls.mostRecent().args[0];
+    // ICA fields must NOT be stamped by the component on updates — the backend does not re-check them
+    expect(sentShop.icaAccepted).toBeUndefined();
+    expect(sentShop.icaVersion).toBeUndefined();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Bug #12 — shortName recalculation fix
+// ---------------------------------------------------------------------------
+
+describe('BusinessUpdateComponent — Bug #12 shortName recalculation', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  // BUG12-SN-01: shortName is recalculated from the UPDATED name on retry
+  // (new store, shop.id is still falsy — server never returned one because first call failed).
+  it('BUG12-SN-01: shortName is recalculated from the current name on a retry after a failed first attempt', () => {
+    const { component, orderSvc, storageSvc, firebaseSvc } = buildComponent();
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    // New store: no id, no ownerId
+    component.shop.id = undefined;
+    component.shop.ownerId = undefined;
+    component.shop.name = 'My Test Shop';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    // First attempt — server returns a 500 (shortname collision)
+    orderSvc.createStore.and.returnValue(throwError(() => ({ status: 500 })));
+    component.registerBusinessAndStock();
+
+    // Verify first attempt used the original name-derived shortName
+    const firstCallShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(firstCallShop.shortName).toBe('My_Test_Shop');
+
+    // Merchant corrects the name and retries (no page reload)
+    component.shop.name = 'My Corrected Shop';
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    // Second attempt must use the NEW name-derived shortName, not the stale first-attempt value
+    const secondCallShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    expect(secondCallShop.shortName).toBe('My_Corrected_Shop');
+    expect(secondCallShop.shortName).not.toBe('My_Test_Shop');
+  });
+
+  // BUG12-SN-02: shortName is NOT recalculated when updating an EXISTING store.
+  // shop.id is truthy (set from the backend payload in ngOnInit), so the !shop.id
+  // guard must be false and shortName must remain whatever the backend returned.
+  it('BUG12-SN-02: shortName is not recalculated when updating an existing store', () => {
+    const { component, orderSvc } = buildComponent();
+    spyOn(component as any, 'reloadPage').and.callFake(() => {});
+
+    // Existing store
+    component.shop.id = 'existing-store-1';
+    component.shop.ownerId = 'user-1';
+    component.shop.name = 'Updated Shop Name';
+    component.shop.shortName = 'backend_assigned_short_name';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.updateStore.and.returnValue(of({ id: 'existing-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    expect(orderSvc.updateStore).toHaveBeenCalled();
+    const sentShop: StoreProfile = orderSvc.updateStore.calls.mostRecent().args[0];
+    // shortName must not have been touched — backend's original value preserved
+    expect(sentShop.shortName).toBe('backend_assigned_short_name');
+  });
+
+  // BUG12-SN-03: shortName is correctly derived from the name on the FIRST attempt
+  // (ownerId not yet set — both the ownerId block and the !shop.id block run).
+  it('BUG12-SN-03: shortName is correctly derived from shop.name on the very first submission attempt', () => {
+    const { component, orderSvc, storageSvc, firebaseSvc } = buildComponent();
+
+    storageSvc.userProfile = {
+      id: 'user-1',
+      role: 'STORE_ADMIN',
+      icaAccepted: true,
+      icaAcceptedDate: new Date(),
+      icaVersion: TermsConditionsComponent.MERCHANT_ICA_VERSION
+    } as any;
+
+    component.shop.id = undefined;
+    component.shop.ownerId = undefined;
+    component.shop.name = 'Cafe and Bistro';
+    component.shop.featuredExpiry = new Date();
+    component.selectedFile = null;
+
+    orderSvc.createStore.and.returnValue(of({ id: 'new-store-1', stockList: [] } as any));
+    component.registerBusinessAndStock();
+
+    const sentShop: StoreProfile = orderSvc.createStore.calls.mostRecent().args[0];
+    // replaceSpecialChars replaces all non-alphanumeric characters with '_'
+    // 'Cafe and Bistro' — only spaces are non-alphanumeric → 'Cafe_and_Bistro'
+    expect(sentShop.shortName).toBe('Cafe_and_Bistro');
   });
 });

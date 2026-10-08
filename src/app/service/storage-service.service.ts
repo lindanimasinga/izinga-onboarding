@@ -18,6 +18,22 @@ export class StorageService {
   AMBASSADOR_REF_KEY = "ambassadorRef"
   REFERRAL_PARTNER_REF_KEY = "referralPartnerRef"
   RETURN_URL_KEY = "returnUrl"
+  /**
+   * T-10 (ONB-02): Subscription tier selected during the store sign-up flow.
+   * Stored in sessionStorage so it survives Angular router navigation within the
+   * tab but clears when the tab is closed. Loss on page refresh is acceptable per
+   * the feature brief — the user restarts from tier-select.
+   * Valid values: 'FREE' | 'PREMIUM_1' | 'PREMIUM_2'
+   */
+  SELECTED_TIER_KEY = "onb02SelectedTier"
+  /**
+   * ONB-02 analytics: set to true when the merchant has seen the tier preview
+   * section on the /business landing page. Read at TierSelectionComponent
+   * (tier_select_reached event) and at the Get Started click to measure whether
+   * showing pricing upfront affects conversion. Cleared when the tab closes
+   * (sessionStorage).
+   */
+  SAW_PRICING_KEY = "onb02SawPricing"
   shop?: StoreProfile;
   cache: Storage = window.localStorage
   sessionCache: Storage = window.sessionStorage
@@ -25,6 +41,32 @@ export class StorageService {
   _phoneNumber?: string | undefined
   errorMessage: string | undefined;
   infoMessage: string | undefined;
+  /**
+   * A message set by a component that is about to redirect the user.  The
+   * `NavigationEnd` handler in `AppComponent` promotes this value into
+   * `infoMessage` after the navigation that carries the redirect completes,
+   * so the message survives the 1 ms reset timer that would otherwise wipe
+   * a message written directly to `infoMessage` before the redirect fires.
+   * Set this instead of `infoMessage` whenever you need a message to be
+   * visible on the redirect destination page.
+   *
+   * Implementation note: AppComponent uses a per-NavigationEnd generation
+   * counter (_navGen) so that intermediate NavigationEnd timers (e.g. the
+   * one for the source page that triggered the redirect) are silently skipped
+   * and only the FINAL NavigationEnd timer promotes this into infoMessage.
+   */
+  pendingInfoMessage: string | undefined;
+  /**
+   * Monotonically incrementing counter advanced on every NavigationEnd event.
+   * Each timer callback captures its own generation at scheduling time and
+   * skips execution if the counter has since advanced (meaning a newer
+   * navigation has already handled cleanup or promotion).  This ensures that
+   * when two NavigationEnd events fire in quick succession (e.g. a component
+   * redirect in ngOnInit), only the timer for the LAST event applies state,
+   * preventing an earlier stale timer from immediately undoing what the final
+   * timer just set.
+   */
+  _navGen: number = 0;
   DEVICE_KEY = "skjda287nndfsd";
   USER_TYPE_KEY = "kjsdfkjsdf_user_type";
   _payouts: Payout[] | undefined;
@@ -172,6 +214,35 @@ export class StorageService {
       this.sessionCache.setItem(this.RETURN_URL_KEY, url);
     } else {
       this.sessionCache.removeItem(this.RETURN_URL_KEY);
+    }
+  }
+
+  /**
+   * T-10 (ONB-02): Subscription tier chosen at the tier selection step.
+   * Cleared automatically when the tab closes (sessionStorage).
+   * Null if the user has not yet passed through tier-select in this session.
+   */
+  get selectedTier(): string | null {
+    return this.sessionCache.getItem(this.SELECTED_TIER_KEY);
+  }
+
+  set selectedTier(tier: string | null) {
+    if (tier) {
+      this.sessionCache.setItem(this.SELECTED_TIER_KEY, tier);
+    } else {
+      this.sessionCache.removeItem(this.SELECTED_TIER_KEY);
+    }
+  }
+
+  get sawPricing(): boolean {
+    return this.sessionCache.getItem(this.SAW_PRICING_KEY) === 'true';
+  }
+
+  set sawPricing(saw: boolean) {
+    if (saw) {
+      this.sessionCache.setItem(this.SAW_PRICING_KEY, 'true');
+    } else {
+      this.sessionCache.removeItem(this.SAW_PRICING_KEY);
     }
   }
 
