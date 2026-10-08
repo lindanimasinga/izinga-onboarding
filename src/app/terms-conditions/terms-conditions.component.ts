@@ -59,8 +59,16 @@ export class TermsConditionsComponent implements OnInit {
    * clause 6.8 (POPIA cross-border cloud transfer). Jason van der Merwe
    * provided written sign-off on 2026-08-12 ("Hi Lindani i confirm you may
    * proceed."). ADR-017 gate cleared.
+   *
+   * v2 → v3 (2026-10-09): surgical revision of clause 4 (Commission) only.
+   * Corrects the commission trigger from delivery-completion to driver
+   * approval, aligning the agreement with the Ambassador Training Pack v1
+   * and the backend (UserProfileEventHandler.triggerAmbassadorCommissionIfEligible()).
+   * Also adds clause 4.7 (VAT). Deployed on co-founder instruction (Lindani
+   * Masinga, 2026-10-09) pending Jason van der Merwe attorney review.
+   * Existing v2 ambassadors must re-accept on next dashboard visit.
    */
-  static readonly AMBASSADOR_ICA_VERSION = 'v2';
+  static readonly AMBASSADOR_ICA_VERSION = 'v3';
 
   /**
    * Current Driver ICA version. Bump this constant when the Driver ICA content

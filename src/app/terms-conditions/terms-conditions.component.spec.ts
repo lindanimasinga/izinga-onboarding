@@ -1046,6 +1046,30 @@ describe('TermsConditionsComponent', () => {
     });
   });
 
+  // TC-55: AMBASSADOR_ICA_VERSION constant is 'v3' — verifies the version bump landed
+  describe('TC-55: AMBASSADOR_ICA_VERSION constant is v3', () => {
+    it('should equal "v3"', () => {
+      expect(TermsConditionsComponent.AMBASSADOR_ICA_VERSION).toBe('v3');
+    });
+  });
+
+  // TC-56: needsIcaAcceptance — ambassador with icaVersion='v2' (previously current, now stale)
+  // must be re-gated after the v2→v3 bump. This is the real-world case for all existing ambassadors
+  // who signed v2 in production.
+  describe('TC-56: needsIcaAcceptance — ambassador with v2 (stale) requires re-acceptance', () => {
+    it('should return true when ambassador has icaAccepted=true but icaVersion is v2', () => {
+      const user: UserProfile = {
+        ...makeUser(UserProfile.RoleEnum.AMBASSADOR),
+        icaAccepted: true,
+        icaVersion: 'v2'   // previously current — now stale after v3 bump
+      } as UserProfile;
+      setupComponent(user);
+      fixture.detectChanges();
+
+      expect(component.needsIcaAcceptance).toBeTrue();
+    });
+  });
+
   // TC-54: profileIncompleteError is reset at the start of each acceptTerms() call
   describe('TC-54: profileIncompleteError is reset to false at the start of acceptTerms()', () => {
     it('should reset profileIncompleteError before a retry attempt', () => {

@@ -18,6 +18,11 @@ export class PhoneVerificationComponent {
 
   isPhoneNumberVerified = false
   isVerificationRequested = false
+  // BUG-FIX ONB-BUG-03: guard against double-submit. Set to true the moment
+  // confirmCode() begins an HTTP call; reset only on error (so the user can
+  // retry). On success the component navigates away so reset is moot.
+  // The button also binds [disabled]="isConfirming" as a visual indicator.
+  isConfirming = false
   code?: string
   phoneNumber?: string
   // Full E.164-normalised number (+27XXXXXXXXX) used for all API/Firebase calls.
@@ -170,6 +175,16 @@ export class PhoneVerificationComponent {
   }
 
   confirmCode() {
+    // BUG-FIX ONB-BUG-03: guard against double-submit. A second call while the
+    // first HTTP request is in flight is a no-op. Without this guard, a duplicate
+    // form-submit event (or a rapid double-click) fires two POST requests; the
+    // first succeeds but the second fails because the OTP is single-use, and the
+    // failure response overwrites the error state, showing "Invalid or expired
+    // code" even though login succeeded. isConfirming is reset on error only —
+    // on success the component navigates away so no reset is needed.
+    if (this.isConfirming) { return; }
+    this.isConfirming = true;
+
     if (this.loginMethod === 'whatsapp') {
       // Use _normalizedPhone (E.164) for the backend OTP verify call.
       const phone = this._normalizedPhone ?? this.phoneNumber!;
@@ -179,11 +194,13 @@ export class PhoneVerificationComponent {
             .subscribe(() => {
               this.onVerified();
             }, (error) => {
+              this.isConfirming = false;
               this.hasError = true;
               // Firebase errors have user-readable .message; prefer that.
               this.errorMessage = error?.message || 'Firebase sign-in failed after WhatsApp verification.';
             });
         }, (error) => {
+          this.isConfirming = false;
           this.hasError = true;
           // Backend HttpErrorResponse — extract the body's error field
           // (ONB-REGRESSION-02).
@@ -198,6 +215,7 @@ export class PhoneVerificationComponent {
       .subscribe(cred => {
         this.onVerified();
       }, (error) => {
+        this.isConfirming = false;
         this.hasError = true;
         // Firebase error — .message is user-friendly.
         this.errorMessage = error?.message || 'Failed to confirm SMS code. Please try again.';

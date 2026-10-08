@@ -42,3 +42,17 @@ h6.fw-bold {
 .container {
     padding-bottom: 80px;
 }
+
+/* BUG-FIX ONB-BUG-01: prevent legal text from bleeding through the fixed-bottom
+   Accept/Continue button while it is in its disabled (opacity 0.5) state.
+   Bootstrap's default .btn:disabled drops opacity to 0.5; at that level the
+   bg-dark background becomes semi-transparent and content scrolling underneath
+   bleeds through for the entire reading time.
+   Fix: give the wrapper bar a solid opaque surface (the page card colour) so
+   nothing behind the bar can show through regardless of the button's own opacity.
+   Applies to all four ICA/T&Cs branches (Ambassador ~line 124, Driver ~line 310,
+   Merchant ~line 587, General ~line 785) — they all share this same wrapper. */
+.row.fixed-bottom {
+    background-color: var(--bkg-card-color);
+    padding: 0.5rem;
+}
