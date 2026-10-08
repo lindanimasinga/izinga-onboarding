@@ -1,5 +1,65 @@
 # Changelog
 
+## [1.19.0] — 2026-10-08
+
+**Release type:** Patch (P1) — production-incident bugfix, no new features
+
+**Summary:** Fixes a production incident where existing users with legacy blank `imageUrl` fields were permanently stuck on the ICA/Terms & Conditions acceptance screen with a `400 "imageUrl is required"` error, caused by a new backend validation in ijudi-api interacting with stale profile data being round-tripped through the PATCH request.
+
+### Changes
+
+- [FIX] `TermsConditionsComponent.acceptTerms()` — introduced `buildSafePayload()` helper that strips a blank `imageUrl` from the user profile object before every PATCH request. The backend's `UserProfileService` (ijudi-api commit `3340ec49`) rejects any PATCH that sends `imageUrl: ""` with a `400 "imageUrl is required"` error. For users whose profiles predate the imageUrl requirement the field was `""` in local storage, and every ICA/T&Cs PATCH was round-tripping that blank value, triggering the 400 unconditionally. Stripping `imageUrl` when blank is absent or null causes the backend to treat it as "not changing this field", which is the correct semantic for users who have never set a profile photo.
+- [FIX] `TermsConditionsComponent` — new `profileIncompleteError` boolean flag and `handleAcceptError()` / `isRequiredFieldError()` helpers to distinguish a `400 "is required"` error (missing required profile field) from all other PATCH failures. When a genuine required-field 400 does occur despite the `buildSafePayload()` strip (e.g. a user who is truly missing name, surname, or address), the template surfaces an explanatory "Complete Profile" CTA and `navigateToProfileUpdate()` routes them to the correct profile-update screen (`/business/user` or `/indivisuals/user` depending on context). Previously all PATCH errors showed only a generic "try again" message with no recovery path.
+- [FIX] `DashboardComponent` — new `isProfileCompleteForTerms()` method added as a proactive gate. When the dashboard's post-login routing logic would send a user to the ICA/T&Cs acceptance screen, it now first checks all six core profile fields required by the backend (`name`, `surname`, `emailAddress`, `address`, `mobileNumber`, `imageUrl`). If any field is blank, the user is redirected to profile completion (`/business/user` or `/indivisuals/user`) before ever reaching the agreement screen. This prevents users from landing on the agreement screen in a state that would cause the subsequent acceptance PATCH to fail.
+
+### New tests
+
+- `terms-conditions.component.spec.ts` — 6 new test cases covering `buildSafePayload()` (strips blank imageUrl, preserves non-blank), `isRequiredFieldError()` (400 with string body, 400 with JSON `message`, 400 with JSON `error`, non-400 error, no error), and `navigateToProfileUpdate()` (business URL context, individual URL context).
+- `dashboard.component.spec.ts` — 12 new test cases covering `isProfileCompleteForTerms()` (all 6 required fields present, each of the 6 fields blank, each of the 6 fields null) and the proactive routing gate integration (user with blank imageUrl redirected to profile update instead of ICA screen).
+
+**Total test count on release branch: 714 (Gate 2 regression — 714/714 PASS)**
+
+### Root cause
+
+The ijudi-api backend added strict `imageUrl` validation on `PUT/PATCH /customer/{id}` (committed `3340ec49`, deployed in ijudi-api v1.13.0). The `TermsConditionsComponent.acceptTerms()` method was constructing the PATCH payload by spreading the locally-cached `UserProfile` object directly — including whatever value `imageUrl` held in local storage. For users who registered before the imageUrl field was required, that value was `""`. Every PATCH in `acceptTerms()` sent `imageUrl: ""`, which the new backend validation rejected with `400 "imageUrl is required"`. The user had no way past this screen because the agreement acceptance was the only action on the page.
+
+### Breaking changes
+
+None. Pure frontend bugfix — no API contract, routing, or data model changes.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select the previous release — v1.18.0 — in the Firebase console Hosting history).
+2. Pure frontend deploy. No database migration, no API contract change. Rolling back to v1.18.0 is safe independently.
+
+### Smoke test plan (post-deploy — minimum checks within 15 minutes)
+
+1. Log in as a user who previously had a blank `imageUrl` (or create a test account with no profile photo set) — expected: user is routed to profile completion screen before reaching ICA/T&Cs, not directly to the agreement screen.
+2. Complete profile (add all 6 required fields including a photo) — expected: user is then routed to ICA/T&Cs acceptance screen without error.
+3. Accept ICA/T&Cs as a driver — `acceptTerms()` PATCH — expected: agreement saved, user routed to training guide. No `400 "imageUrl is required"` error.
+4. Accept T&Cs as a store owner — expected: agreement saved, user routed to dashboard. No `400` error.
+5. Complete profile as a new user with genuinely missing fields (do not add imageUrl) — expected: profile-incomplete CTA visible in TermsConditionsComponent if somehow reached; clicking it navigates to profile-update screen.
+
+### Post-deployment monitoring
+
+- 15 min: No `400 "imageUrl is required"` errors visible in backend logs; ICA/T&Cs screen loads for fully-profiled users without error.
+- 1 hour: Driver ICA acceptance funnel — completion rate should be normal. Any spike in profile-update page visits is expected (users being routed there proactively) and healthy.
+- 24 hours: Growth & Analytics to watch for anomalies in driver and store-owner onboarding completion rate. Resolution of this incident should show as an improvement.
+
+### Gate citations
+
+- Feature Brief: Lindani Masinga — direct authorization 2026-10-08 (this conversation)
+- Code Review Gate 1 (bugfix/terms-acceptance-stale-imageurl): PASS WITH MINOR NOTES — no blocking items
+- Code Review Gate 1 (bugfix/dashboard-profile-completeness-check): PASS WITH MINOR NOTES — no blocking items
+- QA Gate 1 (bugfix/terms-acceptance-stale-imageurl): PASS 702/702 — independently re-run by QA
+- QA Gate 1 (bugfix/dashboard-profile-completeness-check): PASS 708/708 — independently re-run by QA
+- QA Gate 2 (release/1.19.0 full regression): PASS 714/714 — 2026-10-08 (Release Manager)
+- Dev build (Gate 2): CLEAN — no errors, pre-existing budget warnings only — 2026-10-08
+
+**Approved by:** Lindani Masinga — 2026-10-08
+
+---
+
 ## [1.18.0] — 2026-10-08
 
 **Release type:** Feature (P2) — app-wide Bootstrap 5→4 compatibility shim, Material Icons migration, and full visual overhaul of Chat Sessions and Pending Approvals. The shim activates previously silent `fw-bold`, `me-*`, `ms-*`, `gap-*`, `visually-hidden`, and gutter utilities across 44 templates app-wide. No API contract changes.
