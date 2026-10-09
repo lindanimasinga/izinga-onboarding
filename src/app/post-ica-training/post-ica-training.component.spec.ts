@@ -74,7 +74,7 @@ describe('PostIcaTrainingComponent', () => {
     fixture.detectChanges();
     const link: HTMLAnchorElement = fixture.nativeElement.querySelector('a[download]');
     expect(link).not.toBeNull();
-    expect(link.getAttribute('href')).toContain('ambassador-training-pack-v1.pdf');
+    expect(link.getAttribute('href')).toContain('ambassador-training-pack-v2.pdf');
   });
 
   // TRAIN-03
