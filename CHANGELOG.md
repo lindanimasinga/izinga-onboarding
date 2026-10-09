@@ -1,5 +1,55 @@
 # Changelog
 
+## [1.20.1] — 2026-10-09
+
+**Release type:** Patch (P1) — content/asset correction, no new features
+
+**Summary:** Corrects the Ambassador Training Pack download in the post-ICA training screen from v1 to v2. v2 fixes the referral link hostname, softens an unverified approval-timeframe claim, and updates the ambassador support contact to hello@curiousoft.dev.
+
+### Changes
+
+- [FIX] `PostIcaTrainingComponent` — `pdfPath` getter now serves `assets/docs/ambassador-training-pack-v2.pdf` instead of v1. The v1 pack contained an incorrect referral link hostname (`onboarding.izinga.co.za` instead of `driver.izinga.co.za`), an unverified same-day approval claim, and a stale support email address. v2 corrects all three. v1 asset is retained in `src/assets/docs/` for audit history.
+- [TEST] `post-ica-training.component.spec.ts` — TRAIN-02 assertion updated to expect the v2 filename.
+
+### Breaking changes
+
+None. Frontend-only asset swap. No API contract, routing, data model, or Firebase schema changes.
+
+### Deployment sequence
+
+`izinga-onboarding` only — standalone deploy. No backend or other frontend releases required.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select release v1.20.0 in the Firebase console Hosting history).
+2. Pure frontend deploy — no database migration, no API contract change. Rolling back to v1.20.0 is safe independently. Ambassadors who downloaded the v1 pack between v1.20.0 and this release will have the corrected information available on next app load.
+
+### Smoke test plan
+
+1. Log in as an ambassador-referred driver and complete the ICA acceptance flow — expected: Post-ICA Training screen loads and the "Download Training Pack" / PDF link resolves to `ambassador-training-pack-v2.pdf` (verify in browser network tab or by opening the PDF and confirming the referral hostname reads `driver.izinga.co.za`).
+2. Open the downloaded PDF — expected: referral link hostname is `driver.izinga.co.za` (not `onboarding.izinga.co.za`), approval timeframe language is softened (no "same day" guarantee), and support contact shows `hello@curiousoft.dev`.
+3. Confirm the v1 asset is still served if directly requested at `/assets/docs/ambassador-training-pack-v1.pdf` — expected: 200 response (retained for audit history).
+4. Navigate through the full post-ICA training screen in both light and dark theme — expected: no regressions in layout, button visibility, or navigation from the previous 1.20.0 release.
+5. Run `ng test --watch=false` locally — expected: 721/721 PASS (spec TRAIN-02 now asserts v2 filename).
+
+### Post-deployment monitoring
+
+- 15 min: Confirm the PDF download link resolves to v2 in production.
+- 1 hour: No spike in ambassador support queries related to incorrect training pack information.
+- 24 hours: Growth & Analytics to confirm ambassador onboarding completion rate is unchanged from v1.20.0 baseline.
+
+### Gate citations
+
+- Feature Brief: Lindani Masinga — direct authorization ("send for release") 2026-10-09
+- Code Review: PASS (reviewed on `bugfix/ambassador-training-pack-v2` branch before merge to develop)
+- QA Gate 1: PASS 721/721 (full unscoped suite, verified before merge to develop)
+- Dev build: CLEAN
+- QA Gate 2: PASS — see QA run results below
+
+**Approved by:** Lindani Masinga — 2026-10-09
+
+---
+
 ## [1.20.0] — 2026-10-09
 
 **Release type:** Patch (P1) — UI bug fixes and legal text correction, no new features
