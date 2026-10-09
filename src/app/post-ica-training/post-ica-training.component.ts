@@ -62,7 +62,7 @@ export class PostIcaTrainingComponent implements OnInit {
 
   get pdfPath(): string {
     if (this.isAmbassador) {
-      return 'assets/docs/ambassador-training-pack-v1.pdf';
+      return 'assets/docs/ambassador-training-pack-v2.pdf';
     }
     if (this.isReferralPartner) {
       return 'assets/docs/referral-partner-training-pack-v1.pdf';
