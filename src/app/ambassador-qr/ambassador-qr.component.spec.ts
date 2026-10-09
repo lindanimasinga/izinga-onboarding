@@ -1,9 +1,11 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { CommonModule } from '@angular/common';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
+import { By } from '@angular/platform-browser';
 
 import { AmbassadorQrComponent } from './ambassador-qr.component';
 import { StorageService } from '../service/storage-service.service';
@@ -13,6 +15,7 @@ import { environment } from '../../environments/environment';
 
 /**
  * ADR-004 / T-13 — Scenario 6 & 7
+ * ADR-019 — Ambassador Tiered Commission by Vehicle Type (F-1, F-2)
  *
  * TC-AMB-01  Non-AMBASSADOR user: error message shown, no HTTP call made.
  * TC-AMB-02  No user in storage: error message shown, no HTTP call made.
@@ -30,6 +33,24 @@ import { environment } from '../../environments/environment';
  * TC-AMB-14  loadPayouts: HTTP GET hits correct endpoint with Authorization header.
  * TC-AMB-15  loadDrivers HTTP 401: session-expired error and router navigates to /.
  * TC-AMB-16  loadPayouts HTTP 401: session-expired error and router navigates to /.
+ *
+ * F-1 vehicleTypeLabel helper (ADR-019):
+ * TC-AMB-17  "Bike Delivery Driver"       → "Bike"
+ * TC-AMB-18  "Small/Medium Vehicle Driver" → "Car"  (matches "small")
+ * TC-AMB-19  "Medium Delivery Driver"      → "Car"  (matches "medium")
+ * TC-AMB-20  "Bakkie Delivery Driver"      → "Bakkie"
+ * TC-AMB-21  "Truck Delivery Driver"       → "Truck"
+ * TC-AMB-22  null / blank / no-match       → "Unknown"
+ *
+ * F-2 payoutVehicleDisplay helper (ADR-019):
+ * TC-AMB-23  null triggerDriverVehicleType → "—"
+ * TC-AMB-24  "UNKNOWN"                     → "—"
+ * TC-AMB-25  "BIKE"                        → "Bike"
+ * TC-AMB-26  "CAR"                         → "Car"
+ *
+ * F-2 template rendering (ADR-019):
+ * TC-AMB-27  Payouts tab renders "—" for null triggerDriverVehicleType.
+ * TC-AMB-28  Payouts tab renders "—" for "UNKNOWN" triggerDriverVehicleType.
  */
 describe('AmbassadorQrComponent', () => {
   let component: AmbassadorQrComponent;
@@ -54,7 +75,7 @@ describe('AmbassadorQrComponent', () => {
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
+      imports: [HttpClientTestingModule, CommonModule],
       declarations: [AmbassadorQrComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
@@ -363,5 +384,155 @@ describe('AmbassadorQrComponent', () => {
     expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
     expect(component.payoutsLoaded).toBeTrue();
     expect(component.payoutsLoading).toBeFalse();
+  }));
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-17–22 — F-1: vehicleTypeLabel helper (ADR-019)
+  // -----------------------------------------------------------------------
+  describe('vehicleTypeLabel (F-1 helper — ADR-019)', () => {
+    beforeEach(() => {
+      // component must be initialised; set up minimal user state and skip HTTP
+      mockStorage.userProfile = ambassadorUser as any;
+    });
+
+    it('TC-AMB-17: maps "Bike Delivery Driver" to "Bike"', () => {
+      expect(component.vehicleTypeLabel('Bike Delivery Driver')).toBe('Bike');
+    });
+
+    it('TC-AMB-17b: maps canonical "BIKE" to "Bike"', () => {
+      expect(component.vehicleTypeLabel('BIKE')).toBe('Bike');
+    });
+
+    it('TC-AMB-18: maps "Small/Medium Vehicle Driver" to "Car" (substring: small)', () => {
+      expect(component.vehicleTypeLabel('Small/Medium Vehicle Driver')).toBe('Car');
+    });
+
+    it('TC-AMB-19: maps "Medium Delivery Driver" to "Car" (substring: medium)', () => {
+      expect(component.vehicleTypeLabel('Medium Delivery Driver')).toBe('Car');
+    });
+
+    it('TC-AMB-19b: maps canonical "CAR" to "Car" (substring: car)', () => {
+      expect(component.vehicleTypeLabel('CAR')).toBe('Car');
+    });
+
+    it('TC-AMB-20: maps "Bakkie Delivery Driver" to "Bakkie"', () => {
+      expect(component.vehicleTypeLabel('Bakkie Delivery Driver')).toBe('Bakkie');
+    });
+
+    it('TC-AMB-20b: maps canonical "BAKKIE" to "Bakkie"', () => {
+      expect(component.vehicleTypeLabel('BAKKIE')).toBe('Bakkie');
+    });
+
+    it('TC-AMB-21: maps "Truck Delivery Driver" to "Truck"', () => {
+      expect(component.vehicleTypeLabel('Truck Delivery Driver')).toBe('Truck');
+    });
+
+    it('TC-AMB-21b: maps canonical "TRUCK" to "Truck"', () => {
+      expect(component.vehicleTypeLabel('TRUCK')).toBe('Truck');
+    });
+
+    it('TC-AMB-22a: returns "Unknown" for null', () => {
+      expect(component.vehicleTypeLabel(null)).toBe('Unknown');
+    });
+
+    it('TC-AMB-22b: returns "Unknown" for undefined', () => {
+      expect(component.vehicleTypeLabel(undefined)).toBe('Unknown');
+    });
+
+    it('TC-AMB-22c: returns "Unknown" for empty string', () => {
+      expect(component.vehicleTypeLabel('')).toBe('Unknown');
+    });
+
+    it('TC-AMB-22d: returns "Unknown" for unrecognised description', () => {
+      expect(component.vehicleTypeLabel('Delivery Partner')).toBe('Unknown');
+    });
+
+    it('TC-AMB-22e: returns "Unknown" for canonical "UNKNOWN"', () => {
+      expect(component.vehicleTypeLabel('UNKNOWN')).toBe('Unknown');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-23–26 — F-2: payoutVehicleDisplay helper (ADR-019)
+  // -----------------------------------------------------------------------
+  describe('payoutVehicleDisplay (F-2 helper — ADR-019)', () => {
+    it('TC-AMB-23: returns em dash for null triggerDriverVehicleType', () => {
+      expect(component.payoutVehicleDisplay(null)).toBe('—');
+    });
+
+    it('TC-AMB-24: returns em dash for "UNKNOWN"', () => {
+      expect(component.payoutVehicleDisplay('UNKNOWN')).toBe('—');
+    });
+
+    it('TC-AMB-24b: returns em dash for undefined', () => {
+      expect(component.payoutVehicleDisplay(undefined)).toBe('—');
+    });
+
+    it('TC-AMB-25: returns "Bike" for "BIKE"', () => {
+      expect(component.payoutVehicleDisplay('BIKE')).toBe('Bike');
+    });
+
+    it('TC-AMB-26: returns "Car" for "CAR"', () => {
+      expect(component.payoutVehicleDisplay('CAR')).toBe('Car');
+    });
+
+    it('TC-AMB-26b: returns "Bakkie" for "BAKKIE"', () => {
+      expect(component.payoutVehicleDisplay('BAKKIE')).toBe('Bakkie');
+    });
+
+    it('TC-AMB-26c: returns "Truck" for "TRUCK"', () => {
+      expect(component.payoutVehicleDisplay('TRUCK')).toBe('Truck');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // TC-AMB-27–28 — F-2: template renders "—" for null and UNKNOWN (ADR-019)
+  // -----------------------------------------------------------------------
+  it('TC-AMB-27: My Payouts renders em dash for null triggerDriverVehicleType', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('payouts');
+
+    const payoutsReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-payouts`);
+    payoutsReq.flush([{
+      id: 'p-hist', commissionAmount: 70, triggerDriverId: 'd-1',
+      payoutStage: 'COMPLETED', toName: 'Test', createdDate: '2026-05-01T10:00:00+02:00',
+      triggerDriverVehicleType: null
+    }]);
+    tick();
+    fixture.detectChanges();
+
+    const badgeEl = fixture.debugElement.query(By.css('.iz-badge--muted'));
+    expect(badgeEl).toBeTruthy();
+    expect(badgeEl.nativeElement.textContent.trim()).toBe('—');
+  }));
+
+  it('TC-AMB-28: My Payouts renders em dash for "UNKNOWN" triggerDriverVehicleType', fakeAsync(() => {
+    mockStorage.userProfile = ambassadorUser as any;
+    fixture.detectChanges();
+
+    const qrReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-qr`);
+    qrReq.flush(new Blob(), { status: 200, statusText: 'OK' });
+    tick();
+
+    component.selectTab('payouts');
+
+    const payoutsReq = httpMock.expectOne(`${environment.izingaUrl}/user/amb-001/ambassador-payouts`);
+    payoutsReq.flush([{
+      id: 'p-unk', commissionAmount: 70, triggerDriverId: 'd-1',
+      payoutStage: 'PENDING', toName: 'Test', createdDate: '2026-07-01T10:00:00+02:00',
+      triggerDriverVehicleType: 'UNKNOWN'
+    }]);
+    tick();
+    fixture.detectChanges();
+
+    const badgeEl = fixture.debugElement.query(By.css('.iz-badge--muted'));
+    expect(badgeEl).toBeTruthy();
+    expect(badgeEl.nativeElement.textContent.trim()).toBe('—');
   }));
 });

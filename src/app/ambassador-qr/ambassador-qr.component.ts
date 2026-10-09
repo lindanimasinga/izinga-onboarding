@@ -13,6 +13,7 @@ interface AmbassadorDriver {
   mobileNumber: string;
   profileApproved: boolean;
   role: string;
+  description?: string | null;
 }
 
 interface AmbassadorPayout {
@@ -22,6 +23,7 @@ interface AmbassadorPayout {
   payoutStage: string;
   toName: string;
   createdDate: string;
+  triggerDriverVehicleType?: string | null;
 }
 
 @Component({
@@ -227,6 +229,35 @@ export class AmbassadorQrComponent implements OnInit, OnDestroy {
       clearTimeout(this.copyTimeout);
       this.copyTimeout = setTimeout(() => { this.linkCopied = false; }, 3000);
     });
+  }
+
+  /**
+   * Derives a clean, human-readable vehicle-type label from a free-text
+   * description (F-1) or a canonical uppercase enum value (F-2).
+   *
+   * Matching is case-insensitive substring-based, consistent with the
+   * backend WhatsApp onboarding categorisation rules.
+   *
+   * "UNKNOWN" → "Unknown" (caller decides whether to show '—' instead, see payoutVehicleDisplay).
+   */
+  vehicleTypeLabel(input: string | null | undefined): string {
+    if (!input || !input.trim()) return 'Unknown';
+    const lower = input.toLowerCase();
+    if (lower.includes('bike')) return 'Bike';
+    if (lower.includes('small') || lower.includes('medium') || lower.includes('car')) return 'Car';
+    if (lower.includes('bakkie')) return 'Bakkie';
+    if (lower.includes('truck')) return 'Truck';
+    return 'Unknown';
+  }
+
+  /**
+   * F-2 display helper: converts the canonical payout vehicle-type field
+   * to a human-readable label, or an em dash for null / pre-feature records
+   * and "UNKNOWN" (both render identically to the ambassador — no distinction).
+   */
+  payoutVehicleDisplay(vehicleType: string | null | undefined): string {
+    if (!vehicleType || vehicleType === 'UNKNOWN') return '—'; // —
+    return this.vehicleTypeLabel(vehicleType);
   }
 
   stageLabel(stage: string): string {
