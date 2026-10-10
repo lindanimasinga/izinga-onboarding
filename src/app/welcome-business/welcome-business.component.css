@@ -208,6 +208,12 @@ h2 {
 
 .tier-card--free .tier-price { color: var(--tier-teal); }
 
+/* Coming-soon treatment: muted colour signals price is not yet finalised */
+.tier-price--coming-soon {
+  color: var(--tier-text-muted);
+  font-style: italic;
+}
+
 .tier-price-period {
   font-size: 0.9rem;
   font-weight: 400;
