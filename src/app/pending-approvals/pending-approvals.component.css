@@ -120,11 +120,39 @@
   border-radius: 8px;
 }
 
+/* ---- Sidebar list scroll — mirrors the chat-sessions sidebar pattern ----
+   Chrome above the panel: page title block (~76px) + filter row (~76px) + nav tabs (~58px) = ~210px.
+   The fixed-bottom approval bar (active only when a user is selected on the list tab) is ~60px.
+   270px gives a comfortable clearance above both so neither the tabs nor the approve bar
+   overlap the scroll region. chat-sessions uses 140px; this component has a taller fixed chrome. */
+.pending-list-panel {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 270px);
+}
+
+.pending-list-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Scrollbar styling is handled by the global .iz-scroll class applied in the template. */
+
+/* ---- End sidebar list scroll ---- */
+
 /* ISSUE-5 FIX: on narrow screens the "Pending Criminal Checks" tab overflows and wraps into the
    row below "Pending List", causing the two rows to touch/overlap.  Make the tab strip
    horizontally scrollable instead — tabs stay on one line, user can swipe to reveal the third
    tab.  flex-shrink:0 on each nav-item prevents individual tabs from being squashed narrow. */
 @media (max-width: 768px) {
+  /* Bring mobile scroll to full parity with chat-sessions pattern (CODE-REVIEW NOTE-01) */
+  .pending-list-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .pending-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
