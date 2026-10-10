@@ -62,7 +62,7 @@
 
   <div *ngIf="activeTab === 'list' || activeTab === 'criminal-check'" class="row">
     <!-- Users List -->
-    <div class="col-md-4">
+    <div class="col-md-4 pending-list-panel">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <!-- Count moved from h4 text to iz-badge--amber next to heading -->
         <div class="d-flex align-items-center gap-2">
@@ -89,53 +89,56 @@
         <p class="text-muted">No pending users match the selected service type.</p>
       </div>
 
-      <div class="list-group">
-        <!-- ISSUE-1 FIX: trackBy prevents DOM thrash on every API refresh, which was extending
-             the sticky-hover window and surfacing Bootstrap's hardcoded #f8f9fa/#495057 on mobile. -->
-        <button
-          *ngFor="let user of filteredPendingUsers; trackBy: trackByUserId"
-          type="button"
-          class="list-group-item list-group-item-action"
-          [class.active]="selectedUser?.id === user.id"
-          (click)="selectUser(user)">
-          <div class="d-flex w-100 justify-content-between">
-            <div class="d-flex align-items-center">
-              <!-- Photo avatar -->
-              <img
-                [src]="user.imageUrl"
-                alt="Profile"
-                class="rounded-circle me-2"
-                style="width: 40px; height: 40px; object-fit: cover;"
-                *ngIf="user.imageUrl">
-              <!-- Initials avatar — replaces flat grey silhouette (PENDING-AVATAR) -->
-              <div *ngIf="!user.imageUrl"
-                   class="iz-avatar d-flex align-items-center justify-content-center me-2"
-                   [style.background]="getAvatarColor(user.name || user.mobileNumber)">
-                {{getInitials(user.name || user.mobileNumber)}}
-              </div>
-              <div>
-                <h6 class="mb-1">
-                  {{user.name || 'No Name'}}
-                  <!-- Nationality badges — iz-badge pattern, no Bootstrap bg-success/bg-warning -->
-                  <span *ngIf="user.tag?.['nationality']"
-                        class="iz-badge ms-1"
-                        [ngClass]="{
-                          'iz-badge--green': user.tag['nationality'] === 'ZAF',
-                          'iz-badge--amber': user.tag['nationality'] !== 'ZAF'
-                        }">
-                    {{user.tag['nationality']}}
-                  </span>
-                  <span *ngIf="!user.tag?.['nationality']" class="iz-badge iz-badge--muted ms-1">No nationality</span>
-                </h6>
-                <small class="">{{user.mobileNumber}}</small>
+      <!-- Scroll wrapper: list-group is the only child; header + empty/loading states remain above -->
+      <div class="pending-list-scroll iz-scroll">
+        <div class="list-group">
+          <!-- ISSUE-1 FIX: trackBy prevents DOM thrash on every API refresh, which was extending
+               the sticky-hover window and surfacing Bootstrap's hardcoded #f8f9fa/#495057 on mobile. -->
+          <button
+            *ngFor="let user of filteredPendingUsers; trackBy: trackByUserId"
+            type="button"
+            class="list-group-item list-group-item-action"
+            [class.active]="selectedUser?.id === user.id"
+            (click)="selectUser(user)">
+            <div class="d-flex w-100 justify-content-between">
+              <div class="d-flex align-items-center">
+                <!-- Photo avatar -->
+                <img
+                  [src]="user.imageUrl"
+                  alt="Profile"
+                  class="rounded-circle me-2"
+                  style="width: 40px; height: 40px; object-fit: cover;"
+                  *ngIf="user.imageUrl">
+                <!-- Initials avatar — replaces flat grey silhouette (PENDING-AVATAR) -->
+                <div *ngIf="!user.imageUrl"
+                     class="iz-avatar d-flex align-items-center justify-content-center me-2"
+                     [style.background]="getAvatarColor(user.name || user.mobileNumber)">
+                  {{getInitials(user.name || user.mobileNumber)}}
+                </div>
+                <div>
+                  <h6 class="mb-1">
+                    {{user.name || 'No Name'}}
+                    <!-- Nationality badges — iz-badge pattern, no Bootstrap bg-success/bg-warning -->
+                    <span *ngIf="user.tag?.['nationality']"
+                          class="iz-badge ms-1"
+                          [ngClass]="{
+                            'iz-badge--green': user.tag['nationality'] === 'ZAF',
+                            'iz-badge--amber': user.tag['nationality'] !== 'ZAF'
+                          }">
+                      {{user.tag['nationality']}}
+                    </span>
+                    <span *ngIf="!user.tag?.['nationality']" class="iz-badge iz-badge--muted ms-1">No nationality</span>
+                  </h6>
+                  <small class="">{{user.mobileNumber}}</small>
+                </div>
               </div>
             </div>
-          </div>
-          <p class="mb-1 small">{{user.description || 'No service description'}}</p>
-          <span *ngIf="!hasMissingFields(user)" class="small">
-            <i class="material-icons me-1" style="font-size:1rem;color:var(--btn-green-color)" aria-hidden="true">check_circle</i>Ready For App
-          </span>
-        </button>
+            <p class="mb-1 small">{{user.description || 'No service description'}}</p>
+            <span *ngIf="!hasMissingFields(user)" class="small">
+              <i class="material-icons me-1" style="font-size:1rem;color:var(--btn-green-color)" aria-hidden="true">check_circle</i>Ready For App
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
