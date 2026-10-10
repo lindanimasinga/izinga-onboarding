@@ -8,6 +8,7 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 import { StorageService } from '../service/storage-service.service';
 import { ChatService } from '../service/chat.service';
 import { UserProfile } from '../model/models';
+import { Bank } from '../model/bank';
 
 function makeOrderSvc(pendingUsers: UserProfile[] = []): any {
   return {
@@ -186,6 +187,106 @@ describe('PendingApprovalsComponent', () => {
 
     it('returns a non-grey colour for a valid name', () => {
       expect(component.getAvatarColor('TestDriver')).not.toBe('#6c757d');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // selectUser — EWALLET accountId/phone autofill (bugfix/ewallet-pending-approval-autofill)
+  // ---------------------------------------------------------------------------
+  describe('selectUser — EWALLET autofill', () => {
+    function makeEwalletUser(overrides: Partial<UserProfile> = {}): UserProfile {
+      return {
+        id: 'driver-1',
+        mobileNumber: '+27831112222',
+        imageUrl: '',
+        tag: {},
+        bank: {
+          type: 'EWALLET',
+          name: 'FNB eWallet',
+          accountId: '',
+          branchCode: '',
+          phone: ''
+        } as Bank,
+        ...overrides
+      } as UserProfile;
+    }
+
+    it('fills accountId from mobileNumber when type is EWALLET and accountId is empty', () => {
+      const user = makeEwalletUser();
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('+27831112222');
+    });
+
+    it('fills bank.phone from mobileNumber when type is EWALLET and phone is empty', () => {
+      const user = makeEwalletUser();
+      component.selectUser(user);
+      expect(user.bank.phone).toBe('+27831112222');
+    });
+
+    it('does NOT overwrite accountId when already populated', () => {
+      const user = makeEwalletUser();
+      user.bank.accountId = '0831112222';
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('0831112222');
+    });
+
+    it('does NOT overwrite bank.phone when already populated', () => {
+      const user = makeEwalletUser();
+      user.bank.phone = '0831112222';
+      component.selectUser(user);
+      expect(user.bank.phone).toBe('0831112222');
+    });
+
+    it('does NOT autofill when type is SAVINGS (non-EWALLET)', () => {
+      const user = makeEwalletUser();
+      user.bank.type = 'SAVINGS';
+      user.bank.accountId = '';
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('');
+    });
+
+    it('does NOT autofill when type is CHEQUE (non-EWALLET)', () => {
+      const user = makeEwalletUser();
+      user.bank.type = 'CHEQUE';
+      user.bank.accountId = '';
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('');
+    });
+
+    it('does NOT throw when user has no bank object', () => {
+      const user = makeEwalletUser();
+      (user as any).bank = undefined;
+      expect(() => component.selectUser(user)).not.toThrow();
+    });
+
+    it('does NOT autofill when mobileNumber is empty', () => {
+      const user = makeEwalletUser({ mobileNumber: '' });
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('');
+      expect(user.bank.phone).toBe('');
+    });
+
+    it('does NOT autofill when mobileNumber is undefined', () => {
+      const user = makeEwalletUser({ mobileNumber: undefined });
+      component.selectUser(user);
+      expect(user.bank.accountId).toBe('');
+      expect(user.bank.phone).toBe('');
+    });
+
+    it('sets selectedUser to the supplied user', () => {
+      const user = makeEwalletUser();
+      component.selectUser(user);
+      expect(component.selectedUser).toBe(user);
+    });
+
+    it('mutates the same object reference that approvePendingUser would spread', () => {
+      // Verifies the bank object identity is preserved so the autofill
+      // reaches updateCustomer() in approvePendingUser().
+      const user = makeEwalletUser();
+      const originalBankRef = user.bank;
+      component.selectUser(user);
+      expect(user.bank).toBe(originalBankRef);
+      expect(originalBankRef.accountId).toBe('+27831112222');
     });
   });
 });

@@ -96,6 +96,11 @@
             <div class="flex-grow-1">
               <div class="fw-bold small">{{ driver.name || 'Unknown' }}</div>
               <div class="text-muted small">{{ driver.mobileNumber }}</div>
+              <span class="iz-badge mt-1"
+                [class.iz-badge--teal]="vehicleTypeLabel(driver.description) !== 'Unknown'"
+                [class.iz-badge--muted]="vehicleTypeLabel(driver.description) === 'Unknown'">
+                {{ vehicleTypeLabel(driver.description) }}
+              </span>
             </div>
             <span class="badge rounded-pill"
               [style.background-color]="driver.profileApproved ? 'var(--btn-green-color)' : 'var(--btn-red-color)'"
@@ -132,7 +137,7 @@
 
       <div *ngIf="!payoutsLoading && payouts.length === 0" class="text-center py-4">
         <p class="text-muted">No payouts yet.</p>
-        <p class="text-muted small">Payouts of R70 are processed daily at 17:00 for each approved driver.</p>
+        <p class="text-muted small">Commissions (Bike: R50, Car: R60, Bakkie/Truck: R70) are processed daily at 17:00 for each approved driver.</p>
       </div>
 
       <div *ngIf="!payoutsLoading && payouts.length > 0" class="row justify-content-center">
@@ -141,6 +146,11 @@
             <div>
               <div class="fw-bold small">Driver commission</div>
               <div class="text-muted small">{{ payout.createdDate | date:'d MMM yyyy' }}</div>
+              <span class="iz-badge mt-1"
+                [class.iz-badge--teal]="!!payout.triggerDriverVehicleType && payout.triggerDriverVehicleType !== 'UNKNOWN'"
+                [class.iz-badge--muted]="!payout.triggerDriverVehicleType || payout.triggerDriverVehicleType === 'UNKNOWN'">
+                {{ payoutVehicleDisplay(payout.triggerDriverVehicleType) }}
+              </span>
             </div>
             <div class="text-end">
               <div class="fw-bold" style="color: var(--btn-green-color);">R{{ payout.commissionAmount | number:'1.2-2' }}</div>

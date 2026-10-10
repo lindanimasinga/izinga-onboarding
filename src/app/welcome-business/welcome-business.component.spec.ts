@@ -191,14 +191,14 @@ describe('WelcomeBusinessComponent', () => {
       expect(el.textContent).toContain('Free for merchants');
     });
 
-    it('should show "R800" as the Tier 1 price', () => {
+    it('should show "Coming Soon" as the Tier 1 price (pricing not yet finalised)', () => {
       const el: HTMLElement = fixture.nativeElement;
-      expect(el.textContent).toContain('R800');
+      expect(el.textContent).toContain('Coming Soon');
     });
 
-    it('should show "R3,000" as the Tier 2 price', () => {
+    it('should show "Coming Soon" as the Tier 2 price (pricing not yet finalised)', () => {
       const el: HTMLElement = fixture.nativeElement;
-      expect(el.textContent).toContain('R3,000');
+      expect(el.textContent).toContain('Coming Soon');
     });
 
     it('should include three fee-disclosure elements', () => {
