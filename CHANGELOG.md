@@ -1,5 +1,52 @@
 # Changelog
 
+## [1.21.1] — 2026-10-10
+
+**Release type:** Patch (P1) — single UI/UX bugfix, no new features
+
+**Summary:** Fixes the Pending Approvals admin page sidebar user list scrolling unboundedly — the list now scrolls independently within a bounded region, keeping the page header, tab strip, and fixed-bottom approval bar stationary at all times.
+
+### Changes
+
+- [FIX] `bugfix/pending-approvals-list-scroll` — Pending Approvals sidebar user list no longer causes the whole page to scroll. Applied `flex-column` + `max-height: calc(100vh - 270px)` on the panel and `flex:1; min-height:0; overflow-y:auto` on the scroll child, mirroring the existing `chat-sessions.component` production pattern. Mobile momentum scroll (`-webkit-overflow-scrolling: touch`) and `overscroll-behavior: contain` added for parity with the chat-sessions pattern. Pure CSS/HTML change — no TypeScript logic, no API, no backend changes.
+
+### Breaking changes
+
+None. Pure frontend CSS/HTML fix. No API contract, routing, data model, Firebase schema, or JWT changes.
+
+### Deployment sequence
+
+`izinga-onboarding` web deploy — standalone. No backend dependency.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select release v1.21.0 in Firebase Hosting console history).
+2. Pure frontend deploy — no database migration, no API contract change. Rolling back to v1.21.0 is safe independently.
+
+### Smoke test plan
+
+1. Log in as an admin and open the Pending Approvals page with 10+ pending users — expected: user list scrolls independently, page header and tab strip remain fixed at the top.
+2. Scroll the user list to the bottom — expected: the fixed-bottom approval bar remains visible and does not scroll away.
+3. Select a user from the list — expected: detail panel updates on the right; approval bar activates; list scroll position is preserved.
+4. Resize browser to mobile width (≤ 768px) — expected: list scrolls with momentum, no rubber-banding past the list boundaries.
+5. Navigate away and back to Pending Approvals — expected: page loads correctly with no layout regressions.
+6. Run `ng test --watch=false --browsers=ChromeHeadless` — expected: 755/755 PASS.
+
+### Post-deployment monitoring
+
+- 15 min: Confirm Pending Approvals page loads and list scrolls correctly in production.
+- 1 hour: No admin support queries about the Pending Approvals layout.
+- 24 hours: Growth & Analytics to confirm no anomaly in admin approval throughput.
+
+### Gate citations
+
+- Code Review: PASS (diff verified against `chat-sessions.component` production pattern, 2026-10-10)
+- QA Gate 2 regression: 755/755 PASS on `release/1.21.1`, 2026-10-10
+
+**Approved by:** Lindani Masinga — 2026-10-10
+
+---
+
 ## [1.21.0] — 2026-10-10
 
 **Release type:** Feature (P2) — new ambassador dashboard capability + 4 bugfixes
