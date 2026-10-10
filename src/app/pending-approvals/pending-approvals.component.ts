@@ -169,6 +169,18 @@ hasMissingFields(user: UserProfile): boolean {
     this.selectedUser = user;
     this.coordinateLookupError = '';
 
+    // EWALLET autofill: accountId and phone default to mobileNumber when absent.
+    // Mutations are on the same object reference that approvePendingUser() spreads
+    // into updatedUser, so the values flow into the updateCustomer() payload.
+    if (user.bank && user.bank.type === 'EWALLET' && user.mobileNumber) {
+      if (!user.bank.accountId) {
+        user.bank.accountId = user.mobileNumber;
+      }
+      if (!user.bank.phone) {
+        user.bank.phone = user.mobileNumber;
+      }
+    }
+
     if (this.isMobileView()) {
       this.showUserReviewModal = true;
     }

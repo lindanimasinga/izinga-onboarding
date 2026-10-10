@@ -269,6 +269,10 @@
                     <td><strong>Branch Code:</strong></td>
                     <td>{{selectedUser.bank.branchCode}}</td>
                   </tr>
+                  <tr *ngIf="selectedUser.bank.phone" class="text-muted">
+                    <td><strong>Phone:</strong></td>
+                    <td>{{selectedUser.bank.phone}}</td>
+                  </tr>
                 </table>
               </ng-container>
             </div>
@@ -469,6 +473,10 @@
                       <tr *ngIf="selectedUser.bank.branchCode" class="text-muted">
                         <td><strong>Branch Code:</strong></td>
                         <td>{{selectedUser.bank.branchCode}}</td>
+                      </tr>
+                      <tr *ngIf="selectedUser.bank.phone" class="text-muted">
+                        <td><strong>Phone:</strong></td>
+                        <td>{{selectedUser.bank.phone}}</td>
                       </tr>
                     </table>
                   </ng-container>
