@@ -1,5 +1,58 @@
 # Changelog
 
+## [1.21.0] — 2026-10-10
+
+**Release type:** Feature (P2) — new ambassador dashboard capability + 4 bugfixes
+
+**Summary:** Introduces tiered commission display on the ambassador dashboard (ADR-019: vehicle-type badge + per-vehicle-type commission amount on My Drivers and My Payouts), syncs Ambassador ICA clause 4 to the tiered rate table, and fixes EWALLET admin approval autofill, stale flat-rate dashboard copy, and the welcome-page premium tier pricing display.
+
+### Changes
+
+- [NEW] `feature/ambassador-tiered-commission-dashboard` (ADR-019) — My Drivers and My Payouts now show a vehicle-type badge and the per-driver commission amount (Bike R50 / Car R60 / Bakkie & Truck R70). Additive/null-safe — works regardless of backend deploy ordering.
+- [FIX] `bugfix/ambassador-ica-tiered-commission-sync` — Ambassador ICA click-wrap text (clauses 4.1 and 4.5) now reflects the tiered commission table. `AMBASSADOR_ICA_VERSION` remains `v3` (correction to in-progress version; no ambassadors have accepted it yet).
+- [FIX] `bugfix/ambassador-r70-dashboard-copy-sync` — removed stale "R70" flat-rate description from the main dashboard My Payouts card copy.
+- [FIX] `bugfix/ewallet-pending-approval-autofill` — `selectUser()` now autofills `bank.accountId` and `bank.phone` from `mobileNumber` when empty and `bank.type === 'EWALLET'`, resolving admins being unable to approve pending EWALLET users (backend requires `bank.phone` non-blank).
+- [FIX] `bugfix/welcome-tier-coming-soon` — unauthenticated welcome page Premium Tier 1/2 pricing (R800/R3,000) replaced with "Coming Soon" text. Pricing is not yet finalised. The functional tier-selection flow and legal T&Cs are intentionally unchanged.
+
+### Breaking changes
+
+None. All changes are frontend-only. No API contract, routing, data model, Firebase schema, or JWT changes.
+
+### Deployment sequence
+
+`izinga-onboarding` web deploy — standalone. The companion `ijudi-api` ambassador-tiered-commission backend release is deploying in parallel; frontend changes are additive/null-safe regardless of ordering.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project izinga-onboarding-prod` (or select release v1.20.1 in Firebase Hosting console history).
+2. Pure frontend deploy — no database migration, no API contract change. Rolling back to v1.20.1 is safe independently of the backend.
+
+### Smoke test plan
+
+1. Log in as an ambassador and open My Drivers — expected: each driver row shows a vehicle-type badge (Bike / Car / Bakkie / Truck) and the corresponding commission amount (R50/R60/R70).
+2. Open My Payouts — expected: same vehicle-type badge and commission amount displayed per payout row.
+3. Open the Ambassador ICA click-wrap screen — expected: clause 4.1 and 4.5 reference the tiered rates (Bike R50, Car R60, Bakkie/Truck R70).
+4. Log in as an admin, open a pending user with EWALLET bank account, and click approve — expected: `bank.phone` and `bank.accountId` autofill from `mobileNumber`; approval proceeds without a validation error.
+5. Navigate to the unauthenticated welcome page and scroll to Premium Tier pricing — expected: "Coming Soon" text displayed instead of R800/R3,000 figures.
+6. Run the full `ng test --watch=false` suite — expected: 755/755 PASS.
+
+### Post-deployment monitoring
+
+- 15 min: Confirm My Drivers and My Payouts load with vehicle-type badges in production.
+- 1 hour: No admin approval failures for EWALLET account types; no spike in driver support queries.
+- 24 hours: Growth & Analytics to confirm ambassador dashboard engagement is unchanged or improved; EWALLET approval queue clears normally.
+
+### Gate citations
+
+- Lindani Masinga — direct authorization, 2026-10-10
+- Code Review: PASS on all 5 branches
+- QA Gate 1: PASS per branch (744/744, 721/721, 755/755 across branches)
+- QA Gate 2: see regression run below
+
+**Approved by:** Lindani Masinga — 2026-10-10
+
+---
+
 ## [1.20.1] — 2026-10-09
 
 **Release type:** Patch (P1) — content/asset correction, no new features
