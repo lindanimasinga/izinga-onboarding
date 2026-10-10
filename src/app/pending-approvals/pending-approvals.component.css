@@ -147,6 +147,12 @@
    horizontally scrollable instead — tabs stay on one line, user can swipe to reveal the third
    tab.  flex-shrink:0 on each nav-item prevents individual tabs from being squashed narrow. */
 @media (max-width: 768px) {
+  /* Bring mobile scroll to full parity with chat-sessions pattern (CODE-REVIEW NOTE-01) */
+  .pending-list-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
   .pending-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
