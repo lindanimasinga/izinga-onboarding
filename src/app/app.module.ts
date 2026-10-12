@@ -60,6 +60,7 @@ import { TierSelectionComponent } from './tier-selection/tier-selection.componen
 import { SubscriptionCheckoutComponent } from './subscription-checkout/subscription-checkout.component';
 import { SubscriptionSuccessComponent } from './subscription-success/subscription-success.component';
 import { SubscriptionCancelComponent } from './subscription-cancel/subscription-cancel.component';
+import { StoreInviteComponent } from './store-invite/store-invite.component';
 
 @NgModule({
   declarations: [
@@ -113,6 +114,7 @@ import { SubscriptionCancelComponent } from './subscription-cancel/subscription-
     SubscriptionCheckoutComponent,
     SubscriptionSuccessComponent,
     SubscriptionCancelComponent,
+    StoreInviteComponent,
   ],
   imports: [
     BrowserModule,

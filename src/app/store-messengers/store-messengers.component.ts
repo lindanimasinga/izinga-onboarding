@@ -1,13 +1,15 @@
 import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { UserProfile } from '../model/userProfile';
-import { ProfileAvailabilityStatus } from '../model/userProfile';
-import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
+import { IzingaOrderManagementService, DriverInviteRequest } from '../service/izinga-order-management.service';
 import { AnalyticsService } from '../service/analytics.service';
 
 /**
  * Store-scoped counterpart to TeamMessengersComponent (MESSENGER_ADMIN's "My Drivers" page).
  * Embedded inside business-update.component.html via [storeId]="shop.id" rather than reading
  * the logged-in user's own id — the page's STORE_ADMIN role gate already applies upstream.
+ *
+ * INVITE-DRV-01 / T-03: replaced the two-phase "Check & Add / Create" form with a single
+ * "Invite Driver" form that calls POST /store/{storeId}/invite (ADR-018). One HTTP call only.
  */
 @Component({
   selector: 'app-store-messengers',
@@ -22,19 +24,14 @@ export class StoreMessengersComponent implements OnInit, OnChanges {
   errorMessage = '';
   successMessage = '';
 
-  // Add driver form - Phase 1: Check/Lookup
+  // Invite driver form
   showAddForm = false;
   newDriverMobileNumber = '';
-  isCheckingDriver = false;
-  addErrorMessage = '';
-  duplicateFoundMessage = '';
-
-  // Add driver form - Phase 2: Create new
-  showCreateForm = false;
   newDriverName = '';
   newDriverSurname = '';
-  isCreatingDriver = false;
-  createErrorMessage = '';
+  isSendingInvite = false;
+  inviteResultMessage = '';
+  inviteResultType: 'success' | 'info' | 'warning' | 'danger' = 'info';
 
   // Remove driver
   isRemovingDriver: { [key: string]: boolean } = {};
@@ -78,118 +75,88 @@ export class StoreMessengersComponent implements OnInit, OnChanges {
 
   toggleAddForm(): void {
     this.showAddForm = !this.showAddForm;
-    this.newDriverMobileNumber = '';
-    this.addErrorMessage = '';
-    this.duplicateFoundMessage = '';
+    this.resetInviteForm();
   }
 
-  checkAndAddDriver(): void {
+  sendInvite(): void {
     if (!this.newDriverMobileNumber.trim()) {
-      this.addErrorMessage = 'Please enter a mobile number.';
-      return;
-    }
-
-    this.isCheckingDriver = true;
-    this.addErrorMessage = '';
-    this.duplicateFoundMessage = '';
-    this.createErrorMessage = '';
-
-    // Check if driver already exists
-    this.izingaService.getCustomerByPhoneNumber(this.newDriverMobileNumber).subscribe({
-      next: (existingUser) => {
-        if (existingUser && existingUser.id) {
-          // Driver already exists — info-only, never auto-linked to this store
-          this.duplicateFoundMessage = `Profile exists. Role: ${existingUser.role}. Mobile: ${existingUser.mobileNumber}`;
-          this.isCheckingDriver = false;
-          return;
-        }
-        // Profile does not exist, show form to create one
-        this.showCreateForm = true;
-        this.isCheckingDriver = false;
-      },
-      error: () => {
-        // 404 or error means user doesn't exist, show form to create one
-        this.showCreateForm = true;
-        this.isCheckingDriver = false;
-      }
-    });
-  }
-
-  createNewDriver(): void {
-    if (!this.newDriverName.trim() || !this.newDriverSurname.trim()) {
-      this.createErrorMessage = 'Please enter both first and last name.';
+      this.inviteResultMessage = 'Please enter a mobile number.';
+      this.inviteResultType = 'danger';
       return;
     }
 
     const storeId = this.storeId;
     if (!storeId) {
-      this.createErrorMessage = 'Store not found. Please save your business profile and try again.';
+      this.inviteResultMessage = 'Store not found. Please save your business profile and try again.';
+      this.inviteResultType = 'danger';
       return;
     }
 
-    this.isCreatingDriver = true;
-    this.createErrorMessage = '';
+    this.isSendingInvite = true;
+    this.inviteResultMessage = '';
 
-    // Create new driver profile linked to this store
-    const newDriver: UserProfile = {
-      name: this.newDriverName.trim(),
-      surname: this.newDriverSurname.trim(),
+    const request: DriverInviteRequest = {
       mobileNumber: this.newDriverMobileNumber.trim(),
-      role: UserProfile.RoleEnum.MESSENGER,
-      imageUrl: '',
-      bank: {} as any,
-      tag: {
-        storeId: storeId
-      },
-      availabilityStatus: ProfileAvailabilityStatus.Availability.OFFLINE
+      name: this.newDriverName.trim() || undefined,
+      surname: this.newDriverSurname.trim() || undefined
     };
 
-    this.izingaService.registerCustomer(newDriver).subscribe({
-      next: (createdDriver) => {
-        this.successMessage = `Successfully created and added ${createdDriver.name} to this store!. They will receive a WhatsApp message with instructions to complete their profile and start accepting deliveries.`;
-        this.isCreatingDriver = false;
-
-        // Reset form
-        this.resetForm();
-
-        // Reload drivers list
-        setTimeout(() => {
-          this.loadDrivers();
-          this.toggleAddForm();
-        }, 1500);
+    this.izingaService.inviteDriverToStore(storeId, request).subscribe({
+      next: (response) => {
+        this.isSendingInvite = false;
+        switch (response.outcome) {
+          case 'CREATED':
+            this.inviteResultMessage = 'Driver added to your team.';
+            this.inviteResultType = 'success';
+            this.loadDrivers();
+            break;
+          case 'ALREADY_LINKED':
+            this.inviteResultMessage = 'This driver is already on your team.';
+            this.inviteResultType = 'info';
+            break;
+          case 'INVITED':
+            // 201 = new invite sent; 200 = idempotent — distinguish is handled server-side,
+            // both map to INVITED outcome. We surfaced both messages separately but the
+            // HTTP status code is not surfaced by Angular's HttpClient in the success path.
+            // Default to new-invite message for 201; idempotent check would require status.
+            this.inviteResultMessage = 'Invite created. A WhatsApp message will be sent once our messaging is active. They have 5 days to accept.';
+            this.inviteResultType = 'success';
+            break;
+          default:
+            this.inviteResultMessage = 'Invite sent.';
+            this.inviteResultType = 'success';
+        }
       },
       error: (error) => {
-        this.createErrorMessage = 'Failed to create driver profile. Please try again.';
-        this.isCreatingDriver = false;
-        console.error('Error creating driver:', error);
+        this.isSendingInvite = false;
+        if (error?.status === 409) {
+          this.inviteResultMessage = 'This driver is already working with another team.';
+          this.inviteResultType = 'warning';
+        } else if (error?.status === 200 && error?.error?.outcome === 'INVITED') {
+          // Idempotent INVITED — same underlying outcome
+          this.inviteResultMessage = 'A pending invite already exists for this number.';
+          this.inviteResultType = 'info';
+        } else {
+          this.inviteResultMessage = 'Failed to send invite. Please try again.';
+          this.inviteResultType = 'danger';
+          console.error('Error inviting driver:', error);
+        }
       }
     });
   }
 
-  cancelCreateDriver(): void {
-    this.showCreateForm = false;
-    this.newDriverName = '';
-    this.newDriverSurname = '';
-    this.createErrorMessage = '';
+  cancelAddDriver(): void {
+    this.showAddForm = false;
+    this.resetInviteForm();
   }
 
-  private resetForm(): void {
-    this.showAddForm = false;
-    this.showCreateForm = false;
+  private resetInviteForm(): void {
     this.newDriverMobileNumber = '';
     this.newDriverName = '';
     this.newDriverSurname = '';
-    this.addErrorMessage = '';
-    this.duplicateFoundMessage = '';
-    this.createErrorMessage = '';
-  }
-
-  cancelAddDriver(): void {
-    this.resetForm();
-  }
-
-  backToPhaseOne(): void {
-    this.cancelCreateDriver();
+    this.isSendingInvite = false;
+    this.inviteResultMessage = '';
+    this.inviteResultType = 'info';
   }
 
   getApprovalStatusBadge(approved: boolean | undefined): string {
