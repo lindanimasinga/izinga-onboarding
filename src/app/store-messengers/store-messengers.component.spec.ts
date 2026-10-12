@@ -14,7 +14,7 @@ describe('StoreMessengersComponent', () => {
   beforeEach(() => {
     orderSvc = jasmine.createSpyObj<IzingaOrderManagementService>(
       'IzingaOrderManagementService',
-      ['getAllMessengersForStore', 'getCustomerByPhoneNumber', 'registerCustomer', 'deleteUser']
+      ['getAllMessengersForStore', 'inviteDriverToStore', 'deleteUser']
     );
     orderSvc.getAllMessengersForStore.and.returnValue(of([]));
 
@@ -83,71 +83,71 @@ describe('StoreMessengersComponent', () => {
     });
   });
 
-  describe('checkAndAddDriver() — phase 1 lookup', () => {
+  // INVITE-DRV-01 / T-03: the old two-phase checkAndAddDriver() / createNewDriver() API was
+  // removed. The component now calls a single POST /store/{storeId}/invite endpoint via
+  // inviteDriverToStore(). Tests below cover all five outcomes and the validation guards.
+
+  describe('sendInvite() — single-call invite form (AC-01 through AC-06)', () => {
     beforeEach(() => {
       component.storeId = 'store-abc';
       fixture.detectChanges();
-    });
-
-    it('shows an info-only message and does not auto-link when a profile already exists', () => {
-      orderSvc.getCustomerByPhoneNumber.and.returnValue(of({ id: 'existing-1', role: 'MESSENGER', mobileNumber: '0821234567' } as any));
-      component.newDriverMobileNumber = '0821234567';
-
-      component.checkAndAddDriver();
-
-      expect(component.duplicateFoundMessage).toContain('Profile exists');
-      expect(component.showCreateForm).toBeFalse();
-      expect(orderSvc.registerCustomer).not.toHaveBeenCalled();
-    });
-
-    it('shows the create-new-driver form when no profile is found', () => {
-      orderSvc.getCustomerByPhoneNumber.and.returnValue(throwError(() => ({ status: 404 })));
-      component.newDriverMobileNumber = '0827654321';
-
-      component.checkAndAddDriver();
-
-      expect(component.showCreateForm).toBeTrue();
-    });
-  });
-
-  describe('createNewDriver() — phase 2 create', () => {
-    beforeEach(() => {
-      component.storeId = 'store-abc';
-      fixture.detectChanges();
-      component.newDriverName = 'Jane';
-      component.newDriverSurname = 'Doe';
       component.newDriverMobileNumber = '0821234567';
     });
 
-    it('creates a MESSENGER-role driver tagged with this storeId — not driverAdminId or messengerAdminId', () => {
-      orderSvc.registerCustomer.and.returnValue(of({ id: 'new-driver-1', name: 'Jane' } as any));
-
-      component.createNewDriver();
-
-      expect(orderSvc.registerCustomer).toHaveBeenCalled();
-      const posted = orderSvc.registerCustomer.calls.mostRecent().args[0];
-      expect(posted.role).toBe('MESSENGER' as any);
-      expect(posted.tag).toEqual({ storeId: 'store-abc' });
-      expect(posted.tag!['driverAdminId']).toBeUndefined();
-      expect(posted.tag!['messengerAdminId']).toBeUndefined();
+    it('makes exactly one HTTP call to inviteDriverToStore — no preliminary phone lookup (AC-06)', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(of({ outcome: 'INVITED' }));
+      component.sendInvite();
+      expect(orderSvc.inviteDriverToStore).toHaveBeenCalledTimes(1);
     });
 
-    it('shows an error and does not call registerCustomer when storeId is missing', () => {
+    it('shows "Driver added to your team." and reloads drivers on CREATED outcome (AC-01)', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(of({ outcome: 'CREATED' }));
+      component.sendInvite();
+      expect(component.inviteResultMessage).toContain('Driver added to your team');
+      expect(component.inviteResultType).toBe('success');
+      // CREATED triggers a driver list reload (regression guard — list must refresh)
+      expect(orderSvc.getAllMessengersForStore).toHaveBeenCalled();
+    });
+
+    it('shows "already on your team" message on ALREADY_LINKED outcome (AC-02)', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(of({ outcome: 'ALREADY_LINKED' }));
+      component.sendInvite();
+      expect(component.inviteResultMessage).toContain('already on your team');
+      expect(component.inviteResultType).toBe('info');
+    });
+
+    it('shows invite-sent message on INVITED outcome (AC-03)', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(of({ outcome: 'INVITED' }));
+      component.sendInvite();
+      expect(component.inviteResultMessage.length).toBeGreaterThan(0);
+      expect(component.inviteResultType).toBe('success');
+    });
+
+    it('shows "already working with another team" on 409 CONFLICT (AC-05)', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(throwError(() => ({ status: 409 })));
+      component.sendInvite();
+      expect(component.inviteResultMessage).toContain('already working with another team');
+      expect(component.inviteResultType).toBe('warning');
+    });
+
+    it('shows a validation message and does not call the service when mobile number is empty', () => {
+      component.newDriverMobileNumber = '';
+      component.sendInvite();
+      expect(orderSvc.inviteDriverToStore).not.toHaveBeenCalled();
+      expect(component.inviteResultMessage).toContain('mobile number');
+    });
+
+    it('shows "Store not found" and does not call the service when storeId is missing', () => {
       component.storeId = undefined;
-
-      component.createNewDriver();
-
-      expect(orderSvc.registerCustomer).not.toHaveBeenCalled();
-      expect(component.createErrorMessage).toContain('Store not found');
+      component.sendInvite();
+      expect(orderSvc.inviteDriverToStore).not.toHaveBeenCalled();
+      expect(component.inviteResultMessage).toContain('Store not found');
     });
 
-    it('shows an error message when registerCustomer fails', () => {
-      orderSvc.registerCustomer.and.returnValue(throwError(() => new Error('network error')));
-
-      component.createNewDriver();
-
-      expect(component.createErrorMessage).toBe('Failed to create driver profile. Please try again.');
-      expect(component.isCreatingDriver).toBeFalse();
+    it('resets isSendingInvite to false after a service error', () => {
+      orderSvc.inviteDriverToStore.and.returnValue(throwError(() => ({ status: 500 })));
+      component.sendInvite();
+      expect(component.isSendingInvite).toBeFalse();
     });
   });
 

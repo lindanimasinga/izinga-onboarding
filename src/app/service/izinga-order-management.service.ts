@@ -19,6 +19,33 @@ import {
   PayoutPage
 } from '../model/referral-partner';
 
+// ── ADR-018 / INVITE-DRV-01 interfaces ────────────────────────────────────
+
+export interface DriverInviteRequest {
+  mobileNumber: string;
+  name?: string;
+  surname?: string;
+}
+
+export interface InviteOutcomeResponse {
+  outcome: 'CREATED' | 'ALREADY_LINKED' | 'INVITED';
+}
+
+/**
+ * Response from GET /invite/{code} (public endpoint).
+ * Note: storeId contains the contextId — may be a storeId or adminId depending on contextType.
+ * Treat this field as "contextId" in logic even though the wire name is storeId (RISK-02).
+ */
+export interface InviteCodeResponse {
+  storeId: string;             // contextId — storeId for STORE, adminId for MESSENGER_ADMIN
+  storeName: string | null;
+  storeImageUrl: string | null;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  expiresAt: string;           // ISO 8601 timestamp
+  driverMobileNumber: string;  // masked — e.g. "****1234"
+  contextType: 'STORE' | 'MESSENGER_ADMIN';  // added by T-01 backend addendum
+}
+
 export interface Lead {
   id: string;
   phone?: string;
@@ -644,5 +671,130 @@ export class IzingaOrderManagementService {
         );
     }
 
+    // ── ADR-018 / INVITE-DRV-01 ──────────────────────────────────────────────
 
+    /**
+     * POST /store/{storeId}/invite
+     * Invite a driver to join a store team. Five possible outcomes:
+     * CREATED (201), ALREADY_LINKED (200), INVITED new (201), INVITED idempotent (200), CONFLICT (409).
+     */
+    inviteDriverToStore(storeId: string, request: DriverInviteRequest): Observable<InviteOutcomeResponse> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.post<InviteOutcomeResponse>(
+            `${environment.izingaUrl}/store/${storeId}/invite`,
+            request,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
+    /**
+     * POST /messenger-admin/{adminId}/invite
+     * Invite a driver to join a messenger-admin's team.
+     */
+    inviteDriverToMessengerAdmin(adminId: string, request: DriverInviteRequest): Observable<InviteOutcomeResponse> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.post<InviteOutcomeResponse>(
+            `${environment.izingaUrl}/messenger-admin/${adminId}/invite`,
+            request,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
+    /**
+     * GET /invite/{code} — PUBLIC, no Authorization header.
+     * Returns invite details for the driver landing page.
+     * Must NOT include the Firebase token — the driver may not be logged in.
+     */
+    getInviteByCode(code: string): Observable<InviteCodeResponse> {
+      // Deliberately use only this.headers (Content-Type + app-version), NO Bearer token.
+      return this.http
+        .get<InviteCodeResponse>(`${environment.izingaUrl}/invite/${code}`, { headers: this.headers })
+        .pipe(
+          catchError((error: HttpErrorResponse) => throwError(error))
+        );
+    }
+
+    /**
+     * POST /store/{storeId}/invite/{code}/accept
+     * Authenticated driver accepts a store invite.
+     */
+    acceptStoreInvite(storeId: string, code: string): Observable<void> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.post<void>(
+            `${environment.izingaUrl}/store/${storeId}/invite/${code}/accept`,
+            {},
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
+    /**
+     * POST /store/{storeId}/invite/{code}/reject
+     * Authenticated driver rejects a store invite.
+     */
+    rejectStoreInvite(storeId: string, code: string, reason?: string): Observable<void> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          const body = reason ? { reason } : {};
+          return this.http.post<void>(
+            `${environment.izingaUrl}/store/${storeId}/invite/${code}/reject`,
+            body,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
+    /**
+     * POST /messenger-admin/{adminId}/invite/{code}/accept
+     * Authenticated driver accepts a messenger-admin invite.
+     */
+    acceptMessengerAdminInvite(adminId: string, code: string): Observable<void> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          return this.http.post<void>(
+            `${environment.izingaUrl}/messenger-admin/${adminId}/invite/${code}/accept`,
+            {},
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
+
+    /**
+     * POST /messenger-admin/{adminId}/invite/{code}/reject
+     * Authenticated driver rejects a messenger-admin invite.
+     */
+    rejectMessengerAdminInvite(adminId: string, code: string, reason?: string): Observable<void> {
+      return this.firebaseService.getFirebaseIdToken().pipe(
+        switchMap(token => {
+          const headers = new HttpHeaders({ ...this.headers, 'Authorization': `Bearer ${token}` });
+          const body = reason ? { reason } : {};
+          return this.http.post<void>(
+            `${environment.izingaUrl}/messenger-admin/${adminId}/invite/${code}/reject`,
+            body,
+            { headers }
+          );
+        }),
+        catchError((error: HttpErrorResponse) => throwError(error))
+      );
+    }
 }
