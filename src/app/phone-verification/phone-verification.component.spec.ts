@@ -30,7 +30,9 @@ describe('PhoneVerificationComponent', () => {
     analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
     routerSvc = { navigate: jasmine.createSpy('navigate').and.stub(),
                   navigateByUrl: jasmine.createSpy('navigateByUrl').and.stub() } as any;
-    routeSvc = {} as any;
+    // T-06: ngOnInit now subscribes to queryParams for returnUrl handling (REQ-07).
+    // Provide an empty-params Observable so ngOnInit does not throw on detectChanges().
+    routeSvc = { queryParams: of({}) } as any;
 
     TestBed.configureTestingModule({
       declarations: [PhoneVerificationComponent],
@@ -346,6 +348,59 @@ describe('PhoneVerificationComponent', () => {
   });
 });
 
+// T-06 / REQ-07 / AC-21: ngOnInit returnUrl query-param handling.
+// Uses a separate describe with fresh TestBed to supply different queryParams per case.
+describe('PhoneVerificationComponent — T-06 returnUrl handling (REQ-07 / AC-21)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function makeComponent(queryParamsValue: Record<string, string>, storageSvcRef: any) {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', ['sendWhatsAppOtp', 'verifyWhatsAppOtp']);
+    const firebaseSvc = jasmine.createSpyObj('FirebaseService', ['requestVerification', 'confirmCode', 'signInWithWhatsAppToken', 'createCapture']);
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    const routerSvc = { navigate: jasmine.createSpy(), navigateByUrl: jasmine.createSpy() } as any;
+
+    TestBed.configureTestingModule({
+      declarations: [PhoneVerificationComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvcRef },
+        { provide: FirebaseService, useValue: firebaseSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: ActivatedRoute, useValue: { queryParams: of(queryParamsValue) } }
+      ]
+    });
+    const f = TestBed.createComponent(PhoneVerificationComponent);
+    f.detectChanges();
+    return f.componentInstance;
+  }
+
+  it('T-06: internal returnUrl starting with "/" is stored in StorageService (REQ-07)', () => {
+    const storageSvc: any = { phoneNumber: '', returnUrl: null };
+    makeComponent({ returnUrl: '/indivisuals/store-invite?code=abc123' }, storageSvc);
+    expect(storageSvc.returnUrl).toBe('/indivisuals/store-invite?code=abc123');
+  });
+
+  it('AC-21: external returnUrl (https://evil.com) is NOT stored — redirect guard', () => {
+    const storageSvc: any = { phoneNumber: '', returnUrl: null };
+    makeComponent({ returnUrl: 'https://evil.com' }, storageSvc);
+    expect(storageSvc.returnUrl).toBeNull();
+  });
+
+  it('AC-21: external returnUrl without scheme ("evil.com") is NOT stored', () => {
+    const storageSvc: any = { phoneNumber: '', returnUrl: null };
+    makeComponent({ returnUrl: 'evil.com/steal' }, storageSvc);
+    expect(storageSvc.returnUrl).toBeNull();
+  });
+
+  it('T-06: absent returnUrl leaves StorageService.returnUrl unchanged', () => {
+    const storageSvc: any = { phoneNumber: '', returnUrl: null };
+    makeComponent({}, storageSvc);
+    expect(storageSvc.returnUrl).toBeNull();
+  });
+});
+
 // REQ-PP: no inline privacy notice in phone-verification template (ONB-UX-02)
 // Note: TestBed already configured in the outer describe — we use a separate describe
 // with its own TestBed configuration to keep test isolation.
@@ -368,7 +423,8 @@ describe('PhoneVerificationComponent — REQ-PP (ONB-UX-02)', () => {
         { provide: FirebaseService, useValue: firebaseSvc },
         { provide: AnalyticsService, useValue: analyticsSvc },
         { provide: Router, useValue: routerSvc },
-        { provide: ActivatedRoute, useValue: {} }
+        // T-06: provide queryParams Observable so ngOnInit doesn't throw.
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
       ]
     });
     const f = TestBed.createComponent(PhoneVerificationComponent);
