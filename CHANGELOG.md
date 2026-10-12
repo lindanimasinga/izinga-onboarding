@@ -1,5 +1,47 @@
 # Changelog
 
+## [1.22.0] — 2026-10-12
+
+**Release type:** Feature (P2 — new functionality)
+
+**Summary:** INVITE-DRV-01 — store owners and messenger-admins can now invite drivers to join by mobile number via the real ADR-018 backend API, with a new public deep-link landing page for drivers to accept or reject.
+
+### Changes
+
+- [NEW] `StoreInviteComponent` at public route `/indivisuals/store-invite?code={code}` (no auth guard) — 7 states (loading, not-found, already-responded, expired, pending-with-accept-reject, accepted, rejected). Calls `GET /invite/{code}` unauthenticated, routes accept/reject to the correct backend endpoint family based on the invite's `contextType` (STORE vs MESSENGER_ADMIN).
+- [NEW] `PhoneVerificationComponent` gains `returnUrl` query-param support so an unauthenticated driver clicking Accept/Reject is sent through login and back to the invite page. Guarded against open-redirect — only same-origin relative paths (`startsWith('/')`) are honoured.
+- [CHANGED] `StoreMessengersComponent` and `TeamMessengersComponent` — replaced the old two-phase "Check & Add / Create Driver" forms (which bypassed the backend invite API entirely, writing driver profiles directly and skipping the WhatsApp notification) with a single "Invite Driver" form calling the real `POST /store/{storeId}/invite` / `POST /messenger-admin/{adminId}/invite` endpoints, surfacing all 5 invite outcomes.
+
+### Breaking changes
+
+None. New component and route are additive. The store-messengers/team-messengers form replacement changes the UI flow but not any public API contract this app exposes.
+
+### Deployment sequence
+
+1. Requires ijudi-api v1.15.0 (ADR-018 backend) to already be live — this release's invite forms and landing page call endpoints that only exist from that release onward.
+2. izinga-onboarding (this release) follows.
+
+### Rollback steps
+
+1. Redeploy the v1.21.1 artifact. No data migration rollback required — the new `StoreDriverInvitation` records on the backend are harmless if this frontend is rolled back; store admins simply lose the invite UI until redeployed.
+
+### Smoke test plan
+
+1. As a store owner, open Store Dashboard → a store → Store Drivers → Invite Driver, submit a mobile number — verify the outcome message matches the backend response (created/already-linked/invited/conflict).
+2. Open `/indivisuals/store-invite?code=<real-code>` logged out — verify the invite details render with no login required.
+3. Click Accept while logged out — verify redirect to `/indivisuals/verify?returnUrl=...` and return to the same invite page after OTP login.
+4. Accept as the matching driver — verify the Accepted state renders.
+5. Open the same link as a different authenticated user — verify the phone-mismatch message.
+
+### Gate citations
+
+- Feature Brief: INVITE-DRV-01 — approved by Lindani Masinga
+- Code Review: PASS, approved for deploy — iZinga Code Reviewer, 2026-10-12
+- QA Gate: 780 tests, 0 failures, Angular suite, 2026-10-12
+- Manual live verification: full end-to-end flow confirmed working, including the live `driver_store_invite` WhatsApp template — Lindani Masinga + Claude, 2026-10-12
+
+---
+
 ## [1.21.1] — 2026-10-10
 
 **Release type:** Patch (P1) — single UI/UX bugfix, no new features
