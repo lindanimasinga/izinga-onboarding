@@ -57,6 +57,18 @@ export class PhoneVerificationComponent {
 
   ngOnInit(): void {
     this.analytics.logScreenView('phone_verification');
+
+    // T-06 / INVITE-DRV-01: if the caller supplied a returnUrl query param (e.g. the
+    // invite landing page redirects here with ?returnUrl=/indivisuals/store-invite?code=xxx),
+    // persist it in StorageService so onVerified() can navigate back there after OTP success.
+    // Only internal paths (starting with '/') are accepted — external URLs are silently ignored
+    // to prevent open-redirect attacks (AC-21).
+    this.route.queryParams.subscribe(params => {
+      const rawReturnUrl = params['returnUrl'];
+      if (rawReturnUrl && typeof rawReturnUrl === 'string' && rawReturnUrl.startsWith('/')) {
+        this.storageService.returnUrl = rawReturnUrl;
+      }
+    });
   }
 
   ngAfterViewInit() {

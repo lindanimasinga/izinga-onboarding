@@ -10,129 +10,70 @@
     </div>
   </div>
 
-  <!-- Add Driver Form -->
-  <div *ngIf="showAddForm" class="card shadow-sm mb-4 p-4" role="region" aria-label="Add new driver form">
-    <h5 class="fw-bold mb-4">Add New Driver to Team</h5>
-    
-    <!-- Phase 1: Check Existing or Create -->
-    <div *ngIf="!showCreateForm">
-      <div *ngIf="duplicateFoundMessage" class="alert alert-success d-flex gap-2 mb-3" role="alert">
-        <i class="bi bi-check-circle flex-shrink-0 mt-0.5"></i>
-        <div>{{ duplicateFoundMessage }}</div>
-      </div>
-      
-      <div *ngIf="addErrorMessage" class="alert alert-danger d-flex gap-2 mb-3" role="alert">
-        <i class="bi bi-exclamation-circle flex-shrink-0 mt-0.5"></i>
-        <div>{{ addErrorMessage }}</div>
-      </div>
+  <!-- Invite Driver Form (INVITE-DRV-01: single-phase, calls POST /messenger-admin/{adminId}/invite) -->
+  <div *ngIf="showAddForm" class="card shadow-sm mb-4 p-4" role="region" aria-label="Invite driver form">
+    <h5 class="fw-bold mb-1">Invite a Driver</h5>
+    <p class="text-muted mb-4">Enter the driver's mobile number to send an invite via WhatsApp.</p>
 
-      <div class="mb-4">
-        <label for="driverPhone" class="form-label">Mobile Number</label>
-        <input 
-          type="tel" 
-          id="driverPhone"
-          class="form-control" 
-          placeholder="+27 XX XXX XXXX" 
-          [(ngModel)]="newDriverMobileNumber" 
-          [disabled]="isCheckingDriver"
-          aria-describedby="phoneHelp">
-        <small id="phoneHelp" class="form-text text-muted d-block mt-2">Enter the driver's mobile number to look them up or create a new profile.</small>
-      </div>
+    <div *ngIf="inviteResultMessage" class="alert alert-{{ inviteResultType }} mb-3" role="alert" style="color: var(--text-color)">
+      {{ inviteResultMessage }}
+    </div>
 
-      <div class="d-flex gap-2">
-        <button 
-          class="btn btn-primary fw-500" 
-          (click)="checkAndAddDriver()" 
-          [disabled]="isCheckingDriver"
-          type="button"
-          [attr.aria-busy]="isCheckingDriver">
-          <span *ngIf="!isCheckingDriver">
-            <i class="bi bi-search me-1"></i>Check & Add
-          </span>
-          <span *ngIf="isCheckingDriver" class="d-flex align-items-center gap-2">
-            <span class="spinner-border spinner-border-sm"></span>Checking...
-          </span>
-        </button>
-        <button 
-          class="btn btn-outline-secondary fw-500" 
-          (click)="cancelAddDriver()" 
-          [disabled]="isCheckingDriver"
-          type="button">
-          Cancel
-        </button>
+    <div class="mb-3">
+      <label for="teamInvitePhone" class="form-label">Mobile Number <span class="text-danger">*</span></label>
+      <input
+        type="tel"
+        id="teamInvitePhone"
+        class="form-control"
+        placeholder="+27 XX XXX XXXX"
+        [(ngModel)]="newDriverMobileNumber"
+        [disabled]="isSendingInvite"
+        aria-describedby="teamInvitePhoneHelp">
+      <small id="teamInvitePhoneHelp" class="form-text text-muted d-block mt-1">Required. Enter the driver's South African mobile number.</small>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <label for="teamInviteFirstName" class="form-label">First Name <span class="text-muted small">(optional)</span></label>
+        <input
+          type="text"
+          id="teamInviteFirstName"
+          class="form-control"
+          placeholder="Enter first name"
+          [(ngModel)]="newDriverName"
+          [disabled]="isSendingInvite">
+      </div>
+      <div class="col-md-6">
+        <label for="teamInviteLastName" class="form-label">Last Name <span class="text-muted small">(optional)</span></label>
+        <input
+          type="text"
+          id="teamInviteLastName"
+          class="form-control"
+          placeholder="Enter last name"
+          [(ngModel)]="newDriverSurname"
+          [disabled]="isSendingInvite">
       </div>
     </div>
 
-    <!-- Phase 2: Create New Driver -->
-    <div *ngIf="showCreateForm">
-      <div class="alert alert-info d-flex gap-2 mb-3" role="status">
-        <i class="bi bi-info-circle flex-shrink-0 mt-0.5"></i>
-        <div>No profile found. Create a new driver with this mobile number.</div>
-      </div>
-
-      <div *ngIf="createErrorMessage" class="alert alert-danger d-flex gap-2 mb-3" role="alert">
-        <i class="bi bi-exclamation-circle flex-shrink-0 mt-0.5"></i>
-        <div>{{ createErrorMessage }}</div>
-      </div>
-
-      <div class="row g-3 mb-4">
-        <div class="col-md-6">
-          <label for="driverFirstName" class="form-label">First Name</label>
-          <input 
-            type="text" 
-            id="driverFirstName"
-            class="form-control" 
-            placeholder="Enter first name" 
-            [(ngModel)]="newDriverName" 
-            [disabled]="isCreatingDriver"
-            required>
-        </div>
-        <div class="col-md-6">
-          <label for="driverLastName" class="form-label">Last Name</label>
-          <input 
-            type="text" 
-            id="driverLastName"
-            class="form-control" 
-            placeholder="Enter last name" 
-            [(ngModel)]="newDriverSurname" 
-            [disabled]="isCreatingDriver"
-            required>
-        </div>
-      </div>
-
-      <div class="mb-4">
-        <label for="driverPhoneConfirm" class="form-label">Mobile Number</label>
-        <input 
-          type="tel" 
-          id="driverPhoneConfirm"
-          class="form-control" 
-          [value]="newDriverMobileNumber" 
-          disabled>
-        <small class="form-text text-muted d-block mt-2">This driver will be added to your team once created.</small>
-      </div>
-
-      <div class="d-flex gap-2">
-        <button 
-          class="btn btn-primary fw-500" 
-          (click)="createNewDriver()" 
-          [disabled]="isCreatingDriver"
-          type="button"
-          [attr.aria-busy]="isCreatingDriver">
-          <span *ngIf="!isCreatingDriver">
-            <i class="bi bi-plus-circle me-1"></i>Create Driver
-          </span>
-          <span *ngIf="isCreatingDriver" class="d-flex align-items-center gap-2">
-            <span class="spinner-border spinner-border-sm"></span>Creating...
-          </span>
-        </button>
-        <button 
-          class="btn btn-outline-secondary fw-500" 
-          (click)="backToPhaseOne()" 
-          [disabled]="isCreatingDriver"
-          type="button">
-          Back
-        </button>
-      </div>
+    <div class="d-flex gap-2">
+      <button
+        class="btn btn-dark"
+        (click)="sendInvite()"
+        [disabled]="isSendingInvite"
+        type="button"
+        [attr.aria-busy]="isSendingInvite">
+        <span *ngIf="!isSendingInvite">Send Invite</span>
+        <span *ngIf="isSendingInvite" class="d-flex align-items-center gap-2">
+          <span class="spinner-border spinner-border-sm"></span>Sending invite...
+        </span>
+      </button>
+      <button
+        class="btn btn-outline-dark"
+        (click)="cancelAddDriver()"
+        [disabled]="isSendingInvite"
+        type="button">
+        Cancel
+      </button>
     </div>
   </div>
 

@@ -48,6 +48,7 @@ import { PremiumTierGuard } from './guards/premium-tier.guard';
 import { SubscriptionCheckoutComponent } from './subscription-checkout/subscription-checkout.component';
 import { SubscriptionSuccessComponent } from './subscription-success/subscription-success.component';
 import { SubscriptionCancelComponent } from './subscription-cancel/subscription-cancel.component';
+import { StoreInviteComponent } from './store-invite/store-invite.component';
 
 const routes: Routes = [
   { path: '', component: WelcomeSelectionComponent},
@@ -85,7 +86,9 @@ const routes: Routes = [
       { path: 'rp-referral-code', component: ReferralPartnerDashboardComponent, data: { tab: 'code', title: 'My Referral Code' } },
       { path: 'rp-referrals', component: ReferralPartnerDashboardComponent, data: { tab: 'referrals', title: 'My Referrals' } },
       { path: 'rp-commissions', component: ReferralPartnerDashboardComponent, data: { tab: 'commissions', title: 'My Commissions' } },
-      { path: 'training-guide', component: PostIcaTrainingComponent, canActivate: [PhoneVerifiedGuard] }
+      { path: 'training-guide', component: PostIcaTrainingComponent, canActivate: [PhoneVerifiedGuard] },
+      // INVITE-DRV-01: public invite landing page — NO auth guard (AC-08)
+      { path: 'store-invite', component: StoreInviteComponent }
     ]},
   // Admin recon routes — #65. Guarded by AdminRoleGuard (requires ADMIN role).
   { path: 'admin', children: [

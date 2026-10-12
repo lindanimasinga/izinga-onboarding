@@ -1,0 +1,117 @@
+<div class="mt-3" style="max-width: 480px; margin: 0 auto; padding: 0 16px;">
+
+  <!-- State 1: Loading -->
+  <div *ngIf="state === 'loading'" class="text-center py-5" role="status" aria-live="polite">
+    <div class="spinner-border mb-3" style="color: var(--btn-bg-color)" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted">Loading invite details...</p>
+  </div>
+
+  <!-- State 2: Not Found -->
+  <div *ngIf="state === 'not-found'" class="text-center py-5">
+    <div class="mb-4" style="font-size: 3rem;">&#x26D4;</div>
+    <h2 class="fw-bold mb-2">Invalid Link</h2>
+    <p class="text-muted">This invite link is invalid or has already expired.</p>
+  </div>
+
+  <!-- State 3: Already Responded -->
+  <div *ngIf="state === 'already-responded'" class="text-center py-5">
+    <div class="mb-4" style="font-size: 3rem;">&#x2705;</div>
+    <h2 class="fw-bold mb-2">Already Responded</h2>
+    <p class="text-muted">This invite has already been responded to.</p>
+  </div>
+
+  <!-- State 4: Expired -->
+  <div *ngIf="state === 'expired'" class="text-center py-5">
+    <div class="mb-4" style="font-size: 3rem;">&#x23F0;</div>
+    <h2 class="fw-bold mb-2">Invite Expired</h2>
+    <p class="text-muted">This invite has expired. Ask the store to resend a new invite.</p>
+  </div>
+
+  <!-- State 5: Pending — primary state -->
+  <div *ngIf="state === 'pending' && invite">
+    <div class="text-center mb-4">
+      <!-- Store image or fallback icon -->
+      <div class="mb-3">
+        <img
+          *ngIf="invite.storeImageUrl"
+          [src]="invite.storeImageUrl"
+          [alt]="contextName"
+          class="rounded-circle"
+          style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--btn-bg-color)">
+        <div
+          *ngIf="!invite.storeImageUrl"
+          class="rounded-circle d-inline-flex align-items-center justify-content-center"
+          style="width: 80px; height: 80px; background-color: var(--bkg-card-color); border: 2px solid var(--btn-bg-color); font-size: 2rem;">
+          &#x1F697;
+        </div>
+      </div>
+
+      <h2 class="fw-bold mb-1">{{ contextName }}</h2>
+      <p class="text-muted mb-0">Driver Invitation</p>
+    </div>
+
+    <div class="card p-4 mb-4" style="background-color: var(--bkg-card-color)">
+      <p class="mb-3">
+        You have been invited to join <strong>{{ contextName }}</strong> as a delivery driver.
+      </p>
+      <div class="mb-2 d-flex align-items-center gap-2">
+        <span class="text-muted small">Phone:</span>
+        <span class="fw-bold">{{ invite.driverMobileNumber }}</span>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">Expires:</span>
+        <span class="small">{{ formattedExpiry }}</span>
+      </div>
+    </div>
+
+    <!-- Action error banner -->
+    <div *ngIf="actionError" class="alert mb-3" role="alert"
+         style="border-left: 4px solid var(--btn-red-color); color: var(--text-color)">
+      {{ actionError }}
+    </div>
+
+    <!-- Accept / Reject buttons -->
+    <div class="d-flex gap-3 mb-3">
+      <button
+        class="btn btn-dark flex-grow-1"
+        (click)="acceptInvite()"
+        [disabled]="isActing"
+        type="button"
+        [attr.aria-busy]="isActing">
+        <span *ngIf="!isActing">Accept</span>
+        <span *ngIf="isActing" class="d-flex align-items-center justify-content-center gap-2">
+          <span class="spinner-border spinner-border-sm"></span>Please wait...
+        </span>
+      </button>
+      <button
+        class="btn btn-outline-dark flex-grow-1"
+        (click)="rejectInvite()"
+        [disabled]="isActing"
+        type="button">
+        Reject
+      </button>
+    </div>
+  </div>
+
+  <!-- State 6: Accepted -->
+  <div *ngIf="state === 'accepted'" class="text-center py-5">
+    <div class="mb-4" style="font-size: 3rem;">&#x1F389;</div>
+    <h2 class="fw-bold mb-2">Welcome to the Team!</h2>
+    <p class="text-muted mb-4">
+      You have joined <strong>{{ contextName }}</strong>! You can now start accepting deliveries.
+    </p>
+    <button class="btn btn-dark" (click)="goToDashboard()" type="button">
+      Go to Dashboard
+    </button>
+  </div>
+
+  <!-- State 7: Rejected -->
+  <div *ngIf="state === 'rejected'" class="text-center py-5">
+    <div class="mb-4" style="font-size: 3rem;">&#x1F44B;</div>
+    <h2 class="fw-bold mb-2">Invite Declined</h2>
+    <p class="text-muted">You have declined this invite.</p>
+  </div>
+
+</div>
