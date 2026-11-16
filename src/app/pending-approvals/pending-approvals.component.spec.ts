@@ -8,6 +8,7 @@ import { IzingaOrderManagementService } from '../service/izinga-order-management
 import { StorageService } from '../service/storage-service.service';
 import { ChatService } from '../service/chat.service';
 import { UserProfile } from '../model/models';
+import { UserConfig, DataType } from '../model/models';
 import { Bank } from '../model/bank';
 
 function makeOrderSvc(pendingUsers: UserProfile[] = []): any {
@@ -111,6 +112,306 @@ describe('PendingApprovalsComponent', () => {
     it('returns false when no userConfig matches the user description', () => {
       const user: UserProfile = { id: 'u1', description: 'unknown-type' } as UserProfile;
       expect(component.hasMissingFields(user)).toBe(false);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // getMissingFieldLabels — REQ-06 (all 4 branches + formatMissingFieldName)
+  // ---------------------------------------------------------------------------
+  describe('getMissingFieldLabels — REQ-06', () => {
+    function makeConfig(
+      label: string,
+      fields: Array<{ name: string; label: string }>
+    ): UserConfig {
+      return {
+        name: label,
+        label,
+        userRole: UserProfile.RoleEnum.MESSENGER,
+        mandatoryFields: fields.map(f => ({
+          name: f.name,
+          label: f.label,
+          dataType: DataType.STRING
+        })),
+        optionalFields: [],
+        hiddenFields: []
+      };
+    }
+
+    // REQ-06(d): description does not match any UserConfig — returns '' and throws nothing.
+    // The default fixture has userConfigOptions = [] (getUserConfig mock returns of([])).
+    it('REQ-06(d): returns "" when description matches no UserConfig', () => {
+      const user = { id: 'u-d', description: 'no-such-type', tag: {} } as UserProfile;
+      expect(() => component.getMissingFieldLabels(user)).not.toThrow();
+      expect(component.getMissingFieldLabels(user)).toBe('');
+    });
+
+    it('REQ-06(d): returns "" when user description is undefined', () => {
+      const user = { id: 'u-undef', tag: {} } as UserProfile;
+      expect(() => component.getMissingFieldLabels(user)).not.toThrow();
+      expect(component.getMissingFieldLabels(user)).toBe('');
+    });
+
+    // REQ-06(a): all mandatory fields present — count is 0, joined result is ''
+    it('REQ-06(a): returns "" and getMissingFields count 0 when all mandatory fields present', () => {
+      component.userConfigOptions = [
+        makeConfig('Bike Driver', [
+          { name: 'vehicleReg', label: 'Vehicle Registration' },
+          { name: 'idNumber', label: 'ID Number' }
+        ])
+      ];
+      const user = {
+        id: 'u-a',
+        description: 'Bike Driver',
+        tag: { vehicleReg: 'CA123456', idNumber: '8001015009087' } as { [key: string]: any }
+      } as unknown as UserProfile;
+      expect(component.getMissingFieldLabels(user)).toBe('');
+      expect(component.getMissingFields(user).length).toBe(0);
+    });
+
+    // REQ-06(b): exactly 1 field missing — returns single formatted label
+    it('REQ-06(b): returns single formatted label when exactly 1 field is missing', () => {
+      component.userConfigOptions = [
+        makeConfig('Bike Driver', [
+          { name: 'vehicleReg', label: 'Vehicle Registration' },
+          { name: 'idNumber', label: 'ID Number' }
+        ])
+      ];
+      const user = {
+        id: 'u-b',
+        description: 'Bike Driver',
+        tag: { idNumber: '8001015009087' } as { [key: string]: any }  // vehicleReg is missing
+      } as unknown as UserProfile;
+      expect(component.getMissingFieldLabels(user)).toBe('Vehicle Registration');
+      expect(component.getMissingFields(user).length).toBe(1);
+    });
+
+    // REQ-06(c): 3 missing fields — comma-separated labels (this is the iz-badge--coral boundary)
+    it('REQ-06(c): returns comma-separated labels for 3 missing fields', () => {
+      component.userConfigOptions = [
+        makeConfig('Bakkie Driver', [
+          { name: 'vehicleReg', label: 'Vehicle Registration' },
+          { name: 'idNumber', label: 'ID Number' },
+          { name: 'driverLicense', label: "Driver's License" }
+        ])
+      ];
+      const user = {
+        id: 'u-c',
+        description: 'Bakkie Driver',
+        tag: {}  // all 3 fields missing
+      } as UserProfile;
+      expect(component.getMissingFieldLabels(user))
+        .toBe("Vehicle Registration, ID Number, Driver's License");
+      expect(component.getMissingFields(user).length).toBe(3);
+    });
+
+    // REQ-06(c): getMissingFields().length >= 3 triggers the coral branch in ngClass
+    it('REQ-06(c): getMissingFields().length is >= 3 for the coral ngClass branch', () => {
+      component.userConfigOptions = [
+        makeConfig('Truck Driver', [
+          { name: 'f1', label: 'Field One' },
+          { name: 'f2', label: 'Field Two' },
+          { name: 'f3', label: 'Field Three' }
+        ])
+      ];
+      const user = { id: 'u-coral', description: 'Truck Driver', tag: {} } as UserProfile;
+      expect(component.getMissingFields(user).length).toBeGreaterThanOrEqual(3);
+    });
+
+    // formatMissingFieldName integration: empty label falls through to field.name, camelCase is split
+    it('applies formatMissingFieldName to camelCase field names when label is absent', () => {
+      component.userConfigOptions = [
+        makeConfig('Car Driver', [
+          { name: 'vehicleRegNumber', label: '' },  // empty label → field.name used by getMissingFields
+          { name: 'proofOfAddress', label: '' }
+        ])
+      ];
+      const user = { id: 'u-fmt', description: 'Car Driver', tag: {} } as UserProfile;
+      // getMissingFields returns ['vehicleRegNumber', 'proofOfAddress'] ('' is falsy, so field.name is used)
+      // formatMissingFieldName splits camelCase with a space between each lower→upper boundary
+      expect(component.getMissingFieldLabels(user)).toBe('vehicle Reg Number, proof Of Address');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // missing-fields badge — template assertions (AC-01..AC-06, AC-08)
+  //
+  // These tests set component.pendingUsers and component.userConfigOptions
+  // directly (bypassing the service mock), then call fixture.detectChanges()
+  // to trigger a re-render.  The outer beforeEach provides a fresh component
+  // instance for each test.
+  // ---------------------------------------------------------------------------
+  describe('missing-fields badge — template', () => {
+    // Three-field config reused across all template tests (Bike Driver with 3 mandatory fields).
+    function driverConfig(): UserConfig {
+      return {
+        name: 'Bike Driver',
+        label: 'Bike Driver',
+        userRole: UserProfile.RoleEnum.MESSENGER,
+        mandatoryFields: [
+          { name: 'vehicleReg',    label: 'Vehicle Registration', dataType: DataType.STRING },
+          { name: 'idNumber',      label: 'ID Number',            dataType: DataType.STRING },
+          { name: 'driverLicense', label: "Driver's License",     dataType: DataType.STRING }
+        ],
+        optionalFields: [],
+        hiddenFields: []
+      };
+    }
+
+    // Build a UserProfile with exactly `count` missing mandatory fields (0–3).
+    // Fields are populated left-to-right: vehicleReg first, then idNumber, then driverLicense.
+    // Missing fields are those not filled, right-to-left.
+    function userWithMissing(count: number): UserProfile {
+      const all3 = ['vehicleReg', 'idNumber', 'driverLicense'];
+      const tag: { [key: string]: string } = {};
+      all3.slice(0, 3 - count).forEach(k => { tag[k] = 'some-value'; });
+      return {
+        id: `u-tpl-${count}`,
+        description: 'Bike Driver',
+        tag,
+        profileApproved: false
+      } as UserProfile;
+    }
+
+    // Set the component state and trigger a template re-render.
+    function setScenario(users: UserProfile[], config: UserConfig): void {
+      component.pendingUsers = users;
+      component.userConfigOptions = [config];
+      fixture.detectChanges();
+    }
+
+    // Find the badge wrapper in the list panel: outer span.small with [title].
+    function findBadgeWrapper(): HTMLElement | null {
+      const listPanel: HTMLElement | null = fixture.nativeElement.querySelector('.pending-list-panel');
+      return listPanel ? listPanel.querySelector('span.small[title]') : null;
+    }
+
+    // Find the tick span in the list panel: span.small WITHOUT [title].
+    function findTickSpan(): HTMLElement | null {
+      const listPanel: HTMLElement | null = fixture.nativeElement.querySelector('.pending-list-panel');
+      return listPanel ? listPanel.querySelector('span.small:not([title])') : null;
+    }
+
+    // ── AC-01: tick renders for a complete user; no badge ───────────────────
+    it('AC-01: shows "Ready For App" tick and no badge wrapper when 0 fields missing', () => {
+      setScenario([userWithMissing(0)], driverConfig());
+      const tick = findTickSpan();
+      const badge = findBadgeWrapper();
+      expect(tick).withContext('tick span.small should be present').not.toBeNull();
+      expect(tick!.textContent).toContain('Ready For App');
+      expect(badge).withContext('badge wrapper span.small[title] should be absent').toBeNull();
+    });
+
+    // ── AC-02: badge renders when >=1 field missing; tick absent ────────────
+    it('AC-02: shows badge and no tick when 1 field is missing', () => {
+      setScenario([userWithMissing(1)], driverConfig());
+      const tick = findTickSpan();
+      const badge = findBadgeWrapper();
+      expect(badge).withContext('badge wrapper span.small[title] should be present').not.toBeNull();
+      expect(tick).withContext('tick span.small should be absent').toBeNull();
+    });
+
+    // ── AC-03: badge text is "{count} missing" — no singular/plural variant ─
+    it('AC-03: badge text is "1 missing" for 1 missing field', () => {
+      setScenario([userWithMissing(1)], driverConfig());
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).withContext('badge wrapper must be present').not.toBeNull();
+      const inner = wrapper!.querySelector('.iz-badge.ms-1');
+      expect(inner).withContext('.iz-badge.ms-1 must exist inside wrapper').not.toBeNull();
+      expect(inner!.textContent!.trim()).toBe('1 missing');
+    });
+
+    it('AC-03: badge text is "2 missing" for 2 missing fields (no plural variation)', () => {
+      setScenario([userWithMissing(2)], driverConfig());
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).withContext('badge wrapper must be present').not.toBeNull();
+      const inner = wrapper!.querySelector('.iz-badge.ms-1');
+      expect(inner).not.toBeNull();
+      expect(inner!.textContent!.trim()).toBe('2 missing');
+    });
+
+    // ── AC-04: counts 1–2 use iz-badge--amber (count < 3) ───────────────────
+    it('AC-04: 1 missing field applies iz-badge--amber', () => {
+      setScenario([userWithMissing(1)], driverConfig());
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).not.toBeNull();
+      const inner = wrapper!.querySelector('.iz-badge.ms-1') as HTMLElement;
+      expect(inner).not.toBeNull();
+      expect(inner.classList.contains('iz-badge--amber'))
+        .withContext('iz-badge--amber expected for count < 3').toBe(true);
+      expect(inner.classList.contains('iz-badge--coral'))
+        .withContext('iz-badge--coral must be absent for count < 3').toBe(false);
+    });
+
+    it('AC-04: 2 missing fields apply iz-badge--amber (boundary: count < 3)', () => {
+      setScenario([userWithMissing(2)], driverConfig());
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).not.toBeNull();
+      const inner = wrapper!.querySelector('.iz-badge.ms-1') as HTMLElement;
+      expect(inner).not.toBeNull();
+      expect(inner.classList.contains('iz-badge--amber')).toBe(true);
+      expect(inner.classList.contains('iz-badge--coral')).toBe(false);
+    });
+
+    // ── AC-05: count >= 3 uses iz-badge--coral (boundary is exactly 3) ──────
+    it('AC-05: 3 missing fields apply iz-badge--coral (boundary: count >= 3)', () => {
+      setScenario([userWithMissing(3)], driverConfig());
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).not.toBeNull();
+      const inner = wrapper!.querySelector('.iz-badge.ms-1') as HTMLElement;
+      expect(inner).not.toBeNull();
+      expect(inner.classList.contains('iz-badge--coral'))
+        .withContext('iz-badge--coral expected for count >= 3').toBe(true);
+      expect(inner.classList.contains('iz-badge--amber'))
+        .withContext('iz-badge--amber must be absent for count >= 3').toBe(false);
+    });
+
+    // ── AC-06: outer span carries [title] with comma-separated formatted labels
+    it('AC-06: outer span [title] equals getMissingFieldLabels output for 2 missing fields', () => {
+      setScenario([userWithMissing(2)], driverConfig());
+      // count=2: vehicleReg present, idNumber + driverLicense missing
+      // getMissingFieldLabels returns "ID Number, Driver's License"
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).withContext('badge wrapper must be present').not.toBeNull();
+      const title = wrapper!.getAttribute('title');
+      expect(title).toBe("ID Number, Driver's License");
+    });
+
+    it('AC-06: outer span [title] is not rendered at all when 0 fields are missing', () => {
+      setScenario([userWithMissing(0)], driverConfig());
+      // No badge wrapper rendered at count=0 — the tick span has no [title] attribute
+      const wrapper = findBadgeWrapper();
+      expect(wrapper).toBeNull();
+    });
+
+    // ── AC-08: no missing-fields count badge in the col-md-8 detail panel ───
+    it('AC-08: no "span.small[title]" count badge appears inside the col-md-8 detail panel', () => {
+      setScenario([userWithMissing(2)], driverConfig());
+      component.selectedUser = userWithMissing(2);
+      fixture.detectChanges();
+      const detailPanel: HTMLElement | null = fixture.nativeElement.querySelector('.col-md-8');
+      if (!detailPanel) {
+        pending('col-md-8 not present in test DOM — structural check deferred');
+        return;
+      }
+      const badgeWrappers = detailPanel.querySelectorAll('span.small[title]');
+      expect(badgeWrappers.length)
+        .withContext('No count-badge wrapper should exist in the detail panel').toBe(0);
+    });
+
+    // ── AC-08: no missing-fields count badge in the pending-user-modal ───────
+    it('AC-08: no "span.small[title]" count badge appears in the pending-user-modal', () => {
+      setScenario([userWithMissing(2)], driverConfig());
+      component.selectedUser = userWithMissing(2);
+      component.showUserReviewModal = true;
+      fixture.detectChanges();
+      const modal: HTMLElement | null = fixture.nativeElement.querySelector('.pending-user-modal');
+      if (!modal) {
+        pending('pending-user-modal not rendered at test viewport');
+        return;
+      }
+      const badgeWrappers = modal.querySelectorAll('span.small[title]');
+      expect(badgeWrappers.length)
+        .withContext('No count-badge wrapper should exist in the mobile modal').toBe(0);
     });
   });
 
