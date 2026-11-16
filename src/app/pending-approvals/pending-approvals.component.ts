@@ -119,6 +119,12 @@ hasMissingFields(user: UserProfile): boolean {
     return this.getMissingFields(user).length > 0;
   }
 
+  getMissingFieldLabels(user: UserProfile): string {
+    return this.getMissingFields(user)
+      .map(label => this.formatMissingFieldName(label))
+      .join(', ');
+  }
+
   formatMissingFieldName(fieldName: string): string {
     return fieldName
       .replace(/([a-z])([A-Z])/g, '$1 $2')
