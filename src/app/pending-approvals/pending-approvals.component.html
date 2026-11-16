@@ -137,6 +137,9 @@
             <span *ngIf="!hasMissingFields(user)" class="small">
               <i class="material-icons me-1" style="font-size:1rem;color:var(--btn-green-color)" aria-hidden="true">check_circle</i>Ready For App
             </span>
+            <span *ngIf="hasMissingFields(user)" class="small" [title]="getMissingFieldLabels(user)">
+              <span class="iz-badge ms-1" [ngClass]="{'iz-badge--amber': getMissingFields(user).length < 3, 'iz-badge--coral': getMissingFields(user).length >= 3}">{{getMissingFields(user).length}} missing</span>
+            </span>
           </button>
         </div>
       </div>
