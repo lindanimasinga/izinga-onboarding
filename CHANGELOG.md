@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.23.0] — 2026-11-16
+
+**Release type:** Feature (P2 — new functionality)
+
+**Summary:** Adds a missing-fields count badge to the Pending Approvals admin list so reviewers can see at a glance how many required fields each applicant is still missing, without opening each record individually.
+
+### Changes
+
+- [NEW] `PendingApprovalsComponent` — each row in the pending-approvals user list now displays a count badge (e.g. "3 missing") when the applicant has unfilled mandatory fields. The count is computed by comparing `user.tag` values against the `mandatoryFields` list from `UserConfig` for the user's `description` (service type). Badge is suppressed (renders nothing) when all fields are present or the user has no service config match — zero regression risk for already-complete profiles. Implements ONB-68.
+
+### Breaking changes
+
+None. All changes are frontend-only. No API contract, routing, data model, Firebase schema, or JWT changes.
+
+### Deployment sequence
+
+`izinga-onboarding` web deploy — standalone. No backend dependency.
+
+### Rollback steps
+
+1. Firebase Hosting: `firebase hosting:rollback --project ijudi-d19bd` (or select release v1.22.0 in the Firebase Hosting console history for target `onboarding-izinga`).
+2. Pure frontend deploy — no database migration, no API contract change. Rolling back to v1.22.0 is safe independently.
+
+### Smoke test plan
+
+1. Log in as admin and open `/indivisuals/pending-approvals` with at least one applicant that has missing mandatory fields — expected: a count badge (e.g. "2 missing") appears on that row in the pending-approvals list.
+2. Open an applicant record that has all mandatory fields filled — expected: no count badge is shown on that row.
+3. Select a user from the list — expected: the detail panel loads correctly and the approval bar activates; list scrolls independently and row badges remain visible during scroll.
+4. Resize browser to mobile width (≤ 768 px) — expected: count badges remain legible and do not overflow their row container.
+5. Navigate away from and back to Pending Approvals — expected: page loads correctly, badges render consistently with no layout regressions from v1.22.0.
+6. Run `ng test --watch=false --browsers=ChromeHeadless` — expected: 798/798 PASS.
+
+### Post-deployment monitoring
+
+- 15 min: Confirm Pending Approvals list loads and count badges render for incomplete applicant profiles in production.
+- 1 hour: No increase in admin support queries about the Pending Approvals page.
+- 24 hours: Growth & Analytics to confirm no anomaly in admin approval throughput.
+
+### Gate citations
+
+- Feature Brief: Issue #68, PO-approved; Lindani Masinga direct release authorization 2026-11-16
+- Code Review: PASS (iZinga Code Reviewer)
+- QA Gate 2 regression: 798/798 PASS on `release/1.23.0`, 2026-11-16 (Release Manager)
+- Dev build (Gate 2): CLEAN — pre-existing budget warnings only — 2026-11-16
+- Prod build (Gate 2): CLEAN — pre-existing budget warnings only — 2026-11-16
+- QA note: live-verify performed against synthetic ADMIN localStorage session (Firebase OTP not available to agent); production OTP login path unchanged from v1.22.0
+
+**Approved by:** Lindani Masinga — 2026-11-16
+
+---
+
 ## [1.22.0] — 2026-10-12
 
 **Release type:** Feature (P2 — new functionality)
