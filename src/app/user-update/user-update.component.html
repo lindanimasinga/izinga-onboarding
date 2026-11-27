@@ -75,7 +75,7 @@
 
                             </div>
                         </div>
-                        <div *ngIf="showProfilePictureError" class="mt-2" class="field-error">
+                        <div *ngIf="showProfilePictureError" class="mt-2 field-error">
                             <small><strong>A profile picture is required before you can submit your application.</strong> Please take a selfie.</small>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                     <div class="col-md-6 mb-3">
                         <label for="lastName">Last name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" [(ngModel)]="userProfile.surname" name="surname" id="lastName" required>
-                        <div *ngIf="showSurnameError" class="mt-2" class="field-error">
+                        <div *ngIf="showSurnameError" class="mt-2 field-error">
                             <small><strong>Last name is required.</strong> Please enter your last name before saving.</small>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
                         <input type="email" class="form-control" [(ngModel)]="userProfile.emailAddress" name="emailAddress" id="emailAddress"
                             placeholder="Email Address" required>
                     </div>
-                    <div *ngIf="showEmailError" class="mt-2" class="field-error">
+                    <div *ngIf="showEmailError" class="mt-2 field-error">
                         <small><strong>Email address is required.</strong> Please enter your email address before saving.</small>
                     </div>
                 </div>
@@ -215,7 +215,7 @@
                     <label for="cityPicker">Town, township or village you provide services <span class="text-danger">*</span></label>
                     <app-place-autocomplete [address]="city!" (addressChanged)="city = $event" (latitudeChanged)="newAddressLatitude = $event" (longitudeChanged)="newAddressLongitude = $event"></app-place-autocomplete>
                     <small class="text-muted">Search for your town, city, or village using Google Places</small>
-                    <div *ngIf="showCityError" class="mt-2" class="field-error">
+                    <div *ngIf="showCityError" class="mt-2 field-error">
                         <small><strong>Town is required.</strong> Please select your town or city before saving.</small>
                     </div>
                 </div>
@@ -265,7 +265,7 @@
                                 <option *ngFor="let bank of bankConfigs" [ngValue]="bank">{{ bank.bankName }}</option>
                             </select>
                         </div>
-                        <div *ngIf="showBankNameError" class="mt-2" class="field-error">
+                        <div *ngIf="showBankNameError" class="mt-2 field-error">
                             <small><strong>Bank name is required.</strong> Please select your bank before saving.</small>
                         </div>
                     </div>
@@ -274,7 +274,7 @@
                         <div class="input-group">
                             <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" id="accountNumber" required>
                         </div>
-                        <div *ngIf="showAccountNumberError" class="mt-2" class="field-error">
+                        <div *ngIf="showAccountNumberError" class="mt-2 field-error">
                             <small><strong>Account Number is required.</strong> Please enter your bank account number before saving.</small>
                         </div>
                     </div>
@@ -288,7 +288,7 @@
                                 <option [ngValue]="'EWALLET'">eWallet</option>
                             </select>
                         </div>
-                        <div *ngIf="showAccountTypeError" class="mt-2" class="field-error">
+                        <div *ngIf="showAccountTypeError" class="mt-2 field-error">
                             <small><strong>Account type is required.</strong> Please select your account type before saving.</small>
                         </div>
                     </div>
@@ -300,7 +300,7 @@
                                 [class.bg-light]="!!selectedBankConfig">
                         </div>
                         <small *ngIf="selectedBankConfig" class="text-muted">Auto-filled from selected bank</small>
-                        <div *ngIf="showBranchCodeError" class="mt-2" class="field-error">
+                        <div *ngIf="showBranchCodeError" class="mt-2 field-error">
                             <small><strong>Branch code is required.</strong> Please select a bank to auto-fill this field.</small>
                         </div>
                     </div>
@@ -310,7 +310,7 @@
                             <input type="tel" class="form-control" [(ngModel)]="bankPhone" name="bankPhone" id="bankPhone" required>
                         </div>
                         <small class="text-muted">Mobile number linked to this bank account</small>
-                        <div *ngIf="showBankPhoneError" class="mt-2" class="field-error">
+                        <div *ngIf="showBankPhoneError" class="mt-2 field-error">
                             <small><strong>Bank phone number is required.</strong> Please enter the mobile number linked to this bank account.</small>
                         </div>
                     </div>
