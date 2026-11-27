@@ -38,7 +38,9 @@
                     Verification code is required.
                 </div>
             </div>
-            <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
+            <div class="mb-3">
+                <button class="btn btn-link p-0 resend" type="button" (click)="resend()">Resend code</button>
+            </div>
         </div>
 
         <!-- BUG-FIX ONB-BUG-03: changed type="submit" to type="button" on both
