@@ -1,9 +1,9 @@
 <div class="py-4">
-    <div class="alert alert-warning font-weight-bold mb-4" style="font-size:1.1rem;">
-        <strong>Note:</strong> The phone number you provide must be registered on <span style="color:#25D366">WhatsApp</span>.<br>
+    <div class="iz-notice iz-notice--review mb-4" role="alert">
+        <strong>Note:</strong> The phone number you provide must be registered on <span class="whatsapp-brand">WhatsApp</span>.<br>
         We send delivery notifications and updates using WhatsApp.
     </div>
-    <h3 class="mb-4" (click)="onHeadingTap()">Registration</h3>
+    <h3 class="mb-4">Registration</h3>
     <div class="business-details-section mb-5">
 
         <div class="mb-4">
@@ -13,7 +13,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">+27</span>
                 </div>
-                <input type="text" class="form-control" [(ngModel)]="phoneNumber" name="mobileNumber"
+                <input type="tel" inputmode="tel" autocomplete="tel" class="form-control" [(ngModel)]="phoneNumber" name="mobileNumber"
                     placeholder="815551234" required [disabled]="isVerificationRequested">
                 <div class="invalid-feedback" style="width: 100%;">
                     Your cellphone number is required.
@@ -28,17 +28,19 @@
 
         <div *ngIf="isVerificationRequested" class="mb-3">
             <div *ngIf="loginMethod === 'whatsapp'" class="mb-3">
-                We have sent you a verification code via <strong style="color:#25D366">WhatsApp</strong>. Tap the <em>Copy Code</em> button in the message, then paste the code below.
+                We have sent you a verification code via <strong class="whatsapp-brand">WhatsApp</strong>. Tap the <em>Copy Code</em> button in the message, then paste the code below.
             </div>
             <div *ngIf="loginMethod === 'sms'" class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
             <label class="mb-2" for="cellphone">Verification Code</label>
             <div class="input-group mb-3">
-                <input type="text" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>
+                <input type="text" inputmode="numeric" autocomplete="one-time-code" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>
                 <div class="invalid-feedback" style="width: 100%;">
                     Verification code is required.
                 </div>
             </div>
-            <div class="mb-3 resend" (click)="resend()">To resend click <a>here</a></div>
+            <div class="mb-3">
+                <button class="btn btn-link p-0 resend" type="button" (click)="resend()">Resend code</button>
+            </div>
         </div>
 
         <!-- BUG-FIX ONB-BUG-03: changed type="submit" to type="button" on both

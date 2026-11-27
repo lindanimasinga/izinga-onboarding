@@ -59,79 +59,6 @@ describe('PhoneVerificationComponent', () => {
     expect(component.loginMethod).toBe('whatsapp');
   });
 
-  // ── Triple-tap gesture ──────────────────────────────────────────────────────
-
-  describe('onHeadingTap() — triple-tap gesture', () => {
-    it('switches to SMS mode after 3 rapid taps and calls createCapture()', fakeAsync(() => {
-      component.onHeadingTap(); // tap 1
-      component.onHeadingTap(); // tap 2
-      component.onHeadingTap(); // tap 3 — fires immediately
-      tick(0); // flush setTimeout(() => createCapture(), 0)
-
-      expect(component.loginMethod).toBe('sms');
-      expect(firebaseSvc.createCapture).toHaveBeenCalledTimes(1);
-    }));
-
-    it('does NOT switch when the gap between taps exceeds the window', fakeAsync(() => {
-      component.onHeadingTap(); // tap 1
-      tick(1600);               // window expires — counter resets
-      component.onHeadingTap(); // tap 1 again (fresh counter)
-      component.onHeadingTap(); // tap 2
-
-      expect(component.loginMethod).toBe('whatsapp');
-      expect(firebaseSvc.createCapture).not.toHaveBeenCalled();
-
-      // Clean up pending timer so fakeAsync doesn't complain.
-      tick(1500);
-    }));
-
-    it('resets tap counter correctly across multiple slow sequences', fakeAsync(() => {
-      component.onHeadingTap();
-      tick(1600); // reset
-      component.onHeadingTap();
-      tick(1600); // reset again
-      component.onHeadingTap();
-
-      expect(component.loginMethod).toBe('whatsapp');
-
-      tick(1500); // drain remaining timer
-    }));
-
-    it('ignores further taps once already in SMS mode', fakeAsync(() => {
-      // Activate SMS mode via gesture.
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
-      tick(0);
-      expect(component.loginMethod).toBe('sms');
-
-      firebaseSvc.createCapture.calls.reset();
-
-      // More taps should be no-ops.
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
-      tick(0);
-
-      expect(firebaseSvc.createCapture).not.toHaveBeenCalled();
-    }));
-
-    it('resets error state when activating SMS mode', fakeAsync(() => {
-      component.hasError = true;
-      component.errorMessage = 'some error';
-      component.isVerificationRequested = true;
-
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
-      tick(0);
-
-      expect(component.hasError).toBeFalse();
-      expect(component.errorMessage).toBeUndefined();
-      expect(component.isVerificationRequested).toBeFalse();
-    }));
-  });
-
   // ── verify() ───────────────────────────────────────────────────────────────
 
   describe('verify()', () => {
@@ -159,10 +86,8 @@ describe('PhoneVerificationComponent', () => {
 
     it('calls firebaseService.requestVerification in SMS mode', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      // Activate SMS mode.
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: onHeadingTap removed; set SMS mode directly for coverage of that code path.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -174,9 +99,7 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets isVerificationRequested on SMS requestVerification success', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -187,9 +110,7 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets hasError when SMS requestVerification fails', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(throwError({ message: 'SMS error' }));
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -248,9 +169,8 @@ describe('PhoneVerificationComponent', () => {
       firebaseSvc.confirmCode.and.returnValue(of({} as any));
       storageSvc.returnUrl = null;
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
@@ -265,9 +185,8 @@ describe('PhoneVerificationComponent', () => {
     it('sets hasError when SMS confirmCode fails', fakeAsync(() => {
       firebaseSvc.confirmCode.and.returnValue(throwError({ message: 'Wrong code' }));
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
@@ -333,9 +252,8 @@ describe('PhoneVerificationComponent', () => {
     it('isConfirming resets after SMS confirmCode error, allowing retry', fakeAsync(() => {
       firebaseSvc.confirmCode.and.returnValue(throwError({ message: 'Wrong SMS code' }));
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
@@ -431,5 +349,82 @@ describe('PhoneVerificationComponent — REQ-PP (ONB-UX-02)', () => {
     f.detectChanges();
     const privacyNotice = f.nativeElement.querySelector('.privacy-notice');
     expect(privacyNotice).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — PV-1, PV-2, PV-4, PV-7
+// Verifies that input attributes and structural fixes are present in the
+// rendered DOM, not just in the template source.
+// ---------------------------------------------------------------------------
+describe('PhoneVerificationComponent — UX review fixes (PV-1 PV-2 PV-4 PV-7)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildPVFixture() {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', ['sendWhatsAppOtp', 'verifyWhatsAppOtp']);
+    const firebaseSvc = jasmine.createSpyObj('FirebaseService', ['requestVerification', 'confirmCode', 'signInWithWhatsAppToken', 'createCapture']);
+    const storageSvc = { phoneNumber: '', returnUrl: null } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    const routerSvc = { navigate: jasmine.createSpy(), navigateByUrl: jasmine.createSpy() } as any;
+    TestBed.configureTestingModule({
+      declarations: [PhoneVerificationComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: FirebaseService, useValue: firebaseSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
+      ]
+    });
+    const f = TestBed.createComponent(PhoneVerificationComponent);
+    const c = f.componentInstance;
+    f.detectChanges();
+    return { fixture: f, component: c };
+  }
+
+  // PV-1: phone input must expose numeric keypad and phone autocomplete on mobile
+  it('PV-1 — phone input has type="tel", inputmode="tel", autocomplete="tel"', () => {
+    const { fixture } = buildPVFixture();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[name="mobileNumber"]');
+    expect(input).not.toBeNull('phone input must be present in DOM');
+    expect(input.type).toBe('tel');
+    expect(input.getAttribute('inputmode')).toBe('tel');
+    expect(input.getAttribute('autocomplete')).toBe('tel');
+  });
+
+  // PV-2: OTP input must trigger numeric keypad and SMS autofill on mobile
+  it('PV-2 — OTP input has inputmode="numeric" and autocomplete="one-time-code"', () => {
+    const { fixture, component } = buildPVFixture();
+    // The OTP input is rendered only when isVerificationRequested is true.
+    component.isVerificationRequested = true;
+    fixture.detectChanges();
+    const otpInput: HTMLInputElement = fixture.nativeElement.querySelector('input[name="code"]');
+    expect(otpInput).not.toBeNull('OTP input must be present after verification is requested');
+    expect(otpInput.getAttribute('inputmode')).toBe('numeric');
+    expect(otpInput.getAttribute('autocomplete')).toBe('one-time-code');
+  });
+
+  // PV-4: resend must be a keyboard-reachable <button>, not a <div> with a click handler
+  it('PV-4 — resend control is button.btn-link.resend type=button; no div.resend wrapper', () => {
+    const { fixture, component } = buildPVFixture();
+    // The resend section is inside *ngIf="isVerificationRequested"
+    component.isVerificationRequested = true;
+    fixture.detectChanges();
+    // New: a focusable <button> with the resend class
+    const resendBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button.resend');
+    expect(resendBtn).not.toBeNull('resend <button> must be present');
+    expect(resendBtn.type).toBe('button');
+    expect(resendBtn.classList.contains('btn-link')).toBeTrue();
+    // Old wrapper <div> with click handler must be gone
+    const resendDiv = fixture.nativeElement.querySelector('div.resend');
+    expect(resendDiv).toBeNull('div.resend must not exist — click was moved to a <button>');
+  });
+
+  // PV-7: onHeadingTap() was a debugging aid on the heading; it must be absent from the class
+  it('PV-7 — onHeadingTap method does not exist on the component class', () => {
+    const { component } = buildPVFixture();
+    expect((component as any).onHeadingTap).toBeUndefined();
   });
 });

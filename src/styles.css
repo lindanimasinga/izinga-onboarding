@@ -463,3 +463,19 @@ body.dark-theme .btn-close {
 }
 /* Small variant for inline text rows (phone, email, address lines) */
 .material-icons.md-18 { font-size: 18px; }
+
+/* ---- iz-tabs: shared dark-theme tab-strip styling (pending-approvals, user-management) ---- */
+/* Replaces component-scoped .pending-tabs styles; both components reference .iz-tabs.         */
+.iz-tabs .nav-link {
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  opacity: 0.7;
+  font-weight: 600;
+}
+.iz-tabs .nav-link.active {
+  border-bottom: 3px solid var(--btn-bg-color);
+  color: var(--btn-bg-color);
+  background-color: transparent;
+  opacity: 1;
+}

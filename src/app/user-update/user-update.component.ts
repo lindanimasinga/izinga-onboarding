@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { DataType, UserConfig, UserProfile } from '../model/models';
 import { IzingaOrderManagementService } from '../service/izinga-order-management.service';
 import { ActivatedRoute, Route, Router } from '@angular/router';
@@ -9,13 +9,14 @@ import { StoreProfile } from '../model/storeProfile';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { BankConfig } from '../model/bank-config';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 @Component({
   selector: 'app-user-update',
   templateUrl: './user-update.component.html',
   styleUrls: ['./user-update.component.css']
 })
-export class UserUpdateComponent {
+export class UserUpdateComponent implements OnDestroy {
 
   shippingBuildingUnitNumber?: string
   shippingBuildingName?: string
@@ -91,13 +92,19 @@ export class UserUpdateComponent {
 
   constructor(private izingaOrderManager: IzingaOrderManagementService,
     private router: Router,
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
     private storageService: StorageService,
-    private analytics: AnalyticsService) {
-      
+    private analytics: AnalyticsService,
+    // UU-1: acquire/release so has-fixed-bar pads body for the fixed Register/Update bar.
+    // FAIL-01: use FixedBarService counter so router-transition order does not strip the class.
+    private fixedBarService: FixedBarService) {
+
   }
 
   ngOnInit() {
+    // UU-1: apply has-fixed-bar padding before first paint so the fixed bottom bar
+    // never overlaps the submit error message or the Logout button.
+    this.fixedBarService.acquire();
     this.analytics.logScreenView('profile_setup');
     console.log(`bank is ${JSON.stringify(this.userProfile.bank)}`)
     this.loadUserConfig()
@@ -629,6 +636,12 @@ export class UserUpdateComponent {
         console.error("Error loading bank configs");
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    // UU-1: release has-fixed-bar when navigating away so the padding does not
+    // persist on pages that do not use a fixed bottom bar.
+    this.fixedBarService.release();
   }
 
   /**

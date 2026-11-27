@@ -996,3 +996,121 @@ describe('UserUpdateComponent — storageService.userProfile cache sync on save 
     expect(mockStorage.userProfile.role).toBe(UserProfile.RoleEnum.STOREADMIN);
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — UU-1, UU-2, UU-3, UU-4, UU-5, UU-7
+// DOM-level assertions that the template changes are rendered correctly.
+// ---------------------------------------------------------------------------
+describe('UserUpdateComponent — UX review fixes (UU-1 UU-2 UU-3 UU-4 UU-5 UU-7)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildUUFixture() {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'registerCustomer', 'updateCustomer',
+      'getUserConfig', 'getBankConfigs', 'uploadFile'
+    ]);
+    const storageSvc = {
+      phoneNumber: '+27820000000',
+      userProfile: undefined,
+      logout: jasmine.createSpy('logout')
+    } as any;
+    const analyticsSvc = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    orderSvc.getCustomerByPhoneNumber.and.returnValue(of({
+      imageUrl: 'https://cdn.example.com/pic.jpg',
+      role: UserProfile.RoleEnum.MESSENGER,
+      mobileNumber: '+27820000000',
+      name: 'Test', surname: 'User',
+      emailAddress: 'test@izinga.co.za',
+      address: 'Johannesburg',
+      bank: { type: 'EWALLET', name: 'FNB', accountId: '', branchCode: '250655', phone: '+27820000000' },
+      tag: {}
+    }));
+    orderSvc.getUserConfig.and.returnValue(of([]));
+    orderSvc.getBankConfigs.and.returnValue(of([]));
+
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserUpdateComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: ActivatedRoute, useValue: { snapshot: {}, params: of({}) } }
+      ]
+    });
+    const f = TestBed.createComponent(UserUpdateComponent);
+    const c = f.componentInstance;
+    f.detectChanges();
+    return { fixture: f, component: c };
+  }
+
+  // UU-1: FixedBarService.acquire() must be called on ngOnInit; release() on ngOnDestroy
+  it('UU-1 — ngOnInit acquires has-fixed-bar; ngOnDestroy releases it', () => {
+    const { component, fixture } = buildUUFixture();
+    fixture.detectChanges();
+    expect(document.body.classList.contains('has-fixed-bar')).toBeTrue();
+    component.ngOnDestroy();
+    expect(document.body.classList.contains('has-fixed-bar')).toBeFalse();
+  });
+
+  // UU-2: error divs must have both mt-2 AND field-error in a single class attribute
+  it('UU-2 — profile picture error div has both mt-2 and field-error classes (merged attribute)', () => {
+    const { fixture, component } = buildUUFixture();
+    (component as any).showProfilePictureError = true;
+    fixture.detectChanges();
+    // The error div under the profile picture section
+    const errorDivs: NodeListOf<HTMLElement> = fixture.nativeElement.querySelectorAll('.mt-2.field-error');
+    expect(errorDivs.length).toBeGreaterThan(0, 'at least one .mt-2.field-error div must be present');
+    errorDivs.forEach((div) => {
+      // Both classes in the same attribute: classList reflects the merged single attribute
+      expect(div.classList.contains('mt-2')).toBeTrue();
+      expect(div.classList.contains('field-error')).toBeTrue();
+    });
+  });
+
+  // UU-3: eWallet radio must have value="EWALLET" and label text "eWallet" (not "Cash")
+  it('UU-3 — eWallet radio has value=EWALLET and label text reads "eWallet"', () => {
+    const { fixture } = buildUUFixture();
+    const ewalletInput: HTMLInputElement = fixture.nativeElement.querySelector('input[name="paymentType"][value="EWALLET"]');
+    expect(ewalletInput).not.toBeNull('EWALLET radio input must be present');
+    expect(ewalletInput.value).toBe('EWALLET');
+    // The label containing this input must say "eWallet", not "Cash"
+    const parentLabel = ewalletInput.closest('label');
+    expect(parentLabel).not.toBeNull();
+    expect(parentLabel!.textContent!.trim()).toContain('eWallet');
+    expect(parentLabel!.textContent!.trim()).not.toContain('Cash');
+  });
+
+  // UU-4: first name input must precede the service-type select in document order
+  it('UU-4 — first name input appears before service-type select in DOM order', () => {
+    const { fixture } = buildUUFixture();
+    const firstName: HTMLInputElement = fixture.nativeElement.querySelector('input[name="name"]');
+    const serviceType: HTMLSelectElement = fixture.nativeElement.querySelector('select[name="roleDescription"]');
+    expect(firstName).not.toBeNull('first name input must exist');
+    expect(serviceType).not.toBeNull('service type select must exist');
+    // DOCUMENT_POSITION_FOLLOWING (4) means serviceType comes after firstName
+    const pos = firstName.compareDocumentPosition(serviceType);
+    expect(pos & 4).toBeTruthy('service-type select must follow first-name input in DOM order');
+  });
+
+  // UU-5: account number input must have inputmode="numeric" for numeric keypad on mobile
+  it('UU-5 — account number input has inputmode="numeric"', () => {
+    const { fixture, component } = buildUUFixture();
+    // Account number is inside *ngIf="paymentType == 'BANK_ACC'"
+    (component as any).paymentType = 'BANK_ACC';
+    fixture.detectChanges();
+    const accountInput: HTMLInputElement = fixture.nativeElement.querySelector('input[name="accountNumber"]');
+    expect(accountInput).not.toBeNull('account number input must be present when BANK_ACC selected');
+    expect(accountInput.getAttribute('inputmode')).toBe('numeric');
+  });
+
+  // UU-7: cellphone display input must use type="tel" (even when disabled)
+  it('UU-7 — cellphone display input has type="tel"', () => {
+    const { fixture } = buildUUFixture();
+    // The verified phone number display — name="mobileNumber", disabled
+    const cellInput: HTMLInputElement = fixture.nativeElement.querySelector('input[name="mobileNumber"]');
+    expect(cellInput).not.toBeNull('cellphone input must be present');
+    expect(cellInput.type).toBe('tel');
+  });
+});

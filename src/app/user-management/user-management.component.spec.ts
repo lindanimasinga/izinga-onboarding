@@ -276,3 +276,78 @@ describe('UserManagementComponent — bank.phone field (Bug 9)', () => {
     expect(component.errorMessage).toContain('bank phone');
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — UM-2: reset-search aria-label; UM-8: eWallet label text
+// ---------------------------------------------------------------------------
+describe('UserManagementComponent — UX review fixes (UM-2 UM-8)', () => {
+  let component: UserManagementComponent;
+  let fixture: ComponentFixture<UserManagementComponent>;
+  let mockOrderSvc: jasmine.SpyObj<IzingaOrderManagementService>;
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  beforeEach(async () => {
+    mockOrderSvc = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'updateCustomer', 'getUserConfig', 'getBankConfigs',
+      'getCustomerByPhoneNumber', 'registerCustomer', 'getMessengersByArea', 'uploadFile'
+    ]);
+    mockOrderSvc.getUserConfig.and.returnValue(of([]));
+    mockOrderSvc.getBankConfigs.and.returnValue(of([]));
+
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [UserManagementComponent],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: mockOrderSvc },
+        { provide: StorageService, useValue: {} },
+        { provide: AnalyticsService, useValue: jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']) }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(UserManagementComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  // UM-2: reset search button carries aria-label="Reset search" (accessible clear button)
+  it('UM-2 — reset-search button has aria-label="Reset search"', () => {
+    // activeTab defaults to 'list'; the reset button renders in that tab
+    const btn: HTMLElement | null = fixture.nativeElement.querySelector('button[aria-label="Reset search"]');
+    expect(btn).not.toBeNull('a button with aria-label="Reset search" must be present in the list tab');
+  });
+
+  // UM-8: EWALLET radio in create-user form has the label text "eWallet" (not "Cash")
+  it('UM-8 — EWALLET radio label reads "eWallet" in the create-user form', () => {
+    component.showCreateUserForm = true;
+    fixture.detectChanges();
+
+    const ewalletInput: HTMLInputElement | null =
+      fixture.nativeElement.querySelector('input[name="createPaymentType"][value="EWALLET"]');
+    expect(ewalletInput).not.toBeNull('EWALLET radio must render inside the create-user form');
+
+    // The label wrapping the radio must contain "eWallet" text (not "Cash")
+    const label: HTMLElement | null = ewalletInput ? ewalletInput.closest('label') : null;
+    expect(label).not.toBeNull('EWALLET radio must be inside a <label>');
+    if (label) {
+      expect(label.textContent).toContain('eWallet');
+      expect(label.textContent).not.toContain('Cash');
+    }
+  });
+
+  // UM-3 (residual): map-tab error renders with iz-notice--blocked, never with alert-danger
+  it('UM-3 — map-tab error uses iz-notice--blocked and not alert-danger', () => {
+    component.activeTab = 'map';
+    component.mapError = 'Failed to load drivers for this area.';
+    fixture.detectChanges();
+
+    const danger: HTMLElement | null = fixture.nativeElement.querySelector('.alert-danger');
+    expect(danger).toBeNull('alert-danger must not be rendered for the map-tab error');
+
+    const notice: HTMLElement | null = fixture.nativeElement.querySelector('.iz-notice--blocked');
+    expect(notice).not.toBeNull('iz-notice--blocked must render when mapError is set');
+    if (notice) {
+      expect(notice.textContent).toContain('Failed to load drivers for this area.');
+    }
+  });
+});

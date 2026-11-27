@@ -31,20 +31,13 @@ export class PhoneVerificationComponent {
   // the double-"+27" visual regression (ONB-REGRESSION-03).
   private _normalizedPhone?: string
 
-  // Starts as 'whatsapp'; can only be flipped to 'sms' via triple-tap on heading.
+  // Starts as 'whatsapp'; SMS mode is no longer togglable from the UI.
   loginMethod: 'sms' | 'whatsapp' = 'whatsapp';
 
   userAlreadyRegistered?: boolean;
   hasError?: boolean;
   errorMessage?: string;
   messegers?: UserProfile[];
-
-  // Triple-tap state — not exposed in template beyond the click handler.
-  private _headingTapCount = 0;
-  private _headingTapTimer: any = null;
-  // Window within which 3 taps must occur (ms). 1 500 ms is permissive enough
-  // for deliberate repeated taps but won't fire by accident during normal use.
-  private readonly TAP_WINDOW_MS = 1500;
 
   constructor(private izingaOrderManager: IzingaOrderManagementService,
     private storageService: StorageService,
@@ -73,49 +66,6 @@ export class PhoneVerificationComponent {
 
   ngAfterViewInit() {
     // reCAPTCHA is only needed when SMS mode is active; SMS mode starts dormant.
-  }
-
-  /**
-   * Hidden debug gesture: tapping the "Registration" heading 3 times within
-   * TAP_WINDOW_MS activates Firebase Phone Auth / SMS mode.
-   * The timer resets after each tap; if the gap between two consecutive taps
-   * exceeds the window the counter drops back to 0.
-   */
-  onHeadingTap(): void {
-    if (this.loginMethod === 'sms') {
-      // Already in SMS mode — ignore further taps.
-      return;
-    }
-
-    this._headingTapCount++;
-
-    // Clear any pending reset timer and restart it.
-    if (this._headingTapTimer) {
-      clearTimeout(this._headingTapTimer);
-    }
-
-    if (this._headingTapCount >= 3) {
-      // Gesture fired — activate SMS mode.
-      this._headingTapCount = 0;
-      this._headingTapTimer = null;
-      this.activateSmsMode();
-      return;
-    }
-
-    // Reset the counter if the next tap doesn't arrive in time.
-    this._headingTapTimer = setTimeout(() => {
-      this._headingTapCount = 0;
-      this._headingTapTimer = null;
-    }, this.TAP_WINDOW_MS);
-  }
-
-  private activateSmsMode(): void {
-    this.loginMethod = 'sms';
-    this.isVerificationRequested = false;
-    this.hasError = false;
-    this.errorMessage = undefined;
-    // Defer reCAPTCHA setup by one tick so Angular renders the container div first.
-    setTimeout(() => this.firebaseService.createCapture(), 0);
   }
 
   resend() {

@@ -1,3 +1,9 @@
+/* PV-6: use design-system link token instead of hardcoded blue */
 .resend a {
-    color: blue !important;
+    color: var(--btn-pill-color) !important;
+}
+
+/* PV-5: WhatsApp brand green as a CSS class so it is not hardcoded inline */
+.whatsapp-brand {
+    color: #25D366;
 }

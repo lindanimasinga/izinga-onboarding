@@ -942,3 +942,61 @@ describe('DashboardComponent — profile completeness gate', () => {
     expect(mockRouter.navigate).not.toHaveBeenCalled();
   }));
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — D-1: aria-hidden on emoji icon spans
+// ---------------------------------------------------------------------------
+describe('DashboardComponent — UX review fixes (D-1)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  it('D-1 — all .dash-card-icon elements carry aria-hidden="true"', fakeAsync(async () => {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', [
+      'getCustomerByPhoneNumber', 'getUserConfig', 'updateDeviceToUser', 'registerDeviceToUser'
+    ]);
+    const storageSvc = { phoneNumber: '+27812815555', userProfile: undefined as any };
+    const routerSvc = jasmine.createSpyObj('Router', ['navigate'], { url: '/indivisuals/dashboard' });
+    const firebaseSvc = jasmine.createSpyObj('FirebaseService', ['getCurrentToken']);
+    const analyticsSvc = jasmine.createSpyObj('AnalyticsService', ['logScreenView', 'logEvent']);
+    firebaseSvc.getCurrentToken.and.returnValue(null);
+    orderSvc.getUserConfig.and.returnValue(of([]));
+
+    const user: any = {
+      id: 'u-d1-test',
+      role: UserProfile.RoleEnum.MESSENGER,
+      mobileNumber: '+27812815555',
+      name: 'Test',
+      surname: 'User',
+      emailAddress: 'test@izinga.co.za',
+      address: '1 Sandton Drive',
+      imageUrl: 'https://cdn.example.com/pic.jpg',
+      termsAccepted: true,
+      icaAccepted: true,
+      icaVersion: CURRENT_DRIVER_ICA_VERSION
+    };
+    orderSvc.getCustomerByPhoneNumber.and.returnValue(of(user));
+
+    TestBed.configureTestingModule({
+      declarations: [DashboardComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: FirebaseService, useValue: firebaseSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc }
+      ]
+    });
+    await TestBed.compileComponents();
+    const f = TestBed.createComponent(DashboardComponent);
+    f.detectChanges();
+    tick();
+    f.detectChanges();
+
+    const emojiIcons: NodeListOf<HTMLElement> = f.nativeElement.querySelectorAll('.dash-card-icon');
+    expect(emojiIcons.length).toBeGreaterThan(0, 'at least one .dash-card-icon must be present');
+    emojiIcons.forEach((icon: HTMLElement) => {
+      expect(icon.getAttribute('aria-hidden')).toBe('true',
+        `every .dash-card-icon must have aria-hidden="true" (found one without it: "${icon.textContent?.trim()}")`);
+    });
+  }));
+});
