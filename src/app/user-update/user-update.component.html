@@ -228,7 +228,7 @@
 <!--[ngClass]="{'gradient-pink': !themeDark, 'gradient-blue': themeDark}-->
                 <div class="btn-group btn-group-toggle mb-3" data-toggle="buttons">
                     <label class="btn btn-secondary active" [ngClass]="{'bg-selected': paymentType == 'EWALLET', 'bg-not-selected': paymentType != 'EWALLET'}">
-                    <input type="radio" name="paymentType" value="EWALLET" (click)="ewalletSelected()"> Cash
+                    <input type="radio" name="paymentType" value="EWALLET" (click)="ewalletSelected()"> eWallet
                     </label>
                     <label class="btn btn-secondary" [ngClass]="{'bg-selected': paymentType == 'BANK_ACC', 'bg-not-selected': paymentType != 'BANK_ACC'}">
                     <input type="radio" name="paymentType" value="BANK_ACC" (click)="paymentType = 'BANK_ACC'"> Bank Account
