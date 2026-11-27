@@ -33,7 +33,7 @@
             <div *ngIf="loginMethod === 'sms'" class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
             <label class="mb-2" for="cellphone">Verification Code</label>
             <div class="input-group mb-3">
-                <input type="text" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>
+                <input type="text" inputmode="numeric" autocomplete="one-time-code" class="form-control" [(ngModel)]="code" name="code" placeholder="000000" required>
                 <div class="invalid-feedback" style="width: 100%;">
                     Verification code is required.
                 </div>
