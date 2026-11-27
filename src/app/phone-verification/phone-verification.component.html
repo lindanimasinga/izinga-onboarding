@@ -1,6 +1,6 @@
 <div class="py-4">
-    <div class="alert alert-warning font-weight-bold mb-4" style="font-size:1.1rem;">
-        <strong>Note:</strong> The phone number you provide must be registered on <span style="color:#25D366">WhatsApp</span>.<br>
+    <div class="iz-notice iz-notice--review mb-4" role="alert">
+        <strong>Note:</strong> The phone number you provide must be registered on <span class="whatsapp-brand">WhatsApp</span>.<br>
         We send delivery notifications and updates using WhatsApp.
     </div>
     <h3 class="mb-4" (click)="onHeadingTap()">Registration</h3>
@@ -28,7 +28,7 @@
 
         <div *ngIf="isVerificationRequested" class="mb-3">
             <div *ngIf="loginMethod === 'whatsapp'" class="mb-3">
-                We have sent you a verification code via <strong style="color:#25D366">WhatsApp</strong>. Tap the <em>Copy Code</em> button in the message, then paste the code below.
+                We have sent you a verification code via <strong class="whatsapp-brand">WhatsApp</strong>. Tap the <em>Copy Code</em> button in the message, then paste the code below.
             </div>
             <div *ngIf="loginMethod === 'sms'" class="mb-3">We have sent you a verification code via SMS. Please enter the code below.</div>
             <label class="mb-2" for="cellphone">Verification Code</label>
