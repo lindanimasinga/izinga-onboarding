@@ -103,6 +103,21 @@
   overflow-y: auto;
 }
 
+/* PA-2: right-fade gradient on the tab scroll container to hint at hidden tabs on mobile */
+.pending-tabs-wrap {
+  position: relative;
+}
+.pending-tabs-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rem;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, var(--bkg-color, #F8F7F7));
+}
+
 /* AUDIT-1 FIX: override Bootstrap's #dee2e6 tab strip hairline + scrollbar styling */
 .pending-tabs {
   border-bottom-color: rgba(128,128,128,0.2);

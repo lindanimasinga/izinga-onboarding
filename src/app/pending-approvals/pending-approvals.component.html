@@ -25,6 +25,7 @@
     </div>
   </div>
 
+  <div class="pending-tabs-wrap">
   <ul class="nav nav-tabs mb-3 pending-tabs">
     <li class="nav-item">
       <button
@@ -54,11 +55,13 @@
         (click)="setActiveTab('criminal-check')">
         <i class="material-icons me-1" aria-hidden="true">verified_user</i>
         Pending Criminal Checks
-        <!-- Criminal check count — iz-badge--muted replaces badge bg-secondary -->
-        <span class="iz-badge iz-badge--muted ms-1">{{criminalCheckPendingUsers.length}}</span>
+        <!-- PA-3: show green checkmark when all clear; count badge when there are pending -->
+        <span *ngIf="criminalCheckPendingUsers.length > 0" class="iz-badge iz-badge--muted ms-1">{{criminalCheckPendingUsers.length}}</span>
+        <i *ngIf="criminalCheckPendingUsers.length === 0" class="material-icons ms-1" style="color: var(--btn-green-color); font-size: 1rem; vertical-align: middle;" aria-label="All clear">check_circle</i>
       </button>
     </li>
   </ul>
+  </div>
 
   <div *ngIf="activeTab === 'list' || activeTab === 'criminal-check'" class="row">
     <!-- Users List -->
