@@ -13,7 +13,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">+27</span>
                 </div>
-                <input type="text" class="form-control" [(ngModel)]="phoneNumber" name="mobileNumber"
+                <input type="tel" inputmode="tel" autocomplete="tel" class="form-control" [(ngModel)]="phoneNumber" name="mobileNumber"
                     placeholder="815551234" required [disabled]="isVerificationRequested">
                 <div class="invalid-feedback" style="width: 100%;">
                     Your cellphone number is required.
