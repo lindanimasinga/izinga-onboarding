@@ -86,10 +86,8 @@ describe('PhoneVerificationComponent', () => {
 
     it('calls firebaseService.requestVerification in SMS mode', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      // Activate SMS mode.
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: onHeadingTap removed; set SMS mode directly for coverage of that code path.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -101,9 +99,7 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets isVerificationRequested on SMS requestVerification success', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(of({} as any));
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -114,9 +110,7 @@ describe('PhoneVerificationComponent', () => {
 
     it('sets hasError when SMS requestVerification fails', fakeAsync(() => {
       firebaseSvc.requestVerification.and.returnValue(throwError({ message: 'SMS error' }));
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '0815551234';
@@ -175,9 +169,8 @@ describe('PhoneVerificationComponent', () => {
       firebaseSvc.confirmCode.and.returnValue(of({} as any));
       storageSvc.returnUrl = null;
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
@@ -192,9 +185,8 @@ describe('PhoneVerificationComponent', () => {
     it('sets hasError when SMS confirmCode fails', fakeAsync(() => {
       firebaseSvc.confirmCode.and.returnValue(throwError({ message: 'Wrong code' }));
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
@@ -260,9 +252,8 @@ describe('PhoneVerificationComponent', () => {
     it('isConfirming resets after SMS confirmCode error, allowing retry', fakeAsync(() => {
       firebaseSvc.confirmCode.and.returnValue(throwError({ message: 'Wrong SMS code' }));
 
-      component.onHeadingTap();
-      component.onHeadingTap();
-      component.onHeadingTap();
+      // PV-7: set SMS mode directly — onHeadingTap removed.
+      component.loginMethod = 'sms';
       tick(0);
 
       component.phoneNumber = '+27815551234';
