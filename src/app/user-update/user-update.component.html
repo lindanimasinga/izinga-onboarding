@@ -171,7 +171,7 @@
                 <div class="mb-3">
                     <label for="cellphone">Cellphone Number</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" [value]="phoneNumber || ''" name="mobileNumber"
+                        <input type="tel" class="form-control" [value]="phoneNumber || ''" name="mobileNumber"
                             placeholder="cellphone" disabled>
                     </div>
                 </div>
@@ -272,7 +272,7 @@
                     <div class="mb-3">
                         <label for="accountNumber">Account Number <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="text" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" id="accountNumber" required>
+                            <input type="text" inputmode="numeric" class="form-control" [(ngModel)]="accountNumber" name="accountNumber" id="accountNumber" required>
                         </div>
                         <div *ngIf="showAccountNumberError" class="mt-2 field-error">
                             <small><strong>Account Number is required.</strong> Please enter your bank account number before saving.</small>
