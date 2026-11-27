@@ -334,4 +334,20 @@ describe('UserManagementComponent — UX review fixes (UM-2 UM-8)', () => {
       expect(label.textContent).not.toContain('Cash');
     }
   });
+
+  // UM-3 (residual): map-tab error renders with iz-notice--blocked, never with alert-danger
+  it('UM-3 — map-tab error uses iz-notice--blocked and not alert-danger', () => {
+    component.activeTab = 'map';
+    component.mapError = 'Failed to load drivers for this area.';
+    fixture.detectChanges();
+
+    const danger: HTMLElement | null = fixture.nativeElement.querySelector('.alert-danger');
+    expect(danger).toBeNull('alert-danger must not be rendered for the map-tab error');
+
+    const notice: HTMLElement | null = fixture.nativeElement.querySelector('.iz-notice--blocked');
+    expect(notice).not.toBeNull('iz-notice--blocked must render when mapError is set');
+    if (notice) {
+      expect(notice.textContent).toContain('Failed to load drivers for this area.');
+    }
+  });
 });
