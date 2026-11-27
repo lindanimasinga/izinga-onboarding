@@ -81,6 +81,23 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName">First name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" id="firstName" required>
+                        <div *ngIf="showFirstNameError" class="field-error">
+                            <small><strong>First name is required.</strong> Please enter your first name before saving.</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName">Last name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" [(ngModel)]="userProfile.surname" name="surname" id="lastName" required>
+                        <div *ngIf="showSurnameError" class="mt-2 field-error">
+                            <small><strong>Last name is required.</strong> Please enter your last name before saving.</small>
+                        </div>
+                    </div>
+                </div>
+
                                 <div class="mb-3">
                     <label for="roleDescription">{{ isShopFlow() ? 'Account type' : 'Tell us about your hustle?' }}</label>
                     <div class="input-group mb-3">
@@ -96,17 +113,17 @@
                     <div *ngIf="cachedConfigFields.length > 0">
                         <div *ngFor="let field of cachedConfigFields" class="mb-3">
                             <label>{{ field.label }}</label>
-                            <input 
+                            <input
                                 *ngIf="getInputType(field.dataType) !== 'file'"
-                                [type]="getInputType(field.dataType)" 
+                                [type]="getInputType(field.dataType)"
                                 class="form-control"
                                 [name]="field.name"
                                 [(ngModel)]="userProfile.tag[field.name]">
                             <div *ngIf="getInputType(field.dataType) === 'file'" class="input-group upload-box dl-flex align-items-between justify-content-between">
                                 <img *ngIf="userProfile.tag[field.name]" [src]="userProfile.tag[field.name]" class="upload-icon mb-2" />
                                 <div class="input-container">
-                                    <input 
-                                        type="file" 
+                                    <input
+                                        type="file"
                                         class="form-control"
                                         [ngClass]="{'input-image': userProfile.tag[field.name]}"
                                         (change)="onFileSelect($event, field.name)"
@@ -118,33 +135,16 @@
                                         </small>
                                     </div>
                                 </div>
-                            </div>    
+                            </div>
                             <div *ngIf="uploadProgress[field.name]" class="mt-2 uploadProgress">
                                 <div class="progress">
-                                    <div class="progress-bar" 
-                                         [style.width.%]="uploadProgress[field.name]" 
+                                    <div class="progress-bar"
+                                         [style.width.%]="uploadProgress[field.name]"
                                          role="progressbar">
                                         {{ uploadProgress[field.name] }}%
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="firstName">First name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" [(ngModel)]="userProfile.name" name="name" id="firstName" required>
-                        <div *ngIf="showFirstNameError" class="field-error">
-                            <small><strong>First name is required.</strong> Please enter your first name before saving.</small>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="lastName">Last name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" [(ngModel)]="userProfile.surname" name="surname" id="lastName" required>
-                        <div *ngIf="showSurnameError" class="mt-2 field-error">
-                            <small><strong>Last name is required.</strong> Please enter your last name before saving.</small>
                         </div>
                     </div>
                 </div>
