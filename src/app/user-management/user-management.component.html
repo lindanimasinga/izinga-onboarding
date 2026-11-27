@@ -1,6 +1,6 @@
 <div>
   <!-- Tab Navigation -->
-  <ul class="nav nav-tabs mb-3">
+  <ul class="nav nav-tabs mb-3 iz-tabs">
     <li class="nav-item">
       <button type="button" class="nav-link" [class.active]="activeTab === 'list'" (click)="setActiveTab('list')">
         <i class="fa fa-list me-1"></i> List
@@ -15,13 +15,13 @@
 
   <!-- List Tab -->
   <div *ngIf="activeTab === 'list'">
-    <div class="row">
+    <div class="row justify-content-center">
     <!-- Search and Users List -->
-    <div class="col-md-4">
+    <div class="col-md-4 col-lg-3">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h4 class="mb-0">Search Users</h4>
-        <button class="btn btn-outline-dark btn-sm" (click)="resetSearch()" [disabled]="isLoading">
-          <i class="fa fa-search"></i>
+        <button class="btn btn-outline-dark btn-sm" (click)="resetSearch()" [disabled]="isLoading" aria-label="Reset search">
+          <i class="fa fa-search" aria-hidden="true"></i>
         </button>
       </div>
 
@@ -52,32 +52,32 @@
         <div class="card-body" *ngIf="showCreateUserForm">
           <form (ngSubmit)="createUserOnBehalf()" #createUserForm="ngForm">
             <div class="mb-2">
-              <label class="form-label">First Name</label>
+              <label>First Name</label>
               <input type="text" class="form-control" [(ngModel)]="newUser.name" name="createName" required>
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Cellphone Number</label>
+              <label>Cellphone Number</label>
               <input type="tel" class="form-control" [(ngModel)]="newUser.mobileNumber" name="createMobileNumber" placeholder="0XXXXXXXXX" required>
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Date of Birth</label>
+              <label>Date of Birth</label>
               <input type="date" class="form-control" [(ngModel)]="newUser.dateOfBirth" name="createDateOfBirth">
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Email Address</label>
+              <label>Email Address</label>
               <input type="email" class="form-control" [(ngModel)]="newUser.emailAddress" name="createEmailAddress" placeholder="Optional email">
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Town, township or village</label>
+              <label>Town, township or village</label>
               <input type="text" class="form-control" [(ngModel)]="newUser.address" name="createAddress" placeholder="Enter area">
             </div>
 
             <div class="mb-2">
-              <label class="form-label">Service Type</label>
+              <label>Service Type</label>
               <select class="form-control" [(ngModel)]="roleDescription" name="createRoleDescription" required>
                 <option [ngValue]="undefined" disabled>Select service type</option>
                 <option *ngFor="let config of userConfig" [ngValue]="config.label">{{ config.label }}</option>
@@ -86,7 +86,7 @@
 
             <div *ngIf="roleDescription" class="mb-2">
               <div *ngFor="let field of getUserConfigFields(roleDescription)" class="mb-2">
-                <label class="form-label">{{ field.label }}</label>
+                <label>{{ field.label }}</label>
                 <input
                   *ngIf="getInputType(field.dataType) !== 'checkbox'"
                   [type]="getInputType(field.dataType)"
@@ -103,23 +103,24 @@
             </div>
 
             <div class="mb-2">
-              <label class="form-label d-block">Payout Method</label>
-              <div class="btn-group w-100" role="group">
-                <input type="radio" class="btn-check" id="create-ewallet" name="createPaymentType" value="EWALLET" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
-                <label class="btn btn-outline-dark" for="create-ewallet">Cash (eWallet)</label>
-
-                <input type="radio" class="btn-check" id="create-bank" name="createPaymentType" value="BANK_ACC" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()">
-                <label class="btn btn-outline-dark" for="create-bank">Bank Account</label>
+              <label>Payout Method</label>
+              <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                <label class="btn btn-outline-dark" [class.active]="createPaymentType === 'EWALLET'">
+                  <input type="radio" name="createPaymentType" value="EWALLET" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()"> eWallet
+                </label>
+                <label class="btn btn-outline-dark" [class.active]="createPaymentType === 'BANK_ACC'">
+                  <input type="radio" name="createPaymentType" value="BANK_ACC" [(ngModel)]="createPaymentType" (change)="onCreatePaymentTypeChange()"> Bank Account
+                </label>
               </div>
             </div>
 
-            <div *ngIf="createPaymentType === 'EWALLET'" class="alert alert-info py-2 mb-2 small">
+            <div *ngIf="createPaymentType === 'EWALLET'" class="iz-notice iz-notice--review py-2 mb-2 small" role="alert">
               Funds will be paid to this number. Daily cellphone withdrawal limit is R3000.
             </div>
 
             <div *ngIf="createPaymentType === 'BANK_ACC'">
               <div class="mb-2">
-                <label class="form-label">Bank Name</label>
+                <label>Bank Name</label>
                 <select class="form-control" name="createBankSelect"
                     [(ngModel)]="selectedBankConfigForNewUser"
                     (ngModelChange)="onBankSelectedForNewUser($event)">
@@ -128,11 +129,11 @@
                 </select>
               </div>
               <div class="mb-2">
-                <label class="form-label">Account Number</label>
+                <label>Account Number</label>
                 <input type="text" class="form-control" [(ngModel)]="newUser.bank.accountId" name="createAccountNumber">
               </div>
               <div class="mb-2">
-                <label class="form-label">Account Type</label>
+                <label>Account Type</label>
                 <select class="form-control" [(ngModel)]="newUser.bank.type" name="createAccountType">
                   <option [ngValue]="'CHEQUE'">Cheque</option>
                   <option [ngValue]="'SAVINGS'">Savings</option>
@@ -141,14 +142,14 @@
                 </select>
               </div>
               <div class="mb-2">
-                <label class="form-label">Branch Code</label>
+                <label>Branch Code</label>
                 <input type="text" class="form-control" [(ngModel)]="newUser.bank.branchCode" name="createBranchCode"
                     [readonly]="!!selectedBankConfigForNewUser"
                     [class.bg-light]="!!selectedBankConfigForNewUser">
                 <small *ngIf="selectedBankConfigForNewUser" class="text-muted">Auto-filled from selected bank</small>
               </div>
               <div class="mb-2">
-                <label class="form-label">Bank Phone Number</label>
+                <label>Bank Phone Number</label>
                 <input type="tel" class="form-control" [(ngModel)]="newUser.bank.phone" name="createBankPhone">
                 <small class="text-muted">Mobile number linked to this bank account</small>
               </div>
@@ -163,14 +164,14 @@
       </div>
 
       <!-- Alerts -->
-      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
-        {{ errorMessage }}
-        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      <div *ngIf="errorMessage" class="iz-notice iz-notice--blocked mb-3 d-flex align-items-center justify-content-between" role="alert">
+        <span>{{ errorMessage }}</span>
+        <button type="button" class="btn btn-link p-0 ms-2" style="color: var(--text-color);" (click)="errorMessage = ''" aria-label="Dismiss">&times;</button>
       </div>
 
-      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-        {{ successMessage }}
-        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      <div *ngIf="successMessage" class="iz-notice iz-notice--success mb-3 d-flex align-items-center justify-content-between" role="alert">
+        <span>{{ successMessage }}</span>
+        <button type="button" class="btn btn-link p-0 ms-2" style="color: var(--text-color);" (click)="successMessage = ''" aria-label="Dismiss">&times;</button>
       </div>
 
       <!-- Loading -->
@@ -183,7 +184,7 @@
       <!-- No Results -->
       <div *ngIf="!isLoading && searchResults.length === 0 && searchPhone.length > 0" class="text-center py-4">
         <i class="fa fa-search fa-2x  mb-2"></i>
-        <p class="">No user found</p>
+        <p>No user found</p>
       </div>
 
       <!-- Users List -->
@@ -227,7 +228,7 @@
       <div *ngIf="!selectedUser" class="text-center py-5">
         <i class="fa fa-user-circle fa-3x  mb-3"></i>
         <h5>Search for a user</h5>
-        <p class="">Enter a mobile number to find and manage a user account.</p>
+        <p>Enter a mobile number to find and manage a user account.</p>
       </div>
 
       <div *ngIf="selectedUser" class="card">
@@ -314,17 +315,19 @@
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label d-block">Payout Method</label>
-                  <div class="btn-group w-100" role="group">
-                    <input type="radio" class="btn-check" id="edit-ewallet" name="editPaymentType" value="EWALLET" [(ngModel)]="selectedUser.bank.type">
-                    <label class="btn btn-outline-dark" for="edit-ewallet">Cash (eWallet)</label>
-                    <input type="radio" class="btn-check" id="edit-bank" name="editPaymentType" value="CHEQUE" [(ngModel)]="selectedUser.bank.type">
-                    <label class="btn btn-outline-dark" for="edit-bank">Bank Account</label>
+                  <label>Payout Method</label>
+                  <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                    <label class="btn btn-outline-dark" [class.active]="selectedUser.bank.type === 'EWALLET'">
+                      <input type="radio" name="editPaymentType" value="EWALLET" [(ngModel)]="selectedUser.bank.type"> eWallet
+                    </label>
+                    <label class="btn btn-outline-dark" [class.active]="selectedUser.bank.type !== 'EWALLET'">
+                      <input type="radio" name="editPaymentType" value="CHEQUE" [(ngModel)]="selectedUser.bank.type"> Bank Account
+                    </label>
                   </div>
                 </div>
                 <div *ngIf="selectedUser.bank.type === 'CHEQUE' || selectedUser.bank.type === 'SAVINGS' || selectedUser.bank.type === 'TRANSMISSION'">
                   <div class="mb-2">
-                    <label class="form-label">Bank Name</label>
+                    <label>Bank Name</label>
                     <select class="form-control" name="editBankSelect"
                         [(ngModel)]="selectedUser.bank.name">
                       <option [ngValue]="undefined" disabled>Select your bank</option>
@@ -332,11 +335,11 @@
                     </select>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">Account Number</label>
+                    <label>Account Number</label>
                     <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.accountId" name="editAccountNumber">
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">Account Type</label>
+                    <label>Account Type</label>
                     <select class="form-control" [(ngModel)]="selectedUser.bank.type" name="editAccountType">
                       <option [ngValue]="'CHEQUE'">Cheque</option>
                       <option [ngValue]="'SAVINGS'">Savings</option>
@@ -345,11 +348,11 @@
                     </select>
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">Branch Code</label>
+                    <label>Branch Code</label>
                     <input type="text" class="form-control" [(ngModel)]="selectedUser.bank.branchCode" name="editBranchCode">
                   </div>
                   <div class="mb-2">
-                    <label class="form-label">Bank Phone Number</label>
+                    <label>Bank Phone Number</label>
                     <input type="tel" class="form-control" [(ngModel)]="selectedUser.bank.phone" name="editBankPhone">
                     <small class="text-muted">Mobile number linked to this bank account</small>
                   </div>
@@ -390,7 +393,7 @@
     <!-- Filter row -->
     <div class="row mb-3">
       <div class="col-sm-6 col-lg-4">
-        <label class="form-label mb-1">Filter by Service Type</label>
+        <label class="mb-1">Filter by Service Type</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fa fa-filter"></i></span>
           <select class="form-control" [(ngModel)]="mapServiceFilter" (ngModelChange)="onMapFilterChange()">
@@ -400,7 +403,7 @@
         </div>
       </div>
       <div class="col-sm-6 col-lg-3">
-        <label class="form-label mb-1">Availability</label>
+        <label class="mb-1">Availability</label>
         <div class="input-group">
           <span class="input-group-text"><i class="fa fa-circle"></i></span>
           <select class="form-control" [(ngModel)]="mapAvailabilityFilter" (ngModelChange)="onMapFilterChange()">
@@ -448,7 +451,7 @@
                 <span class="text-muted small ms-2">{{ driver.mobileNumber }}</span>
                 <div class="small text-muted">{{ driver.description }} &bull; {{ driver.address }}</div>
               </div>
-              <span class="badge ms-2" [ngClass]="driver.profileApproved ? 'bg-success' : 'bg-warning text-dark'">
+              <span class="iz-badge ms-2" [ngClass]="driver.profileApproved ? 'iz-badge--green' : 'iz-badge--amber'">
                 {{ driver.profileApproved ? 'Approved' : 'Pending' }}
               </span>
             </div>
