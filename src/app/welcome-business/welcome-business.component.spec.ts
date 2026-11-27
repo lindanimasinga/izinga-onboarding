@@ -315,3 +315,39 @@ describe('WelcomeBusinessComponent', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — B-2: FixedBarService wiring
+// ---------------------------------------------------------------------------
+describe('WelcomeBusinessComponent — UX review fixes (B-2)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildBFixture() {
+    const storage = { referralPartnerRef: null, sawPricing: false } as any;
+    const analytics = { logEvent: jasmine.createSpy('logEvent'), logScreenView: jasmine.createSpy('logScreenView') } as any;
+    const firebase = { getRemoteConfigBoolean: jasmine.createSpy('getRemoteConfigBoolean').and.returnValue(true) } as any;
+    TestBed.configureTestingModule({
+      declarations: [WelcomeBusinessComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: StorageService, useValue: storage },
+        { provide: AnalyticsService, useValue: analytics },
+        { provide: FirebaseService, useValue: firebase },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
+      ]
+    });
+    const f = TestBed.createComponent(WelcomeBusinessComponent);
+    const c = f.componentInstance;
+    f.detectChanges();
+    return { fixture: f, component: c };
+  }
+
+  // B-2: FixedBarService.acquire() on ngOnInit, release() on ngOnDestroy
+  it('B-2 — ngOnInit acquires has-fixed-bar; ngOnDestroy releases it', () => {
+    const { component, fixture } = buildBFixture();
+    fixture.detectChanges();
+    expect(document.body.classList.contains('has-fixed-bar')).toBeTrue();
+    component.ngOnDestroy();
+    expect(document.body.classList.contains('has-fixed-bar')).toBeFalse();
+  });
+});

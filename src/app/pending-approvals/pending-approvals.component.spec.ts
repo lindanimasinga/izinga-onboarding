@@ -591,3 +591,54 @@ describe('PendingApprovalsComponent', () => {
     });
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — PA-3: criminal-check tab badge vs. all-clear icon
+// ---------------------------------------------------------------------------
+describe('PendingApprovalsComponent — UX review fixes (PA-3)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildPAFixture(pendingUsers: UserProfile[] = []) {
+    TestBed.configureTestingModule({
+      declarations: [PendingApprovalsComponent],
+      imports: [RouterTestingModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: makeOrderSvc(pendingUsers) },
+        { provide: StorageService, useValue: makeStorageSvc() },
+        { provide: ChatService, useValue: makeChatSvc() }
+      ]
+    });
+    const f = TestBed.createComponent(PendingApprovalsComponent);
+    const c = f.componentInstance;
+    f.detectChanges();
+    return { fixture: f, component: c };
+  }
+
+  // PA-3 (a): when no user has a pending criminal check the check_circle icon renders
+  it('PA-3a — all-clear icon (aria-label="All clear") is present when criminalCheckPendingUsers is empty', () => {
+    // No users → criminalCheckPendingUsers.length === 0
+    const { fixture } = buildPAFixture([]);
+    const icon: HTMLElement | null = fixture.nativeElement.querySelector('i[aria-label="All clear"]');
+    expect(icon).not.toBeNull('all-clear icon must be present when there are no pending criminal checks');
+  });
+
+  // PA-3 (b): when a user IS pending criminal-check the badge renders and the icon does not
+  it('PA-3b — iz-badge appears and all-clear icon is hidden when criminalCheckPendingUsers is non-empty', () => {
+    const criminalPending: UserProfile = {
+      id: 'u-crim-1',
+      mobileNumber: '+27831110001',
+      crminalCheckData: {
+        criminalRecordCheckAccepted: true,
+        criminalCheckPass: undefined
+      }
+    } as any;
+    const { fixture } = buildPAFixture([criminalPending]);
+
+    const badge: HTMLElement | null = fixture.nativeElement.querySelector('span.iz-badge');
+    const icon: HTMLElement | null = fixture.nativeElement.querySelector('i[aria-label="All clear"]');
+
+    expect(badge).not.toBeNull('iz-badge must render when at least one criminal check is pending');
+    expect(icon).toBeNull('all-clear icon must NOT render when criminal check is pending');
+  });
+});

@@ -351,3 +351,80 @@ describe('PhoneVerificationComponent — REQ-PP (ONB-UX-02)', () => {
     expect(privacyNotice).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// UX review ONB-UX-02 — PV-1, PV-2, PV-4, PV-7
+// Verifies that input attributes and structural fixes are present in the
+// rendered DOM, not just in the template source.
+// ---------------------------------------------------------------------------
+describe('PhoneVerificationComponent — UX review fixes (PV-1 PV-2 PV-4 PV-7)', () => {
+  afterEach(() => TestBed.resetTestingModule());
+
+  function buildPVFixture() {
+    const orderSvc = jasmine.createSpyObj('IzingaOrderManagementService', ['sendWhatsAppOtp', 'verifyWhatsAppOtp']);
+    const firebaseSvc = jasmine.createSpyObj('FirebaseService', ['requestVerification', 'confirmCode', 'signInWithWhatsAppToken', 'createCapture']);
+    const storageSvc = { phoneNumber: '', returnUrl: null } as any;
+    const analyticsSvc = { logScreenView: () => {}, logEvent: () => {} } as any;
+    const routerSvc = { navigate: jasmine.createSpy(), navigateByUrl: jasmine.createSpy() } as any;
+    TestBed.configureTestingModule({
+      declarations: [PhoneVerificationComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        { provide: IzingaOrderManagementService, useValue: orderSvc },
+        { provide: StorageService, useValue: storageSvc },
+        { provide: FirebaseService, useValue: firebaseSvc },
+        { provide: AnalyticsService, useValue: analyticsSvc },
+        { provide: Router, useValue: routerSvc },
+        { provide: ActivatedRoute, useValue: { queryParams: of({}) } }
+      ]
+    });
+    const f = TestBed.createComponent(PhoneVerificationComponent);
+    const c = f.componentInstance;
+    f.detectChanges();
+    return { fixture: f, component: c };
+  }
+
+  // PV-1: phone input must expose numeric keypad and phone autocomplete on mobile
+  it('PV-1 — phone input has type="tel", inputmode="tel", autocomplete="tel"', () => {
+    const { fixture } = buildPVFixture();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[name="mobileNumber"]');
+    expect(input).not.toBeNull('phone input must be present in DOM');
+    expect(input.type).toBe('tel');
+    expect(input.getAttribute('inputmode')).toBe('tel');
+    expect(input.getAttribute('autocomplete')).toBe('tel');
+  });
+
+  // PV-2: OTP input must trigger numeric keypad and SMS autofill on mobile
+  it('PV-2 — OTP input has inputmode="numeric" and autocomplete="one-time-code"', () => {
+    const { fixture, component } = buildPVFixture();
+    // The OTP input is rendered only when isVerificationRequested is true.
+    component.isVerificationRequested = true;
+    fixture.detectChanges();
+    const otpInput: HTMLInputElement = fixture.nativeElement.querySelector('input[name="code"]');
+    expect(otpInput).not.toBeNull('OTP input must be present after verification is requested');
+    expect(otpInput.getAttribute('inputmode')).toBe('numeric');
+    expect(otpInput.getAttribute('autocomplete')).toBe('one-time-code');
+  });
+
+  // PV-4: resend must be a keyboard-reachable <button>, not a <div> with a click handler
+  it('PV-4 — resend control is button.btn-link.resend type=button; no div.resend wrapper', () => {
+    const { fixture, component } = buildPVFixture();
+    // The resend section is inside *ngIf="isVerificationRequested"
+    component.isVerificationRequested = true;
+    fixture.detectChanges();
+    // New: a focusable <button> with the resend class
+    const resendBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button.resend');
+    expect(resendBtn).not.toBeNull('resend <button> must be present');
+    expect(resendBtn.type).toBe('button');
+    expect(resendBtn.classList.contains('btn-link')).toBeTrue();
+    // Old wrapper <div> with click handler must be gone
+    const resendDiv = fixture.nativeElement.querySelector('div.resend');
+    expect(resendDiv).toBeNull('div.resend must not exist — click was moved to a <button>');
+  });
+
+  // PV-7: onHeadingTap() was a debugging aid on the heading; it must be absent from the class
+  it('PV-7 — onHeadingTap method does not exist on the component class', () => {
+    const { component } = buildPVFixture();
+    expect((component as any).onHeadingTap).toBeUndefined();
+  });
+});
