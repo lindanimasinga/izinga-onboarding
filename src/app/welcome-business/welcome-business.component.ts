@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { StorageService } from '../service/storage-service.service';
 import { AnalyticsService } from '../service/analytics.service';
 import { FirebaseService } from '../service/firebase.service';
+import { FixedBarService } from '../service/fixed-bar.service';
 
 /**
  * RP-005b: Capture ?ref=CODE query param at the start of the business registration
@@ -45,10 +46,13 @@ export class WelcomeBusinessComponent implements OnInit, AfterViewInit, OnDestro
     private route: ActivatedRoute,
     private storageService: StorageService,
     private analytics: AnalyticsService,
-    private firebaseService: FirebaseService
+    private firebaseService: FirebaseService,
+    private fixedBarService: FixedBarService
   ) {}
 
   ngOnInit(): void {
+    this.fixedBarService.acquire();
+
     // Apply Remote Config flag — getValue reads the last-activated cache;
     // the default (true) is used on first load before the async fetch completes.
     this.tierPreviewEnabled = this.firebaseService.getRemoteConfigBoolean(
@@ -96,6 +100,7 @@ export class WelcomeBusinessComponent implements OnInit, AfterViewInit, OnDestro
 
   ngOnDestroy(): void {
     this.intersectionObserver?.disconnect();
+    this.fixedBarService.release();
   }
 
   /**
